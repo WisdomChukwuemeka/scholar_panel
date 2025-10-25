@@ -55,7 +55,7 @@ export default function PublicationDetail() {
 
   return (
     <div className="min-h-screen bg-[#f5f7f4] py-16 px-6">
-      <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-10">
+      <div className="max-w-6xl mx-auto grid md:grid-cols-1 gap-10">
         {/* Left Section - Text Content */}
         <motion.div
           initial={{ opacity: 0, y: 25 }}
@@ -67,7 +67,7 @@ export default function PublicationDetail() {
             <video
               src={publication.video_file}
               controls
-              className="w-full rounded-2xl object-cover"
+              className="w-full xl:max-w-4xl rounded-2xl object-cover"
               style={{ maxHeight: "400px" }}
               onError={() =>
                 toast.error(`Failed to load video for ${publication.title}`)
@@ -87,6 +87,8 @@ export default function PublicationDetail() {
             <strong>Abstract: </strong>
             <span className="font-poppins text-gray-600 text-lg leading-relaxed">{publication.abstract}</span>
           </p>
+          <p ><strong>Content: </strong><span className="font-poppins text-gray-600 text-lg leading-relaxed">{publication.content}</span></p>
+          <p><strong>Publication date: </strong><span>{publication.publication_date}</span></p>
 
           {/* Status Info */}
           <div>
@@ -150,7 +152,6 @@ export default function PublicationDetail() {
           </div>
         </motion.div>
         
-        <p ><strong>Content: </strong><span className="font-poppins text-gray-600 text-lg leading-relaxed">{publication.content}</span></p>
 
 
         {/* Right Section - Video or Placeholder */}

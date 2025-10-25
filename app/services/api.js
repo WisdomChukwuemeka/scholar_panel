@@ -2,8 +2,8 @@ import axios from 'axios';
 import { SecureStorage } from '@/utils/secureStorage';
 
 // Base URL for your backend API
-// const myBaseUrl = 'http://localhost:8000/api';
-const myBaseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+const myBaseUrl = 'http://localhost:8000/api';
+// const myBaseUrl = process.env.NEXT_PUBLIC_BASE_URL;
 
 const api = axios.create({
   baseURL: myBaseUrl,

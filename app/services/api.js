@@ -32,7 +32,7 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// --- 🔁 Auto-logout on expired or invalid token ---
+// ---  Auto-logout on expired or invalid token ---
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -52,7 +52,7 @@ api.interceptors.response.use(
   }
 );
 
-// --- ⏳ Token Expiry Auto-Check (Optional) ---
+// --- Token Expiry Auto-Check (Optional) ---
 export const isTokenExpired = (token) => {
   if (!token || typeof token !== "string") return true;
 
@@ -72,7 +72,7 @@ export const isTokenExpired = (token) => {
 };
 
 
-// --- 📦 API Endpoints ---
+// ---  API Endpoints ---
 export const AuthAPI = {
   register: (formData) => api.post('/register/', formData),
   login: (credentials) => api.post('/login/', credentials),

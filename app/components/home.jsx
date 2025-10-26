@@ -38,6 +38,25 @@ export default function HomePage () {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+  const handleScroll = () => {
+    const icon = document.getElementById("customerCareIcon");
+    if (icon) {
+      if (window.scrollY > window.innerHeight / 2) {
+        icon.classList.remove("opacity-0", "invisible");
+        icon.classList.add("opacity-100", "visible");
+      } else {
+        icon.classList.remove("opacity-100", "visible");
+        icon.classList.add("opacity-0", "invisible");
+      }
+    }
+  };
+
+  window.addEventListener("scroll", handleScroll);
+  return () => window.removeEventListener("scroll", handleScroll);
+}, []);
+
+
   return (
     <>
       {/* First Section */}
@@ -250,7 +269,22 @@ export default function HomePage () {
           ))}
         </div>
       </div>
+      <Link href={"/authorspage"}>view all editors</Link>
     </section>
+
+    {/* Floating Customer Care Icon */}
+<Link
+  href="/components/contact"
+  className={`fixed bottom-10 right-8 z-50 bg-blue-600 text-white p-4 rounded-full shadow-lg transition-all duration-300 hover:bg-blue-700 ${
+    typeof window !== "undefined" && window.scrollY > window.innerHeight / 2
+      ? "opacity-100 visible"
+      : "opacity-0 invisible"
+  }`}
+  id="customerCareIcon"
+>
+  <i className="bi bi-headset text-2xl"></i>
+</Link>
+
 
     </>
   );

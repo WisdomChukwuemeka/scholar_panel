@@ -1,4 +1,3 @@
-// frontend/components/Header.jsx
 "use client";
 
 import { SecureStorage } from "@/utils/secureStorage";
@@ -56,6 +55,7 @@ export const Header = () => {
         );
 
         setNotifications(unreadOnly);
+        setUnreadCount(unreadOnly.length);
       } catch (error) {
         if (error.response?.status === 403 || error.response?.status === 401) {
           SecureStorage.remove("access_token");
@@ -166,28 +166,7 @@ export const Header = () => {
           <ul className="hidden xl:flex space-x-6 text-one">
             <Link href="/"><li className="li-hover">Home</li></Link>
             <Link href="/components/about"><li className="li-hover">About</li></Link>
-            <div className="relative">
-              <button className="li-hover flex items-center" onClick={togglePublications}>
-                Publications <i className={`bi bi-chevron-${isPublicationsOpen ? "up" : "down"} text-sm ml-1`}></i>
-              </button>
-              <AnimatePresence>
-                {isPublicationsOpen && (
-                  <motion.div
-                    className="absolute top-full left-0 mt-2 w-48 bg-white border border-gray-200 shadow-lg z-10"
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <ul className="py-2">
-                      <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">Journals</li>
-                      <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">Books</li>
-                      <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">Articles</li>
-                    </ul>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+            <Link href="/publications/list"><li className="li-hover">Publications</li></Link>
             <div className="relative">
               <button className="li-hover flex items-center" onClick={toggleConferences}>
                 Conferences <i className={`bi bi-chevron-${isConferencesOpen ? "up" : "down"} text-sm ml-1`}></i>
@@ -320,32 +299,13 @@ export const Header = () => {
                   About
                 </li>
               </Link>
-              <div className="relative">
-                <button
-                  className="flex items-center justify-center gap-2 hover:bg-blue-100 py-2 rounded-md cursor-pointer transition duration-300 w-full"
-                  onClick={togglePublications}
-                >
-                  Publications{" "}
-                  <i className={`bi bi-chevron-${isPublicationsOpen ? "up" : "down"} text-sm`}></i>
-                </button>
-                <AnimatePresence>
-                  {isPublicationsOpen && (
-                    <motion.div
-                      className="absolute top-full left-0 mt-2 w-48 bg-white border border-gray-200 shadow-lg z-10"
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <ul className="py-2">
-                        <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">Journals</li>
-                        <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">Books</li>
-                        <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">Articles</li>
-                      </ul>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+             
+                <Link href="/publications/list">
+                <li className="flex items-center justify-center gap-2 hover:bg-blue-100 py-2 rounded-md cursor-pointer transition duration-300">
+                  Pubiications
+                </li>
+              </Link>
+
               <div className="relative">
                 <button
                   className="flex items-center justify-center gap-2 hover:bg-blue-100 py-2 rounded-md cursor-pointer transition duration-300 w-full"

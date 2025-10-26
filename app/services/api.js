@@ -2,8 +2,8 @@ import axios from 'axios';
 import { SecureStorage } from '@/utils/secureStorage';
 
 // Base URL for your backend API
-const myBaseUrl = 'http://localhost:8000/api';
-// const myBaseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+// const myBaseUrl = 'http://localhost:8000/api';
+const myBaseUrl = process.env.NEXT_PUBLIC_BASE_URL;
 
 const api = axios.create({
   baseURL: myBaseUrl,
@@ -128,6 +128,15 @@ export const NotificationAPI = {
   markRead: (id) => api.patch(`/notifications/${id}/read/`, { is_read: true }),
   markAllRead: () => api.patch('/notifications/mark-all-read/'),
 };
+
+export const MessageAPI = {
+  list: (params = "") => api.get(`/messages/${params}`),
+  detail: (id) => api.get(`/messages/${id}/`),
+  create: (data) => api.post("/messages/", data),
+  update: (id, data) => api.patch(`/messages/${id}/`, data),
+  delete: (id) => api.delete(`/messages/${id}/`),
+};
+
 
 // --- 💸 Payment Endpoints ---
 export const PaymentAPI = {

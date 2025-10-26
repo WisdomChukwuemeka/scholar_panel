@@ -4,32 +4,69 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { SecureStorage } from "@/utils/secureStorage";
+import { MessageAPI } from "@/app/services/api"; //  your Django API integration
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function ContactPage() {
   const router = useRouter();
-    const [isLoading, setIsLoading] = useState(true);
-    const [hasToken, setHasToken] = useState(false);
-  
-    useEffect(() => {
-      const token = SecureStorage.get("access_token");
-      setHasToken(!!token);
-      if (!token) {
-        router.replace("/login");
-      }
-      setTimeout(() => {
-        setIsLoading(false);
-      }, 500); // Show spinner for 2 seconds
-    }, []);
-  
-    if (isLoading || !hasToken) {
-      return (
-        <div className="flex justify-center items-center min-h-screen">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-600 border-solid"></div>
-        </div>
-      );
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasToken, setHasToken] = useState(false);
+  const [formData, setFormData] = useState({
+    full_name: "",
+    email: "",
+    text: "",
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    const token = SecureStorage.get("access_token");
+    setHasToken(!!token);
+    if (!token) router.replace("/login");
+    setTimeout(() => setIsLoading(false), 500);
+  }, []);
+
+  if (isLoading || !hasToken) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-600 border-solid"></div>
+      </div>
+    );
+  }
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      await MessageAPI.create(formData);
+      toast.success("✅ Message sent successfully!", {
+        position: "top-right",
+        autoClose: 4000,
+        theme: "colored",
+      });
+      setFormData({ full_name: "", email: "", text: "" });
+    } catch (error) {
+      console.error("Message send error:", error);
+      toast.error("❌ Failed to send message. Please try again.", {
+        position: "top-right",
+        autoClose: 4000,
+        theme: "colored",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
+  };
+
   return (
     <section className="bg-gray-50 py-16 px-6 sm:px-12 lg:px-24">
+      {/* ✅ Toast Container (works globally on this page) */}
+      <ToastContainer />
+
       <div className="max-w-5xl mx-auto">
         {/* Page Heading */}
         <h2 className="text-4xl font-bold text-gray-900 mb-8 text-center">
@@ -44,7 +81,7 @@ export default function ContactPage() {
         <div className="bg-white shadow-lg rounded-2xl p-8 flex flex-col md:flex-row items-center gap-8">
           <div className="flex-shrink-0">
             <Image
-              src="/ceo/ceo.png" // <-- replace with actual path to uploaded image
+              src="/ceo/ceo.png"
               alt="CEO - Chukwuemeka Wisdom Chinagorom"
               width={200}
               height={200}
@@ -85,13 +122,17 @@ export default function ContactPage() {
           <h3 className="text-2xl font-bold text-gray-900 mb-6">
             Send Us a Message
           </h3>
-          <form className="space-y-6">
+
+          <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
               <label className="block text-gray-700 font-medium mb-2">
                 Full Name
               </label>
               <input
                 type="text"
+                name="full_name"
+                value={formData.full_name}
+                onChange={handleChange}
                 className="w-full p-3 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500"
                 placeholder="Your name"
                 required
@@ -104,6 +145,9 @@ export default function ContactPage() {
               </label>
               <input
                 type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
                 className="w-full p-3 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500"
                 placeholder="Your email"
                 required
@@ -116,6 +160,9 @@ export default function ContactPage() {
               </label>
               <textarea
                 rows="5"
+                name="text"
+                value={formData.text}
+                onChange={handleChange}
                 className="w-full p-3 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500"
                 placeholder="Write your message..."
                 required
@@ -124,9 +171,12 @@ export default function ContactPage() {
 
             <button
               type="submit"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition"
+              disabled={isSubmitting}
+              className={`${
+                isSubmitting ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"
+              } text-white px-6 py-3 rounded-lg font-semibold transition`}
             >
-              Send Message
+              {isSubmitting ? "Sending..." : "Send Message"}
             </button>
           </form>
         </div>

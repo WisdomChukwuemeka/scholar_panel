@@ -48,7 +48,7 @@ export default function PublicationForm() {
     if (!formData.abstract || formData.abstract.length < 200) {
       newErrors.abstract = "Abstract must be at least 200 characters long.";
     }
-    if (formData.abstract && formData.abstract.length > 1000) {
+    if (formData.abstract && formData.abstract.length > 1500) {
       newErrors.abstract = "Abstract cannot exceed 1000 characters.";
     }
     if (!formData.content || formData.content.length < 500) {

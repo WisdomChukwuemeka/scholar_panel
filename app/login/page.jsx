@@ -5,13 +5,14 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AuthAPI } from "../services/api";
+import { ToastContainer, toast } from "react-toastify";
 
 export default function Login() {
   const [credentials, setCredentials] = useState({
     email: "",
     password: "",
   });
-  const [loading, setLoading] = useState(false); //  added
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const handleChange = (e) => {
@@ -24,7 +25,7 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true); // ✅ start spinner
+    setLoading(true);
     try {
       const response = await AuthAPI.login(credentials);
       const token = response.data.access;
@@ -38,26 +39,39 @@ export default function Login() {
       router.replace("/");
     } catch (error) {
       if (error.response) {
+        const status = error.response.status;
         const errors = error.response.data;
         let delay = 0;
-        for (const key in errors) {
-          if (Array.isArray(errors[key])) {
-            errors[key].forEach((msg) => {
+
+        // Handle specific status codes
+        if (status === 429) {
+          toast.error("Too many requests. Please wait a moment before trying again.");
+        } else if (status >= 500) {
+          toast.error("Server error. Please try again later.");
+        } else if (status >= 400) {
+          for (const key in errors) {
+            if (Array.isArray(errors[key])) {
+              errors[key].forEach((msg) => {
+                setTimeout(() => {
+                  toast.error(`${msg}`);
+                }, delay);
+                delay += 1000;
+              });
+            } else {
               setTimeout(() => {
-                toast.error(` ${msg}`);
+                toast.error(`${key}: ${errors[key]}`);
               }, delay);
               delay += 1000;
-            });
-          } else {
-            setTimeout(() => {
-              toast.error(`${key}: ${errors[key]}`);
-            }, delay);
-            delay += 1000;
+            }
           }
+        } else {
+          toast.error("An unexpected error occurred. Please try again.");
         }
+      } else {
+        toast.error("Network error. Please check your internet connection.");
       }
     } finally {
-      setLoading(false); // ✅ stop spinner
+      setLoading(false);
     }
   };
 
@@ -104,7 +118,7 @@ export default function Login() {
           <div>
             <button
               type="submit"
-              disabled={loading} // ✅ lock button
+              disabled={loading}
               className={`text w-full flex justify-center items-center py-2 px-4 border border-transparent rounded-md shadow-sm font-medium text-white ${
                 loading
                   ? "bg-blue-400 cursor-not-allowed"
@@ -133,7 +147,6 @@ export default function Login() {
                       d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
                     ></path>
                   </svg>
-                  
                 </>
               ) : (
                 "Login"
@@ -148,6 +161,8 @@ export default function Login() {
           </Link>
         </p>
       </div>
+      {/* Toast container to display messages */}
+      <ToastContainer position="top-center" autoClose={3000} hideProgressBar />
     </>
   );
 }

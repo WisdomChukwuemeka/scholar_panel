@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
-import { PublicationAPI } from "@/app/services/api";
+import { PublicationAPI, ViewsAPI } from "@/app/services/api";
 import { toast } from "react-toastify";
 import { motion } from "framer-motion";
+import { ThumbsUp, ThumbsDown, Eye } from "lucide-react";
 
 export default function PublicationDetail() {
   const router = useRouter();
@@ -14,12 +15,23 @@ export default function PublicationDetail() {
   const [publication, setPublication] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [liked, setLiked] = useState(false);
+  const [disliked, setDisliked] = useState(false);
 
   useEffect(() => {
     const fetchPublication = async () => {
       try {
         const response = await PublicationAPI.getPublication(id);
         setPublication(response.data);
+
+        // ✅ Fetch user's like/dislike status
+        try {
+          const viewResponse = await ViewsAPI.detail(id);
+          if (viewResponse?.data?.reaction === "like") setLiked(true);
+          else if (viewResponse?.data?.reaction === "dislike") setDisliked(true);
+        } catch {
+          // ignore missing status
+        }
       } catch (err) {
         setError("Publication not found.");
         toast.error("Failed to load publication.");
@@ -30,6 +42,41 @@ export default function PublicationDetail() {
     if (id) fetchPublication();
   }, [id]);
 
+  // --- Like Handler ---
+  const handleLike = async () => {
+    try {
+      await ViewsAPI.like(id);
+      toast.success("You liked this publication!");
+      setLiked(true);
+      setDisliked(false);
+      setPublication((prev) => ({
+        ...prev,
+        total_likes: liked ? prev.total_likes : prev.total_likes + 1,
+        total_dislikes: disliked ? prev.total_dislikes - 1 : prev.total_dislikes,
+      }));
+    } catch {
+      toast.error("Failed to like publication.");
+    }
+  };
+
+  // --- Dislike Handler ---
+  const handleDislike = async () => {
+    try {
+      await ViewsAPI.dislike(id);
+      toast.success("You disliked this publication!");
+      setDisliked(true);
+      setLiked(false);
+      setPublication((prev) => ({
+        ...prev,
+        total_dislikes: disliked ? prev.total_dislikes : prev.total_dislikes + 1,
+        total_likes: liked ? prev.total_likes - 1 : prev.total_likes,
+      }));
+    } catch {
+      toast.error("Failed to dislike publication.");
+    }
+  };
+
+  // --- UI Loading and Error States ---
   if (loading)
     return (
       <div className="flex justify-center items-center h-screen bg-[#f5f7f4]">
@@ -53,10 +100,11 @@ export default function PublicationDetail() {
       </div>
     );
 
+  // --- Main Return ---
   return (
     <div className="min-h-screen bg-[#f5f7f4] py-16 px-6">
       <div className="max-w-6xl mx-auto grid md:grid-cols-1 gap-10">
-        {/* Left Section - Text Content */}
+        {/* Left Section */}
         <motion.div
           initial={{ opacity: 0, y: 25 }}
           animate={{ opacity: 1, y: 0 }}
@@ -67,73 +115,121 @@ export default function PublicationDetail() {
             <video
               src={publication.video_file}
               controls
-              className="w-full xl:max-w-4xl rounded-2xl object-cover"
+              className="w-full xl:max-w-4xl rounded-2xl object-cover shadow-md"
               style={{ maxHeight: "400px" }}
               onError={() =>
                 toast.error(`Failed to load video for ${publication.title}`)
               }
             />
           ) : (
-            <div className="flex items-center justify-center h-[300px] text-gray-400 italic">
+            <div className="flex items-center justify-center h-[300px] text-gray-400 italic bg-gray-200 rounded-2xl">
               No video file available.
             </div>
           )}
 
-          <h1 className="font-rubik text-base md:text-[1.5rem] xl:text-[2xl] md:text-5xl font-bold text-gray-900 leading-tight">
+          {/* Title */}
+          <h1 className="font-rubik text-[1.8rem] md:text-[2rem] font-bold text-gray-900 leading-tight">
             Topic: {publication.title}
           </h1>
 
-          <p>
+       
+
+          {/* Abstract and Content */}
+          <p className="text-gray-700 text-lg leading-relaxed">
             <strong>Abstract: </strong>
-            <span className="font-poppins text-gray-600 text-lg leading-relaxed">{publication.abstract}</span>
+            <span className="font-poppins">{publication.abstract}</span>
           </p>
-          <p ><strong>Content: </strong><span className="font-poppins text-gray-600 text-lg leading-relaxed">{publication.content}</span></p>
-          <p><strong>Publication date: </strong><span>{publication.publication_date}</span></p>
+
+          <p className="text-gray-700 text-lg leading-relaxed">
+            <strong>Content: </strong>
+            <span className="font-poppins">{publication.content}</span>
+          </p>
+
+             {/* Like / Dislike / Views */}
+          <div className="flex items-center justify-between text-gray-700 border-b pb-3 mb-4">
+            <div className="flex items-center gap-6">
+              <button
+                onClick={handleLike}
+                className={`flex items-center gap-2 transition-colors ${
+                  liked ? "text-blue-600" : "hover:text-blue-500"
+                }`}
+              >
+                <ThumbsUp size={22} />
+                <span>{publication.total_likes}</span>
+              </button>
+
+              <button
+                onClick={handleDislike}
+                className={`flex items-center gap-2 transition-colors ${
+                  disliked ? "text-red-600" : "hover:text-red-500"
+                }`}
+              >
+                <ThumbsDown size={22} />
+                <span>{publication.total_dislikes}</span>
+              </button>
+            </div>
+              
+            <div className="  flex items-center gap-6">
+              <Link href={`/components/comments?publication_id=${publication.id}`}>
+            <div className=" bg-amber-200 p-1.5 rounded-2xl cursor-pointer 
+            hover:bg-amber-500 transition duration-500 hover:text-white">Discussions</div>
+            </Link>
+            <div className="flex items-center gap-2 text-gray-600">
+              <Eye size={22} />
+              <span>{publication.views} views</span>
+            </div>
+            </div>
+          </div>
+
+          <p>
+            <strong>Publication date: </strong>
+            <span>{publication.publication_date}</span>
+          </p>
 
           {/* Status Info */}
           <div>
             <p className="text-sm text-gray-500">
               Status:{" "}
               <span
-            className={`font-semibold ${
-              publication.status === "rejected"
-                ? "text-red-600"
-                : publication.status === "approved"
-                ? "text-green-600"
-                : publication.status === "under_review"
-                ? "text-orange-500"
-                : "text-gray-700"
-            }`}
-          >
-  {publication.status.replace("_", " ")}
-</span>
-
+                className={`font-semibold ${
+                  publication.status === "rejected"
+                    ? "text-red-600"
+                    : publication.status === "approved"
+                    ? "text-green-600"
+                    : publication.status === "under_review"
+                    ? "text-orange-500"
+                    : "text-gray-700"
+                }`}
+              >
+                {publication.status.replace("_", " ")}
+              </span>
             </p>
 
-            {publication.status === "rejected" && publication.rejection_note && (
-              <div className="bg-red-50 border border-red-200 rounded-lg mt-4 p-4">
-                <p className="text-red-700 text-sm font-semibold">
-                  Editor’s Note:
-                </p>
-                <p className="text-gray-700 text-sm mt-2 leading-relaxed">
-                  {publication.rejection_note}
-                </p>
-              </div>
-            )}
+            {publication.status === "rejected" &&
+              publication.rejection_note && (
+                <div className="bg-red-50 border border-red-200 rounded-lg mt-4 p-4">
+                  <p className="text-red-700 text-sm font-semibold">
+                    Editor’s Note:
+                  </p>
+                  <p className="text-gray-700 text-sm mt-2 leading-relaxed">
+                    {publication.rejection_note}
+                  </p>
+                </div>
+              )}
           </div>
 
           {/* Buttons */}
           <div className="flex flex-wrap gap-4 mt-8">
             <button
               onClick={() => router.back()}
-              className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-3 rounded-lg shadow-md transition-colors duration-300"
+              className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-3 rounded-lg shadow-md transition-all duration-300"
             >
               Back
             </button>
 
             {publication.status === "rejected" && (
               <Link href={`/publications/edit/${publication.id}`}>
-                <button className="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-3 rounded-lg shadow-md transition-colors duration-300">
+                <button className="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-3 rounded-lg shadow-md transition-all duration-300">
                   Edit & Resubmit
                 </button>
               </Link>
@@ -144,29 +240,16 @@ export default function PublicationDetail() {
                 href={publication.file}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg shadow-md transition-colors duration-300"
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg shadow-md transition-all duration-300"
               >
                 View Full PDF
               </a>
             )}
           </div>
         </motion.div>
-        
-
-
-        {/* Right Section - Video or Placeholder */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="rounded-2xl overflow-hidden shadow-lg bg-white"
-        >
-          
-        </motion.div>
       </div>
 
-
-      {/* Metrics Section (like example image) */}
+      {/* Bottom Spacer */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}

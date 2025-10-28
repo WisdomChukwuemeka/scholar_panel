@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { SecureStorage } from '@/utils/secureStorage'; // Adjust path as needed
 
-const AUTH_PATHS = ['/login', '/register']; // Paths where logged-in users should be redirected away from
+const AUTH_PATHS = ['/login', '/register', '/terms', '/verification']; // Paths where logged-in users should be redirected away from
 const PUBLIC_PATHS = ['/']; // Truly public paths like home, accessible regardless of auth
 
 export default function ProtectedRoute({ children }) {

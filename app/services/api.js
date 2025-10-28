@@ -2,8 +2,8 @@ import axios from 'axios';
 import { SecureStorage } from '@/utils/secureStorage';
 
 // Base URL for your backend API
-// const myBaseUrl = 'http://localhost:8000/api';
-const myBaseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+const myBaseUrl = 'http://localhost:8000/api';
+// const myBaseUrl = process.env.NEXT_PUBLIC_BASE_URL;
 
 const api = axios.create({
   baseURL: myBaseUrl,
@@ -115,11 +115,9 @@ export const CategoryAPI = {
 };
 
 export const ViewsAPI = {
-  like: (publicationId) =>
-    api.patch(`/publications/${publicationId}/views/`, { action: 'like' }),
-  dislike: (publicationId) =>
-    api.patch(`/publications/${publicationId}/views/`, { action: 'dislike' }),
-  detail: (publicationId) => api.get(`/publications/${publicationId}/views/me/`),
+  like: (publicationId) => api.post(`/publications/${publicationId}/like/`),
+  dislike: (publicationId) => api.post(`/publications/${publicationId}/dislike/`),
+  detail: (publicationId) => api.get(`/publications/${publicationId}/views/`),
 };
 
 export const NotificationAPI = {
@@ -193,7 +191,20 @@ export const PaymentAPI = {
   getFreeReviewStatus: async () => {
   return await api.get('/free-review-status/');
 },
-
 };
+
+export const CommentAPI = {
+  list: (publicationId, params = "") =>
+    api.get(`/publications/${publicationId}/comments/${params}`),
+  create: (publicationId, data) =>
+    api.post(`/publications/${publicationId}/comments/`, data),
+  detail: (publicationId, commentId) =>
+    api.get(`/publications/${publicationId}/comments/${commentId}/`),
+  update: (publicationId, commentId, data) =>
+    api.patch(`/publications/${publicationId}/comments/${commentId}/`, data),
+  delete: (publicationId, commentId) =>
+    api.delete(`/publications/${publicationId}/comments/${commentId}/`),
+};
+
 
 export default api;

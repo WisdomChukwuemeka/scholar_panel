@@ -242,14 +242,15 @@ export default function HomePage () {
 
 
 <section className="bg-gray-50 py-12 overflow-hidden">
-      <Link className="flex justify-center items-center 
-      text-base md:text-[2rem] xl:text-[1.5rem] mb-5" href={"/authorspage"}>
-          <div>
-            <button className="mt-8 px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">
+      
+          <div className="flex justify-center mb-8">
+            <Link href={"/authorspage"}>
+            <button className="px-3 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition cursor-pointer">
               View Full Editorial Board
             </button>
+            </Link>
           </div>
-      </Link>
+      
 
       <div className="relative w-full overflow-hidden">
         {/* Sliding container */}

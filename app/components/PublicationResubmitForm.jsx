@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { PublicationAPI, PaymentAPI, isTokenExpired } from "../services/api";
+import { PublicationAPI, PaymentAPI } from "../services/api";
 import PaymentModal from "./PaymentModel";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -75,8 +75,8 @@ export default function PublicationResubmitForm({ publicationId: propPublication
       newErrors.title = "Title must be at least 10 characters long.";
     if (!formData.abstract || formData.abstract.length < 200)
       newErrors.abstract = "Abstract must be at least 200 characters long.";
-    if (formData.abstract.length > 1000)
-      newErrors.abstract = "Abstract cannot exceed 1000 characters.";
+    if (formData.abstract.length > 1500)
+      newErrors.abstract = "Abstract cannot exceed 1500 characters.";
     if (!formData.content || formData.content.length < 500)
       newErrors.content = "Content must be at least 500 characters long.";
     if (formData.content.length > 10000)
@@ -126,13 +126,6 @@ export default function PublicationResubmitForm({ publicationId: propPublication
       return;
     }
 
-    if (isTokenExpired()) {
-      toast.error("Session expired. Please log in again.", { toastId: "session-expired" });
-      setIsSubmitting(false);
-      router.push("/login");
-      return;
-    }
-
     const validationErrors = validateForm();
     if (Object.keys(validationErrors).length > 0) {
       Object.entries(validationErrors).forEach(([key, value]) =>
@@ -147,12 +140,31 @@ export default function PublicationResubmitForm({ publicationId: propPublication
 
     try {
       await PublicationAPI.patch(publicationId, data);
-      toast.success("Resubmission saved. Proceed to payment.");
-      setPendingFormData(data);
-      setShowPaymentModal(true);
+      toast.success("Resubmission saved.");
+
+      // ✅ Check free review status before deciding on payment
+      const freeStatusResponse = await PaymentAPI.getFreeReviewStatus();
+      const hasFreeAvailable = freeStatusResponse.data.has_free_review_available;
+      const freeReviewsRemaining = freeStatusResponse.data.free_reviews_granted ? (2 - freeStatusResponse.data.free_reviews_used) : 0;
+
+      if (hasFreeAvailable) {
+        // Use free review: Set is_free_review=true and update status to pending without payment
+        toast.info(`Using one of your remaining free reviews. No payment needed.`);
+        data.append("is_free_review", "true");
+        data.append("status", "pending");
+        await PublicationAPI.patch(publicationId, data);
+        router.push(`/publications/${publicationId}`);
+      } else {
+        // No free reviews: Proceed to payment
+        data.append("is_free_review", "false");
+        setPendingFormData(data);
+        setShowPaymentModal(true);
+      }
     } catch (err) {
-    //   console.error("Resubmission error:", err.response?.data || err.message);
-      toast.error("Failed to resubmit publication.");
+      if (err.response?.status !== 401) {  // Skip toasting on auth errors (interceptor handles)
+        const errorMsg = err.response?.data?.detail || "Failed to resubmit publication.";
+        toast.error(errorMsg);
+      }
       setIsSubmitting(false);
     }
   };
@@ -173,7 +185,9 @@ export default function PublicationResubmitForm({ publicationId: propPublication
         router.push(`/publications/${publicationId}`);
       }
     } catch (err) {
-      toast.error("Payment verification failed.");
+      if (err.response?.status !== 401) {
+        toast.error("Payment verification failed.");
+      }
       setShowPaymentModal(false);
       setIsSubmitting(false);
     }
@@ -299,8 +313,8 @@ export default function PublicationResubmitForm({ publicationId: propPublication
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:bg-gray-400"
           disabled={isSubmitting}
         >
-          Resubmit & Pay Review Fee
-        </button>
+          Resubmit Publication
+        </button>  {/* Updated label to not assume payment */}
       </form>
 
       {showPaymentModal && (

@@ -1,3 +1,5 @@
+"use client"
+
 // frontend/components/PaymentHistory.jsx
 import React, { useState, useEffect } from 'react';
 import { PaymentAPI } from '@/app/services/api';

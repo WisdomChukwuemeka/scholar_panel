@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { NotificationAPI } from "../services/api";
+import { ProfileAPI } from "../services/api";
 
 export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -19,6 +20,7 @@ export const Header = () => {
   const [isConferencesOpen, setIsConferencesOpen] = useState(false);
   const [isGuidelinesOpen, setIsGuidelinesOpen] = useState(false);
   const [isMarkingRead, setIsMarkingRead] = useState(false);
+  const [profileImage, setProfileImage] = useState(null);
 
   const router = useRouter();
 
@@ -78,6 +80,29 @@ export const Header = () => {
       return () => clearInterval(intervalId);
     }
   }, [isLoggin, isMarkingRead, router]);
+
+  useEffect(() => {
+  const fetchProfileImage = async () => {
+    if (!isLoggin) return;
+
+    try {
+      const res = await ProfileAPI.list();
+      const profiles = res.data.results;
+      if (profiles.length > 0 && profiles[0].profile_image) {
+        setProfileImage(profiles[0].profile_image);
+      } else {
+        setProfileImage(null);
+      }
+      console.log(res.data.results)
+    } catch (err) {
+      console.error("Error fetching profile image:", err);
+      setProfileImage(null);
+    }
+  };
+
+  fetchProfileImage();
+}, [isLoggin]);
+
 
   // ✅ Handle click on notification item
   const handleNotificationClick = async (notification) => {
@@ -240,6 +265,28 @@ export const Header = () => {
 
           {/* Right Section */}
           <div className="flex space-x-4 text-one items-center">
+
+{isLoggin && (
+  <div>
+    <Link href="/profile">
+      <div className="relative inline-block">
+      {profileImage ? (
+        <img
+          src={profileImage}
+          alt="Profile"
+          className="w-8 h-8 rounded-full object-cover"
+        />
+      ) : (
+        <i className="bi bi-person-circle text-2xl"></i>
+      )}
+      <div className="absolute bottom-0 right-0 w-2 h-2 bg-green-500 rounded-full border-2 border-white"></div>
+      </div>
+    </Link>
+  </div>
+)}
+
+        
+
             {/* 🔔 Notifications */}
             <div
               className="relative flex items-center cursor-pointer"
@@ -309,13 +356,13 @@ export const Header = () => {
         <AnimatePresence>
           {isNotificationOpen && (
             <motion.div
-              className="absolute right-0 mt-2 w-80 bg-white border border-gray-200 shadow-lg z-50"
+              className="absolute right-0 mt-0 w-80 bg-white border border-gray-200 shadow-lg z-50"
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.3 }}
             >
-              <div className="p-4">
+              <div className="p-4 z-20">
                 <h3 className="text-lg font-semibold text-gray-800">Notifications</h3>
                 {notifications.length > 0 ? (
                   <ul className="mt-2 space-y-2">
@@ -353,13 +400,109 @@ export const Header = () => {
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div
-            className="xl:hidden absolute right-0 w-full bg-white shadow-lg z-50 overflow-hidden"
+            className="xl:hidden absolute left-0 w-full bg-white shadow-lg z-10 overflow-hidden"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.4, ease: "easeInOut" }}
           >
-            {/* ... your existing mobile menu code ... */}
+            <ul className="grid grid-cols-3 gap-4 px-8 py-4 text-one justify-center items-center mx-auto max-w-screen-md">
+            <Link href="/"><li className="px-4 py-2 hover:bg-gray-100 cursor-pointer rounded-md font-medium text-gray-800">Home</li></Link>
+            <Link href="/components/about"><li className="px-4 py-2 hover:bg-gray-100 cursor-pointer rounded-md font-medium text-gray-800">About</li></Link>
+            <Link href="/publications/list"><li className="px-4 py-2 hover:bg-gray-100 cursor-pointer rounded-md font-medium text-gray-800">Publications</li></Link>
+
+            {/* Conferences Dropdown */}
+            <div className="relative col-span-1">
+              <button
+                className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center rounded-md font-medium text-gray-800 w-full"
+                onClick={toggleConferences}
+              >
+                Conferences{" "}
+                <i
+                  className={`bi bi-chevron-${isConferencesOpen ? "up" : "down"} text-sm ml-1`}
+                ></i>
+              </button>
+              <AnimatePresence>
+                {isConferencesOpen && (
+                  <motion.div
+                    className="absolute top-full left-0 mt-2 w-full bg-white border border-gray-200 shadow-lg z-10"
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <ul className="py-2">
+                      <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
+                        Upcoming Conferences
+                      </li>
+                      <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
+                        Past Conferences
+                      </li>
+                    </ul>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            <Link href="/components/contact"><li className="px-4 py-2 hover:bg-gray-100 cursor-pointer rounded-md font-medium text-gray-800">Contact</li></Link>
+
+            {/* Guidelines Dropdown */}
+            <div className="relative col-span-1">
+              <button
+                className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center rounded-md font-medium text-gray-800 w-full"
+                onClick={toggleGuidelines}
+              >
+                Guidelines{" "}
+                <i
+                  className={`bi bi-chevron-${isGuidelinesOpen ? "up" : "down"} text-sm ml-1`}
+                ></i>
+              </button>
+              <AnimatePresence>
+                {isGuidelinesOpen && (
+                  <motion.div
+                    className="absolute top-full left-0 mt-2 w-full bg-white border border-gray-200 shadow-lg z-10"
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <ul className="py-2">
+                      <Link href="/guidelines/author">
+                        <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">For Authors</li>
+                      </Link>
+                      <Link href="/guidelines/reviewers">
+                        <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">For Reviewers</li>
+                      </Link>
+                      <Link href="/guidelines/editors">
+                        <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">For Editors</li>
+                      </Link>
+                    </ul>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            <Link href="/components/services"><li className="px-4 py-2 hover:bg-gray-100 cursor-pointer rounded-md font-medium text-gray-800">Services</li></Link>
+            <Link href="/components/resources"><li className="px-4 py-2 hover:bg-gray-100 cursor-pointer rounded-md font-medium text-gray-800">Resources</li></Link>
+            <Link href="/components/PaymentHistory"><li className="px-4 py-2 hover:bg-gray-100 cursor-pointer rounded-md font-medium text-gray-800">Payment History</li></Link>
+
+            {/* Role-specific Buttons */}
+            <div className="col-span-3 flex justify-center">
+            {role === "editor" ? (
+              <Link href="/dashboard" className="flex justify-center">
+                <button className="bg-blue-600 text-white btn hover:bg-blue-800 duration-500 px-4 py-2 rounded-md">
+                  Dashboard
+                </button>
+              </Link>
+            ) : (
+              <Link href="/publications/create" className="flex justify-center">
+                <button className="bg-orange-600 text-white btn hover:bg-orange-800 duration-500 px-4 py-2 rounded-md">
+                  Submit an Article
+                </button>
+              </Link>
+            )}
+            </div>
+          </ul>
           </motion.div>
         )}
       </AnimatePresence>

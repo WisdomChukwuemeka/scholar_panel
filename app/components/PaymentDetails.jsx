@@ -23,6 +23,7 @@ export default function PublicationDetail() {
       try {
         const response = await PublicationAPI.getPublication(id);
         setPublication(response.data);
+        console.log("Fetched publication:", response.data);
 
         // ✅ Fetch user's like/dislike status
         try {
@@ -147,7 +148,7 @@ export default function PublicationDetail() {
 
              {/* Like / Dislike / Views */}
           <div className="flex items-center justify-between text-gray-700 border-b pb-3 mb-4">
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2 md:gap-6 ">
               <button
                 onClick={handleLike}
                 className={`flex items-center gap-2 transition-colors ${
@@ -169,14 +170,14 @@ export default function PublicationDetail() {
               </button>
             </div>
               
-            <div className="  flex items-center gap-6">
-              <Link href={`/components/comments?publication_id=${publication.id}`}>
+            <div className="  flex items-center gap-2 md:gap-6 ">
+              <Link href={`/comments/${publication.id}`}>
             <div className=" bg-amber-200 p-1.5 rounded-2xl cursor-pointer 
             hover:bg-amber-500 transition duration-500 hover:text-white">Discussions</div>
             </Link>
             <div className="flex items-center gap-2 text-gray-600">
               <Eye size={22} />
-              <span>{publication.views} views</span>
+              <span className="flex">{publication.views}</span>
             </div>
             </div>
           </div>
@@ -184,6 +185,11 @@ export default function PublicationDetail() {
           <p>
             <strong>Publication date: </strong>
             <span>{publication.publication_date}</span>
+          </p>
+          
+          <p>
+            <strong>Author: </strong>
+            <span>{publication.author}</span>
           </p>
 
           {/* Status Info */}

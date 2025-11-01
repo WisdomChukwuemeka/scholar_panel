@@ -99,11 +99,16 @@ body {
   .container { max-width: 100%; }
 }
 @media (min-width: 1536px) { /* 2xl */
-  .container { max-width: 1920px; }
+  .container { max-width: 100%; }
+}
+@media (min-width: 3840px) {
+  .container {
+    max-width: 1920px; /* keeps content from stretching too far */
+  }
 }
 
   @media (min-width: 5120px) {
   .container {
-    max-width: 2560px; /* keeps content from stretching too far */
+    max-width: 1536px; /* keeps content from stretching too far */
   }
 }

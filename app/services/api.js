@@ -206,5 +206,18 @@ export const CommentAPI = {
     api.delete(`/publications/${publicationId}/comments/${commentId}/`),
 };
 
+export const ProfileAPI = {
+  list: () => api.get('/profiles/'),
+  create: (data) =>
+    api.post('/profiles/', data, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
+  update: (id, data) =>
+    api.patch(`/profiles/${id}/`, data, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
+};
+
+
 
 export default api;

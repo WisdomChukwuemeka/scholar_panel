@@ -484,7 +484,9 @@ export const Header = () => {
 
             <Link href="/components/services"><li className="px-4 py-2 hover:bg-gray-100 cursor-pointer rounded-md font-medium text-gray-800">Services</li></Link>
             <Link href="/components/resources"><li className="px-4 py-2 hover:bg-gray-100 cursor-pointer rounded-md font-medium text-gray-800">Resources</li></Link>
-            <Link href="/components/PaymentHistory"><li className="px-4 py-2 hover:bg-gray-100 cursor-pointer rounded-md font-medium text-gray-800">Payment History</li></Link>
+            {isLoggin && (
+                <Link href="/components/PaymentHistory"><li className="px-4 py-2 hover:bg-gray-100 cursor-pointer rounded-md font-medium text-gray-800">Payment History</li></Link>
+            )}
 
             {/* Role-specific Buttons */}
             <div className="col-span-3 flex justify-center">

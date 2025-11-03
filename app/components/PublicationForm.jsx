@@ -20,6 +20,7 @@ export default function PublicationForm() {
     video_file: null,
     status: "draft",
   });
+  
   const [errors, setErrors] = useState({});
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [currentPublicationId, setCurrentPublicationId] = useState(null);

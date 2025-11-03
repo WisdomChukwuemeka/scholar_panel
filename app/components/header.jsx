@@ -169,7 +169,7 @@ export const Header = () => {
   return (
     <section>
       <header className="relative bg-white shadow-md">
-        <nav className="container mx-auto flex items-center justify-between px-8 py-2">
+        <nav className="container mx-auto flex items-center justify-between px-2 py-2">
           {/* Logo */}
           <Link href="/">
             <Image
@@ -267,7 +267,7 @@ export const Header = () => {
           <div className="flex space-x-4 text-one items-center">
 
 {isLoggin && (
-  <div>
+  <div className="hidden md:flex">
     <Link href="/profile">
       <div className="relative inline-block">
       {profileImage ? (
@@ -400,13 +400,13 @@ export const Header = () => {
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div
-            className="xl:hidden absolute left-0 w-full bg-white shadow-lg z-10 overflow-hidden"
+            className="xl:hidden absolute right-0 p-3 w-fit bg-white shadow-lg z-10 overflow-hidden"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.4, ease: "easeInOut" }}
           >
-            <ul className="grid grid-cols-3 gap-4 px-8 py-4 text-one justify-center items-center mx-auto max-w-screen-md">
+            <ul className=" text-one justify-center items-center max-w-screen-md">
             <Link href="/"><li className="px-4 py-2 hover:bg-gray-100 cursor-pointer rounded-md font-medium text-gray-800">Home</li></Link>
             <Link href="/components/about"><li className="px-4 py-2 hover:bg-gray-100 cursor-pointer rounded-md font-medium text-gray-800">About</li></Link>
             <Link href="/publications/list"><li className="px-4 py-2 hover:bg-gray-100 cursor-pointer rounded-md font-medium text-gray-800">Publications</li></Link>

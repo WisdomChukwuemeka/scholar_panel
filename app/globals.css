@@ -22,7 +22,7 @@ html{
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
-    --foreground: #ededed;
+    --foreground: #ffffff;
   }
 }
 
@@ -30,7 +30,7 @@ body {
   font-family: "Merriweather", "Lora", "Playfair Display", "Cormorant Garamond",
     "Libre Baskerville", "Roboto Slab", "EB Garamond", "Source Serif 4",
     Georgia, "Times New Roman", serif;
-  background: var(--foreground);
+  background: rgb(240, 240, 240);
   color: var(--background);
   height: 100%;
   margin: 0;
@@ -78,16 +78,13 @@ body {
   width: max-content; /* ensures flex items don't shrink */
 }
 
- .container {
-  margin-left: auto;
-  margin-right: auto;
-  padding-left: 1rem;
-  padding-right: 1rem;
-  width: 100%;
-}
+ 
 
+@media (min-width: 320px) { /* sm */
+  .container { max-width: 100%; }
+}
 @media (min-width: 640px) { /* sm */
-  .container { max-width: 640px; }
+  .container { max-width: 100%; }
 }
 @media (min-width: 768px) { /* md */
   .container { max-width: 100%; }
@@ -96,14 +93,25 @@ body {
   .container { max-width: 100%; }
 }
 @media (min-width: 1280px) { /* xl */
-  .container { max-width: 100%; }
+  .container { max-width: 100%; 
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+  }
 }
 @media (min-width: 1536px) { /* 2xl */
-  .container { max-width: 100%; }
+  .container { max-width: 100%; 
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+  }
 }
 @media (min-width: 3840px) {
   .container {
-    max-width: 1920px; /* keeps content from stretching too far */
+  max-width: 1920px; /* keeps content from stretching too far */
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
   }
 }
 

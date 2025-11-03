@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { ProfileAPI } from '../services/api'; // Adjust the import path as needed
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Image from 'next/image';
 
 const ProfilePage = () => {
   const [profile, setProfile] = useState(null);
@@ -17,20 +18,23 @@ const ProfilePage = () => {
   });
   const [selectedImage, setSelectedImage] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [profileImageFile, setProfileImageFile] = useState(null);
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         const response = await ProfileAPI.list();
-        const profiles = response.data;
+        const profiles = response.data.results || response.data;
         const ownProfile = profiles.length > 0 ? profiles[0] : null;
+        console.log('Fetched profiles:', profiles);
+        setProfileImageFile(profiles);
         if (ownProfile) {
           setProfile(ownProfile);
           setFormData({
             bio: ownProfile.bio || '',
             institution: ownProfile.institution || '',
             affiliation: ownProfile.affiliation || '',
-          });
+          }); 
           setPreviewUrl(ownProfile.profile_image || null);
           setEditing(false);
         } else {
@@ -134,6 +138,7 @@ const ProfilePage = () => {
   }
 
   return (
+    <>
     <div className="container mx-auto p-4 max-w-md">
       <h1 className="text-2xl font-bold mb-6 text-center">My Profile</h1>
       {profile && !editing ? (
@@ -249,6 +254,7 @@ const ProfilePage = () => {
       )}
       <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
     </div>
+    </>
   );
 };
 

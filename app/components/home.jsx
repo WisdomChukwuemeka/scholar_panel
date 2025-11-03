@@ -71,7 +71,7 @@ export default function HomePage () {
         <div className="absolute inset-0 bg-black/80"></div>
         <div className="relative text-center text-white">
           <h1 className="text-4xl font-bold text-blue-600">Publications</h1>
-          <p className="mt-2 text">
+          <p className="mt-2 text px-3 md:px-0 max-w-2xl mx-auto">
             We make publishing your work super easy from the comfort of home.
           </p>
         </div>
@@ -112,7 +112,7 @@ export default function HomePage () {
 
         {/* Right Text (slideshow with animation) */}
         <div className="space-y-2 flex flex-col items-center w-fit overflow-hidden">
-          <section className="relative px-6 md:px-0 py-12 min-h-[250px] flex items-center justify-center">
+          <section className="relative px-1 md:px-0 py-12 min-h-[250px] flex items-center justify-center">
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentIndex}

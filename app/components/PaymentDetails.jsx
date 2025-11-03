@@ -184,7 +184,7 @@ export default function PublicationDetail() {
 
           <p>
             <strong>Publication date: </strong>
-            <span>{publication.publication_date}</span>
+            <span>{new Date (publication.publication_date).toLocaleDateString()}</span>
           </p>
           
           <p>

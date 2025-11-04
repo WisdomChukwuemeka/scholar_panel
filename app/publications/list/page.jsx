@@ -33,6 +33,7 @@ export default function PublicationListPage() {
       setCount(data.count || 0);
       setTotalPages(Math.ceil(data.count / pageSize));
       setCurrentPage(page);
+      console.log(data.results)
     } catch (err) {
       // console.error(err);
       // setError("Failed to load publications.");
@@ -144,7 +145,7 @@ useEffect(() => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 bg-gray-50 min-h-screen">
       <div className="bg-white rounded-xl shadow-lg p-6 sm:p-8">
         <h2 className="text-3xl font-bold text-gray-900 mb-6 tracking-tight">
-          My Publications
+          Publications
         </h2>
 
         {/* ✅ Create & Search Controls */}
@@ -176,7 +177,30 @@ useEffect(() => {
           <p className="text-gray-600 text-center py-6">No publications found.</p>
         ) : (
           <>
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+
+          {
+            publications.map((pub) => (
+              <div key={pub.id} className="border border-gray-200 rounded-lg p-6 mb-6 bg-white 
+              hover:shadow-md transition-shadow duration-200
+              flex justify-between items-center">
+                <div>
+                <h3 className=" text ">{pub.title}</h3>
+                <p>Author: {pub.author}</p>
+                <p>Date: {new Date(pub.publication_date).toLocaleDateString()}</p>
+                </div>
+                <div className="flex space-x-4">
+                    <button
+                      onClick={() => router.push(`/publications/${pub.id}`)}
+                      className="text-indigo-600 hover:text-indigo-800 font-medium text-sm transition-colors duration-150"
+                    >
+                      View
+                    </button>
+                  </div>
+              </div>
+            ))
+          }
+
+            {/* <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {publications.map((pub) => (
                 <div
                   key={pub.id}
@@ -200,7 +224,7 @@ useEffect(() => {
                     </p>
                   )}
 
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2 truncate">
+                  <h3 className="text-md font-semibold text-gray-900 mb-2 ">
                     {pub.title}
                   </h3>
 
@@ -233,7 +257,7 @@ useEffect(() => {
                   </div>
                 </div>
               ))}
-            </div>
+            </div> */}
 
             {/* ✅ Pagination */}
             <div className="flex justify-center items-center space-x-2 mt-8 flex-wrap">

@@ -132,12 +132,12 @@ export default function HomePage () {
             </AnimatePresence>
 
             {/* Buttons */}
-          <div className="absolute bottom-0 flex gap-4 pt-4 ">
-            <button className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-md transition">
+          <div className="absolute bottom-0 flex gap-4 pt-4">
+            <button className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-2 rounded-md transition">
               Submit Article
             </button>
             <Link href="/publications/list">
-            <button className="border border-orange-500 text-orange-600 hover:bg-orange-500 hover:text-white px-6 py-2 rounded-md transition">
+            <button className="border border-orange-500 text-orange-600 hover:bg-orange-500 hover:text-white px-2 py-2 rounded-md transition">
               View All Publications
             </button>
             </Link>

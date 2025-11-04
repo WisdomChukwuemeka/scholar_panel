@@ -212,6 +212,14 @@ export default function EditorDashboard() {
                 >
                   View PDF
                 </button>
+
+                   {/* <button
+                  onClick={() => window.open(`/dashboard/annotate/${pub.id}`, "_blank")}
+                  className="bg-indigo-600 text-white px-3 py-2 rounded-lg hover:bg-indigo-700 transition mt-4"
+                >
+                  ✏️ View & Annotate PDF
+                </button> */}
+
                 <div className="flex flex-wrap justify-between items-center mt-4 gap-2">
                   <button
                     onClick={() => handleUnderReview(pub.id)}

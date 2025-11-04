@@ -400,13 +400,13 @@ export const Header = () => {
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div
-            className="xl:hidden absolute right-0 p-3 w-fit bg-white shadow-lg z-10 overflow-hidden"
+            className="nav-text xl:hidden absolute right-0 p-3 w-fit bg-white shadow-lg z-10 overflow-hidden"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.4, ease: "easeInOut" }}
           >
-            <ul className=" text-one justify-center items-center max-w-screen-md">
+            <ul className=" text-one flex flex-col gap-5 justify-center items-center max-w-screen-md">
             <Link href="/"><li className="px-4 py-2 hover:bg-gray-100 cursor-pointer rounded-md font-medium text-gray-800">Home</li></Link>
             <Link href="/components/about"><li className="px-4 py-2 hover:bg-gray-100 cursor-pointer rounded-md font-medium text-gray-800">About</li></Link>
             <Link href="/publications/list"><li className="px-4 py-2 hover:bg-gray-100 cursor-pointer rounded-md font-medium text-gray-800">Publications</li></Link>
@@ -468,13 +468,13 @@ export const Header = () => {
                   >
                     <ul className="py-2">
                       <Link href="/guidelines/author">
-                        <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">For Authors</li>
+                        <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">Authors</li>
                       </Link>
                       <Link href="/guidelines/reviewers">
-                        <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">For Reviewers</li>
+                        <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">Reviewers</li>
                       </Link>
                       <Link href="/guidelines/editors">
-                        <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">For Editors</li>
+                        <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">Editors</li>
                       </Link>
                     </ul>
                   </motion.div>

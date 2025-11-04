@@ -151,7 +151,7 @@ export default function PublicationResubmitForm({ publicationId: propPublication
         // Use free review: Set is_free_review=true and update status to pending without payment
         toast.info(`Using one of your remaining free reviews. No payment needed.`);
         data.append("is_free_review", "true");
-        data.append("status", "pending");
+        data.append("status", "under_review");
         await PublicationAPI.patch(publicationId, data);
         router.push(`/publications/${publicationId}`);
       } else {
@@ -177,7 +177,7 @@ export default function PublicationResubmitForm({ publicationId: propPublication
         setShowPaymentModal(false);
 
         if (pendingFormData) {
-          pendingFormData.append("status", "pending");
+          pendingFormData.append("status", "under_review");
           await PublicationAPI.patch(publicationId, pendingFormData);
           setPendingFormData(null);
         }

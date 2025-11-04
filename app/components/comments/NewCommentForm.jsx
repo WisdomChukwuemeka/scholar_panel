@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { CommentAPI } from "@/app/services/api";
+import { CommentAPI, PointRewardAPI } from "@/app/services/api";
 import { toast } from "react-toastify";
 import { useParams } from "next/navigation";
 
@@ -16,7 +16,9 @@ export default function NewCommentForm({ onCommentAdded, parentId = null }) {
   const [deleteConfirmId, setDeleteConfirmId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isTyping, setIsTyping] = useState(false);
+  const [totalPoints, setTotalPoints] = useState(0);
   const chatEndRef = useRef(null);
+
 
   // === Fetch comments ===
   useEffect(() => {
@@ -27,6 +29,12 @@ export default function NewCommentForm({ onCommentAdded, parentId = null }) {
         const response = await CommentAPI.list(publicationId);
         const data = response.data.results || response.data || [];
         setComments(data);
+        console.log("Fetched comments:", data);
+        // Fetch total points
+      const pointsRes = await PointRewardAPI.list(publicationId);
+      const pointsData = pointsRes.data.results || pointsRes.data || [];
+      const total = pointsData.reduce((sum, r) => sum + (r.points || 0), 0);
+      setTotalPoints(total);
       } catch (error) {
         console.error("Failed to fetch comments:", error);
         toast.error("Failed to load comments.");
@@ -79,6 +87,15 @@ export default function NewCommentForm({ onCommentAdded, parentId = null }) {
       setNewComment("");
       toast.success("Comment sent!");
       onCommentAdded?.(newCommentObj);
+      // Refresh points after new comment
+      try {
+        const pointsRes = await PointRewardAPI.list(publicationId);
+        const pointsData = pointsRes.data.results || pointsRes.data || [];
+        const total = pointsData.reduce((sum, r) => sum + (r.points || 0), 0);
+        setTotalPoints(total);
+      } catch (err) {
+        console.warn("Could not refresh points:", err);
+      }
     } catch (error) {
       console.error("Failed to post comment:", error);
       toast.error("Failed to post comment.");
@@ -140,10 +157,25 @@ export default function NewCommentForm({ onCommentAdded, parentId = null }) {
     }
   };
 
+  let medalImage = null;
+  if (totalPoints >= 5000) {
+    medalImage = '/rewardimage/gold.png';
+  } else if (totalPoints >= 2500) {
+    medalImage = '/rewardimage/silver.png';
+  } else if (totalPoints >= 1000) {
+    medalImage = '/rewardimage/bronze.png';
+  }
+
   // === Render ===
   return (
-    <div className="max-w-2xl w-fit mx-auto  bg-gradient-to-br from-indigo-50 via-white to-purple-50 rounded-2xl shadow-lg border border-gray-100">
-      <h2 className="text-xl font-semibold mb-4 text-gray-800">Discussion</h2>
+    <div className="text max-w-2xl w-full mx-auto  bg-gradient-to-br from-indigo-50 via-white to-purple-50 rounded-2xl shadow-lg border border-gray-100">
+        <h2 className="flex justify-between text-xl font-semibold mb-4 text-gray-800 items-center gap-2 pt-2 px-2">
+          Discussion
+          <span className="text-sm bg-indigo-100 text-indigo-600 px-3 py-1 rounded-full flex items-center">
+            ⭐ {totalPoints} points
+            {medalImage && <img src={medalImage} alt="Medal" className="w-4 h-4 ml-1" />}
+          </span>
+        </h2>
 
       {/* Chat Area */}
       <div className="h-96 overflow-y-auto p-3 bg-white/70 rounded-xl border border-gray-200 shadow-inner flex flex-col">

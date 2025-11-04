@@ -104,6 +104,7 @@ export const PublicationAPI = {
       throw error;
     }
   },
+  annotate: (id, data) => api.patch(`/publications/${id}/annotate/`, data),
 };
 
 export const CategoryAPI = {
@@ -217,6 +218,27 @@ export const ProfileAPI = {
       headers: { 'Content-Type': 'multipart/form-data' },
     }),
 };
+
+export const PointRewardAPI = {
+  //  Get all point rewards for a publication
+  list: (publicationId) =>
+    api.get(`/publications/${publicationId}/pointrewards/`),
+
+  //  Get details of a specific point reward
+  detail: (publicationId, pointId) =>
+    api.get(`/publications/${publicationId}/pointrewards/${pointId}/`),
+
+  //  Optional (if you ever allow manual creation)
+  create: (publicationId, data) =>
+    api.post(`/publications/${publicationId}/pointrewards/`, data),
+
+  //  Optional update or delete if you ever expose admin functions
+  update: (publicationId, pointId, data) =>
+    api.patch(`/publications/${publicationId}/pointrewards/${pointId}/`, data),
+  delete: (publicationId, pointId) =>
+    api.delete(`/publications/${publicationId}/pointrewards/${pointId}/`),
+};
+
 
 
 

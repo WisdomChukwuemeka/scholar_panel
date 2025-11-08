@@ -7,7 +7,7 @@ import { toast } from "react-toastify";
 import { useParams } from "next/navigation";
 
 export default function NewCommentForm({ onCommentAdded, parentId = null }) {
-  const { publicationId } = useParams(); // ← string UUID from URL
+  const { publicationId } = useParams();
   const [newComment, setNewComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [comments, setComments] = useState([]);
@@ -19,39 +19,45 @@ export default function NewCommentForm({ onCommentAdded, parentId = null }) {
   const [totalPoints, setTotalPoints] = useState(0);
   const chatEndRef = useRef(null);
 
-
-  // === Fetch comments ===
-  useEffect(() => {
+  // === Fetch comments + points ===
+  const fetchComments = async () => {
     if (!publicationId) return;
+    try {
+      const response = await CommentAPI.list(publicationId);
+      const data = response.data.results || response.data || [];
 
-    const fetchComments = async () => {
-      try {
-        const response = await CommentAPI.list(publicationId);
-        const data = response.data.results || response.data || [];
+      // Compare with current comments before updating
+      if (
+        data.length !== comments.length ||
+        JSON.stringify(data[data.length - 1]) !== JSON.stringify(comments[comments.length - 1])
+      ) {
         setComments(data);
-        console.log("Fetched comments:", data);
-        // Fetch total points
+      }
+
+      // Refresh total points if changed
       const pointsRes = await PointRewardAPI.list(publicationId);
       const pointsData = pointsRes.data.results || pointsRes.data || [];
       const total = pointsData.reduce((sum, r) => sum + (r.points || 0), 0);
-      setTotalPoints(total);
-      } catch (error) {
-        console.error("Failed to fetch comments:", error);
-        toast.error("Failed to load comments.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchComments();
-  }, [publicationId]);
-
-  // === Auto-scroll to bottom ===
-  useEffect(() => {
-    if (chatEndRef.current && !isTyping) {
-      chatEndRef.current.scrollIntoView({ behavior: "smooth" });
+      if (total !== totalPoints) setTotalPoints(total);
+    } catch (error) {
+      console.error("Failed to fetch comments:", error);
+    } finally {
+      setLoading(false);
     }
-  }, [comments, isTyping]);
+  };
+
+  // === Initial load + Polling ===
+  useEffect(() => {
+  if (!publicationId) return;
+  fetchComments(); // initial fetch
+
+  const intervalId = setInterval(() => {
+    if (!isTyping) fetchComments(); // only fetch when not typing
+  }, 10000); // every 10s
+
+  return () => clearInterval(intervalId);
+}, [publicationId, isTyping]); //  fixed dependencies
+
 
   // === Typing indicator ===
   useEffect(() => {
@@ -60,7 +66,7 @@ export default function NewCommentForm({ onCommentAdded, parentId = null }) {
       return;
     }
     setIsTyping(true);
-    const timeout = setTimeout(() => setIsTyping(false), 2000);
+    const timeout = setTimeout(() => setIsTyping(false), 5000);
     return () => clearTimeout(timeout);
   }, [newComment]);
 
@@ -68,7 +74,6 @@ export default function NewCommentForm({ onCommentAdded, parentId = null }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!newComment.trim()) return toast.warning("Comment cannot be empty.");
-
     setSubmitting(true);
     setIsTyping(false);
 
@@ -87,15 +92,12 @@ export default function NewCommentForm({ onCommentAdded, parentId = null }) {
       setNewComment("");
       toast.success("Comment sent!");
       onCommentAdded?.(newCommentObj);
-      // Refresh points after new comment
-      try {
-        const pointsRes = await PointRewardAPI.list(publicationId);
-        const pointsData = pointsRes.data.results || pointsRes.data || [];
-        const total = pointsData.reduce((sum, r) => sum + (r.points || 0), 0);
-        setTotalPoints(total);
-      } catch (err) {
-        console.warn("Could not refresh points:", err);
-      }
+
+      // Refresh points
+      const pointsRes = await PointRewardAPI.list(publicationId);
+      const pointsData = pointsRes.data.results || pointsRes.data || [];
+      const total = pointsData.reduce((sum, r) => sum + (r.points || 0), 0);
+      setTotalPoints(total);
     } catch (error) {
       console.error("Failed to post comment:", error);
       toast.error("Failed to post comment.");
@@ -105,13 +107,10 @@ export default function NewCommentForm({ onCommentAdded, parentId = null }) {
   };
 
   // === Format time ===
-  const formatTime = (isoString) => {
-    if (!isoString) return "";
-    return new Date(isoString).toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
+  const formatTime = (isoString) =>
+    isoString
+      ? new Date(isoString).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+      : "";
 
   // === Delete ===
   const handleDeleteClick = (id) => setDeleteConfirmId(id);
@@ -134,12 +133,10 @@ export default function NewCommentForm({ onCommentAdded, parentId = null }) {
     setEditingId(comment.id);
     setEditText(comment.text);
   };
-
   const handleEditCancel = () => {
     setEditingId(null);
     setEditText("");
   };
-
   const handleEditSave = async (commentId) => {
     if (!editText.trim()) return toast.warning("Comment cannot be empty.");
 
@@ -157,30 +154,26 @@ export default function NewCommentForm({ onCommentAdded, parentId = null }) {
     }
   };
 
+  // === Medal logic ===
   let medalImage = null;
-  if (totalPoints >= 5000) {
-    medalImage = '/rewardimage/gold.png';
-  } else if (totalPoints >= 2500) {
-    medalImage = '/rewardimage/silver.png';
-  } else if (totalPoints >= 1000) {
-    medalImage = '/rewardimage/bronze.png';
-  }
+  if (totalPoints >= 5000) medalImage = "/rewardimage/gold.png";
+  else if (totalPoints >= 2500) medalImage = "/rewardimage/silver.png";
+  else if (totalPoints >= 1000) medalImage = "/rewardimage/bronze.png";
 
   // === Render ===
   return (
-    <div className="text max-w-2xl w-full mx-auto  bg-gradient-to-br from-indigo-50 via-white to-purple-50 rounded-2xl shadow-lg border border-gray-100">
-        <h2 className="flex justify-between text-xl font-semibold mb-4 text-gray-800 items-center gap-2 pt-2 px-2">
-          Discussion
-          <span className="text-sm bg-indigo-100 text-indigo-600 px-3 py-1 rounded-full flex items-center">
-            ⭐ {totalPoints} points
-            {medalImage && <img src={medalImage} alt="Medal" className="w-4 h-4 ml-1" />}
-          </span>
-        </h2>
+    <div className="text max-w-2xl w-full mx-auto bg-gradient-to-br from-indigo-50 via-white to-purple-50 rounded-2xl shadow-lg border border-gray-100">
+      <h2 className="flex justify-between text-xl font-semibold mb-4 text-gray-800 items-center gap-2 pt-2 px-2">
+        Discussion
+        <span className="text-sm bg-indigo-100 text-indigo-600 px-3 py-1 rounded-full flex items-center">
+          ⭐ {totalPoints} points
+          {medalImage && <img src={medalImage} alt="Medal" className="w-4 h-4 ml-1" />}
+        </span>
+      </h2>
 
       {/* Chat Area */}
-      <div className="h-96 overflow-y-auto p-3 bg-white/70 rounded-xl border border-gray-200 shadow-inner flex flex-col">
+      <div className="h-96 md:h-200 overflow-y-auto p-3 bg-white/70 rounded-xl border border-gray-200 shadow-inner flex flex-col">
         {loading && <p className="text-gray-500 text-center">Loading comments...</p>}
-
         {!loading && comments.length === 0 && (
           <p className="text-gray-400 text-center text-sm">
             No comments yet. Be the first to start the conversation
@@ -200,14 +193,11 @@ export default function NewCommentForm({ onCommentAdded, parentId = null }) {
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.25 }}
                 >
-                  {/* Avatar (other user) */}
                   {!isCurrentUser && (
                     <div className="flex-shrink-0 bg-indigo-200 text-indigo-800 w-8 h-8 flex items-center justify-center rounded-full font-semibold">
                       {cmt.author_name?.[0]?.toUpperCase() || "A"}
                     </div>
                   )}
-
-                  {/* Bubble */}
                   <div
                     className={`max-w-[70%] p-3 rounded-2xl shadow-sm ${
                       isCurrentUser
@@ -215,15 +205,12 @@ export default function NewCommentForm({ onCommentAdded, parentId = null }) {
                         : "bg-gray-200 text-gray-800 rounded-bl-none"
                     }`}
                   >
-                    {/* Edit Mode */}
                     {editingId === cmt.id ? (
                       <div className="flex flex-col gap-2">
                         <textarea
                           value={editText}
                           onChange={(e) => setEditText(e.target.value)}
-                          className={`w-full text-sm rounded-xl p-2 border focus:outline-none ${
-                            isCurrentUser ? "text-gray-800 border-indigo-300" : "text-gray-800 border-gray-300"
-                          }`}
+                          className="w-full text-sm rounded-xl p-2 border focus:outline-none border-indigo-300 text-gray-800"
                           rows={2}
                         />
                         <div className="flex justify-end gap-2">
@@ -242,7 +229,6 @@ export default function NewCommentForm({ onCommentAdded, parentId = null }) {
                         </div>
                       </div>
                     ) : deleteConfirmId === cmt.id ? (
-                      /* Delete Confirm */
                       <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -266,7 +252,6 @@ export default function NewCommentForm({ onCommentAdded, parentId = null }) {
                         </div>
                       </motion.div>
                     ) : (
-                      /* Normal View */
                       <>
                         <div className="flex justify-between items-start">
                           <p className="text-sm leading-snug flex-1 break-words">{cmt.text}</p>
@@ -274,15 +259,13 @@ export default function NewCommentForm({ onCommentAdded, parentId = null }) {
                             <div className="ml-2 flex items-center gap-1 text-xs">
                               <button
                                 onClick={() => handleEditStart(cmt)}
-                                className="text-indigo-100 hover:text-yellow-200 transition"
-                                title="Edit"
+                                className="text-indigo-100 hover:text-yellow-200"
                               >
                                 Edit
                               </button>
                               <button
                                 onClick={() => handleDeleteClick(cmt.id)}
-                                className="text-indigo-100 hover:text-red-300 transition"
-                                title="Delete"
+                                className="text-indigo-100 hover:text-red-300"
                               >
                                 Delete
                               </button>
@@ -300,8 +283,6 @@ export default function NewCommentForm({ onCommentAdded, parentId = null }) {
                       </>
                     )}
                   </div>
-
-                  {/* Avatar (current user) */}
                   {isCurrentUser && (
                     <div className="flex-shrink-0 bg-indigo-600 text-white w-8 h-8 flex items-center justify-center rounded-full font-semibold">
                       {cmt.author_name?.[0]?.toUpperCase() || "Y"}
@@ -311,8 +292,6 @@ export default function NewCommentForm({ onCommentAdded, parentId = null }) {
               );
             })}
           </AnimatePresence>
-
-          {/* Typing Indicator */}
           {isTyping && (
             <motion.div
               className="flex items-center gap-2 justify-start mt-2"
@@ -331,7 +310,6 @@ export default function NewCommentForm({ onCommentAdded, parentId = null }) {
             </motion.div>
           )}
         </div>
-
         <div ref={chatEndRef} />
       </div>
 

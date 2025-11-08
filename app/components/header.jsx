@@ -344,9 +344,9 @@ export const Header = () => {
             {/* Mobile Menu Toggle */}
             <div className="cursor-pointer text-black" onClick={toggleMenu}>
               {isMenuOpen ? (
-                <i className="bi bi-x-lg text-2xl xl:hidden"></i>
+                <i className="bi bi-x-lg text-2xl md:text-3xl xl:hidden"></i>
               ) : (
-                <i className="bi bi-list text-2xl xl:hidden"></i>
+                <i className="bi bi-list text-2xl md:text-3xl xl:hidden"></i>
               )}
             </div>
           </div>
@@ -400,7 +400,7 @@ export const Header = () => {
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div
-            className="nav-text xl:hidden absolute right-0 p-3 w-fit bg-white shadow-lg z-10 overflow-hidden"
+            className="text-md md:text-[1.5rem] xl:hidden absolute right-0 p-3 w-fit bg-white shadow-lg z-10 overflow-hidden"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}

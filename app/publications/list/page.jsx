@@ -191,7 +191,7 @@ useEffect(() => {
                 <div className="flex space-x-4">
                     <button
                       onClick={() => router.push(`/publications/${pub.id}`)}
-                      className="text-indigo-600 hover:text-indigo-800 font-medium text-sm transition-colors duration-150"
+                      className="text-indigo-600 hover:text-indigo-800 font-medium text-sm transition-colors duration-150 cursor-pointer"
                     >
                       View
                     </button>

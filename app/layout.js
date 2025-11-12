@@ -18,9 +18,57 @@ const geistMono = Geist_Mono({
 export const metadata = {
   title: "Journivo",
   description: "Publish your journal, article, books from the comfort of your home.",
-  email: "wisdomchukwuemeka97@gmail.com",
-  contact: "+234906907221"
+  keywords: [
+    "Journivo",
+    "Journal Publishing",
+    "Academic Publishing",
+    "Research Articles",
+    "Open Access",
+    "Peer-Reviewed Journals",
+    "Scholarly Articles",
+    "Conference Proceedings",
+    "Research Dissemination",
+    "Editorial Services",
+    "Academic Journals",
+    "Research Publication",
+    "Scientific Journals",
+    "Publishing Platform",
+    "Research Community",
+  ],
+  icons: {
+    icon: "/logo/logo.png",
+  },
+  openGraph: {
+    title: "Journivo",
+    description: "Publish your journal, article, books from the comfort of your home.",
+    images: [
+      {
+        url: "/logo/logo.png",
+        width: 800, // Replace with actual dimensions
+        height: 600,
+        alt: "Journivo Logo",
+      },
+    ],
+    siteName: "Journivo", // Enhances Facebook/OG previews
+    type: "website", // Optional but good
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Journivo",
+    description: "Publish your journal, article, books from the comfort of your home.",
+    images: [
+      {
+        url: "/logo/logo.png",
+        width: 800,
+        height: 600,
+        alt: "Journivo Logo",
+      },
+    ],
+  },
+  // Optional: Add robots if needed
+  robots: "index, follow",
 };
+
 
 export default function RootLayout({ children }) {
   return (

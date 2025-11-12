@@ -25,6 +25,12 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!credentials.email.trim() || !credentials.password.trim()) {
+      toast.error("Email and password are required.");
+      return;
+    }
+    
     setLoading(true);
     try {
       const response = await AuthAPI.login(credentials);

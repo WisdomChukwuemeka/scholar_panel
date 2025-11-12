@@ -267,6 +267,8 @@ export default function HomePage () {
               <img
                 src={member.image}
                 alt={member.name}
+                loading="eager"            // Forces browser to load these immediately
+                decoding="async"           // Decodes images asynchronously (non-blocking
                 className="w-28 h-28 rounded-full object-cover mb-4"
               />
               <h3 className="text-red-600 font-semibold">{member.name}</h3>
@@ -282,7 +284,7 @@ export default function HomePage () {
 
     {/* Floating Customer Care Icon */}
 <Link
-  href="/components/contact"
+  href="/components/contact" 
   className={`fixed bottom-10 right-8 z-50 bg-blue-600 text-white p-4 rounded-full shadow-lg transition-all duration-300 hover:bg-blue-700 ${
     typeof window !== "undefined" && window.scrollY > window.innerHeight / 2
       ? "opacity-100 visible"

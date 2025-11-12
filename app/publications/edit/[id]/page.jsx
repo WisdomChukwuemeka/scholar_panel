@@ -1,14 +1,13 @@
 "use client";
 
-import { useParams } from "next/navigation";
-import ResubmissionForm from "@/app/components/PublicationResubmitForm";
+import { use } from "react";
+// app/publications/[id]/edit/page.jsx
+import PublicationResubmitForm from "@/app/components/PublicationResubmitForm";
 
-export default function EditPublicationPage() {
-  const { id } = useParams(); //  useParams() instead of router.query
+export default function EditPublicationPage({ params }) {
+  const { id } = use(params);
 
-  if (!id) {
-    return <p className="text-red-600 text-center mt-10">No publication ID provided.</p>;
-  }
+  if (!id) return <p className="text-red-600">No ID</p>;
 
-  return <ResubmissionForm publicationId={id} />;
+  return <PublicationResubmitForm publicationId={id} />;
 }

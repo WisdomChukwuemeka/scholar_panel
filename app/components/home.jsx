@@ -72,7 +72,7 @@ export default function HomePage () {
         <div className="relative text-center text-white">
           <h1 className="text-4xl font-bold text-blue-600">Publications</h1>
           <p className="mt-2 text px-3 md:px-0 max-w-2xl mx-auto">
-            We make publishing your work super easy from the comfort of home.
+            We make publishing your work super easy from the comfort of your home.
           </p>
         </div>
       </section>
@@ -133,9 +133,12 @@ export default function HomePage () {
 
             {/* Buttons */}
           <div className="absolute bottom-0 flex gap-4 pt-4">
-            <button className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-2 rounded-md transition">
+            <Link href="/publications/create">
+              <button className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-2 rounded-md transition">
               Submit Article
             </button>
+            </Link>
+        
             <Link href="/publications/list">
             <button className="border border-orange-500 text-orange-600 hover:bg-orange-500 hover:text-white px-2 py-2 rounded-md transition">
               View All Publications

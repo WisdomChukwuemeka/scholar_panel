@@ -120,7 +120,7 @@ export default function ServicesPage() {
               <p className="text-gray-600">Per review after two free reviews are used.</p>
             </div>
             <div className="bg-white shadow-lg rounded-2xl p-6 text-center">
-              <Link href="/publications/new" className="inline-block w-full">
+              <Link href="/publications/create" className="inline-block w-full">
                 <button className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition">
                   Submit Publication
                 </button>

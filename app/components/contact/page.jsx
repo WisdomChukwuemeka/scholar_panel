@@ -81,7 +81,7 @@ export default function ContactPage() {
         <div className="bg-white shadow-lg rounded-2xl p-8 flex flex-col md:flex-row items-center gap-8">
           <div className="flex-shrink-0">
             <Image
-              src="/ceo/ceo.png"
+              src="/ceo/ceo1.png"
               alt="CEO - Chukwuemeka Wisdom Chinagorom"
               width={200}
               height={200}
@@ -91,7 +91,7 @@ export default function ContactPage() {
 
           <div className="flex-1">
             <h3 className="text-2xl font-semibold text-gray-900">
-              Chukwuemeka Wisdom Chinagorom
+              Editor in Chief
             </h3>
             <p className="text-gray-500 mb-4">Founder & CEO, Journivo</p>
             <ul className="space-y-3">
@@ -107,10 +107,10 @@ export default function ContactPage() {
               <li>
                 <strong>Phone:</strong>{" "}
                 <a
-                  href="tel:+2349069072221"
+                  href="tel:+2349059987650"
                   className="text-blue-600 hover:underline"
                 >
-                  +234 906 907 2221
+                  +234 905 998 7650
                 </a>
               </li>
             </ul>

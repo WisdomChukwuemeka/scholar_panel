@@ -1,3 +1,4 @@
+// components/PublicationResubmitForm.jsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -7,11 +8,25 @@ import PaymentModal from "./PaymentModel";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-export default function PublicationResubmitForm({ publicationId: propPublicationId, initialData }) {
+const CATEGORY_CHOICES = [
+  { value: "journal", label: "Journal Article" },
+  { value: "conference", label: "Conference Paper" },
+  { value: "book", label: "Book/Book Chapter" },
+  { value: "thesis", label: "Thesis/Dissertation" },
+  { value: "report", label: "Technical Report" },
+  { value: "review", label: "Review Paper" },
+  { value: "case_study", label: "Case Study" },
+  { value: "editorial", label: "Editorial/Opinion" },
+  { value: "news", label: "News/Blog" },
+  { value: "other", label: "Other" },
+];
+
+export default function PublicationResubmitForm({
+  publicationId: propPublicationId,
+  initialData,
+}) {
   const router = useRouter();
   const params = useSearchParams();
-
-  // ✅ fallback: use prop or query param
   const publicationId = propPublicationId || params.get("publicationId");
 
   const [formData, setFormData] = useState({
@@ -22,247 +37,313 @@ export default function PublicationResubmitForm({ publicationId: propPublication
     keywords: initialData?.keywords || "",
     file: null,
     video_file: null,
-    status: "draft",
   });
 
   const [errors, setErrors] = useState({});
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [pendingFormData, setPendingFormData] = useState(null);
+  const [pendingBaseData, setPendingBaseData] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const CATEGORY_CHOICES = [
-    { value: "journal", label: "Journal Article" },
-    { value: "conference", label: "Conference Paper" },
-    { value: "book", label: "Book/Book Chapter" },
-    { value: "thesis", label: "Thesis/Dissertation" },
-    { value: "report", label: "Technical Report" },
-    { value: "review", label: "Review Paper" },
-    { value: "case_study", label: "Case Study" },
-    { value: "editorial", label: "Editorial/Opinion" },
-    { value: "news", label: "News/Blog" },
-    { value: "other", label: "Other" },
-  ];
-
-  // ✅ Optionally fetch initial publication data if not provided
+  /* --------------------------------------------------------------
+     Load publication (if not passed as prop)
+  -------------------------------------------------------------- */
   useEffect(() => {
     if (!initialData && publicationId) {
       setIsLoading(true);
       PublicationAPI.get(publicationId)
         .then((res) => {
           const pub = res.data;
+          if (pub.status !== "rejected") {
+            toast.error("Only rejected publications can be resubmitted.");
+            router.push(`/publications/${publicationId}`);
+            return;
+          }
           setFormData({
-            title: pub.title || "",
-            abstract: pub.abstract || "",
-            content: pub.content || "",
+            title: pub.title,
+            abstract: pub.abstract,
+            content: pub.content,
             category_name: pub.category?.name || "",
             keywords: pub.keywords || "",
             file: null,
             video_file: null,
-            status: pub.status || "draft",
           });
         })
-        .catch(() => {
-          toast.error("Failed to load publication data.");
-        })
+        .catch(() => toast.error("Failed to load publication."))
         .finally(() => setIsLoading(false));
+    } else if (initialData?.status !== "rejected") {
+      toast.error("Only rejected publications can be resubmitted.");
+      router.push(`/publications/${publicationId}`);
     }
-  }, [publicationId, initialData]);
+  }, [publicationId, initialData, router]);
 
+  /* --------------------------------------------------------------
+     Validation
+  -------------------------------------------------------------- */
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.title || formData.title.length < 10)
-      newErrors.title = "Title must be at least 10 characters long.";
-    if (!formData.abstract || formData.abstract.length < 200)
-      newErrors.abstract = "Abstract must be at least 200 characters long.";
-    if (formData.abstract.length > 1500)
-      newErrors.abstract = "Abstract cannot exceed 1500 characters.";
-    if (!formData.content || formData.content.length < 500)
-      newErrors.content = "Content must be at least 500 characters long.";
-    if (formData.content.length > 10000)
-      newErrors.content = "Content cannot exceed 10000 characters.";
+    if (!formData.title?.trim() || formData.title.length < 10)
+      newErrors.title = "Title must be at least 10 characters.";
+    if (!formData.abstract?.trim() || formData.abstract.length < 200)
+      newErrors.abstract = "Abstract must be at least 200 characters.";
+    if (formData.abstract.length > 2500)
+      newErrors.abstract = "Abstract cannot exceed 2500 characters.";
+    if (!formData.content?.trim() || formData.content.length < 500)
+      newErrors.content = "Content must be at least 500 characters.";
+    if (formData.content.length > 15000)
+      newErrors.content = "Content cannot exceed 15000 characters.";
     if (!formData.category_name)
       newErrors.category_name = "Category is required.";
-    if (formData.file && !formData.file.name.match(/\.(pdf|doc|docx)$/i))
-      newErrors.file = "Only PDF and Word documents are allowed.";
-    if (formData.video_file && !formData.video_file.name.match(/\.(mp4|avi|mov)$/i))
-      newErrors.video_file = "Only MP4, AVI, or MOV video files are allowed.";
-    if (formData.keywords && formData.keywords.split(",").length > 20)
-      newErrors.keywords = "Cannot have more than 20 keywords.";
+    if (formData.file && !/\.(pdf|doc|docx)$/i.test(formData.file.name))
+      newErrors.file = "Only PDF, DOC, DOCX allowed.";
+    if (
+      formData.video_file &&
+      !/\.(mp4|avi|mov)$/i.test(formData.video_file.name)
+    )
+      newErrors.video_file = "Only MP4, AVI, MOV allowed.";
+    if (
+      formData.keywords &&
+      formData.keywords.split(",").filter((k) => k.trim()).length > 20
+    )
+      newErrors.keywords = "Maximum 20 keywords.";
     return newErrors;
   };
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
-    setFormData({
-      ...formData,
+    setFormData((prev) => ({
+      ...prev,
       [name]: files ? files[0] : value,
-    });
+    }));
     setErrors((prev) => ({ ...prev, [name]: null }));
   };
 
-  const buildFormData = () => {
+  const buildBaseFormData = () => {
     const data = new FormData();
-    Object.keys(formData).forEach((key) => {
-      if (formData[key] !== null && formData[key] !== undefined) {
-        if (key !== "file" && key !== "video_file") {
-          data.append(key, formData[key]);
-        }
-      }
+    Object.entries(formData).forEach(([k, v]) => {
+      if (v !== null && v !== undefined) data.append(k, v);
     });
-    if (formData.file) data.append("file", formData.file);
-    if (formData.video_file) data.append("video_file", formData.video_file);
     return data;
   };
 
+  /* --------------------------------------------------------------
+     Save as Draft
+  -------------------------------------------------------------- */
+  const handleSaveDraft = async () => {
+  setIsSavingDraft(true);
+  try {
+    const payload = new FormData();
+    const allowed = ['title', 'abstract', 'content', 'category_name', 'keywords', 'file', 'video_file'];
+    allowed.forEach(key => {
+      const value = formData[key];
+      if (value !== null && value !== undefined) {
+        payload.append(key, value);
+      }
+    });
+
+    await PublicationAPI.patch(publicationId, payload);
+    toast.success("Saved as draft");
+  } catch (err) {
+    console.error(err);
+    toast.error(err.response?.data?.detail || "Failed to save draft");
+  } finally {
+    setIsSavingDraft(false);
+  }
+};
+
+  /* --------------------------------------------------------------
+     Submit → free review OR payment modal
+  -------------------------------------------------------------- */
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrors({});
     setIsSubmitting(true);
 
     if (!publicationId) {
-      toast.error("Missing publication ID. Please try again.");
+      toast.error("Publication ID missing.");
       setIsSubmitting(false);
       return;
     }
 
     const validationErrors = validateForm();
-    if (Object.keys(validationErrors).length > 0) {
-      Object.entries(validationErrors).forEach(([key, value]) =>
-        toast.error(`${key}: ${value}`, { toastId: `validation-${key}` })
-      );
+    if (Object.keys(validationErrors).length) {
       setErrors(validationErrors);
+      Object.values(validationErrors).forEach((msg) => toast.error(msg));
       setIsSubmitting(false);
       return;
     }
 
-    const data = buildFormData();
+    const baseData = buildBaseFormData();
 
     try {
-      await PublicationAPI.patch(publicationId, data);
-      toast.success("Resubmission saved.");
 
-      // ✅ Check free review status before deciding on payment
-      const freeStatusResponse = await PaymentAPI.getFreeReviewStatus();
-      const hasFreeAvailable = freeStatusResponse.data.has_free_review_available;
-      const freeReviewsRemaining = freeStatusResponse.data.free_reviews_granted ? (2 - freeStatusResponse.data.free_reviews_used) : 0;
+      const draftPayload = new FormData();
+      for (const [k, v] of baseData.entries()) draftPayload.append(k, v);
 
-      if (hasFreeAvailable) {
-        // Use free review: Set is_free_review=true and update status to pending without payment
-        toast.info(`Using one of your remaining free reviews. No payment needed.`);
-        data.append("is_free_review", "true");
-        data.append("status", "under_review");
-        await PublicationAPI.patch(publicationId, data);
+      await PublicationAPI.patch(publicationId, draftPayload);
+      toast.info("Saved, kindly be patient...");
+
+      const freeRes = await PaymentAPI.getFreeReviewStatus();
+      const hasFree = freeRes.data.has_free_review_available;
+
+      if (hasFree) {
+        const payload = new FormData();
+        for (const [k, v] of baseData.entries()) payload.append(k, v);
+        payload.append("status", "pending");
+        payload.append("is_free_review", "true");
+
+        await PublicationAPI.patch(publicationId, payload);
+        toast.success("Resubmitted! Now pending review.");
         router.push(`/publications/${publicationId}`);
       } else {
-        // No free reviews: Proceed to payment
-        data.append("is_free_review", "false");
-        setPendingFormData(data);
+        const clean = new FormData();
+        for (const [k, v] of baseData.entries()) clean.append(k, v);
+        setPendingBaseData(clean);
         setShowPaymentModal(true);
       }
     } catch (err) {
-      if (err.response?.status !== 401) {  // Skip toasting on auth errors (interceptor handles)
-        const errorMsg = err.response?.data?.detail || "Failed to resubmit publication.";
-        toast.error(errorMsg);
-      }
+      const msg = err.response?.data?.detail || "Resubmission failed.";
+      toast.error(msg);
+    } finally {
       setIsSubmitting(false);
     }
   };
 
+  /* --------------------------------------------------------------
+     Payment success → final PATCH
+  -------------------------------------------------------------- */
   const handlePaymentSuccess = async (reference) => {
     try {
-      const response = await PaymentAPI.verifyPayment(reference);
-      if (response.data.payment.status === "success") {
-        toast.success("Payment verified. Resubmission sent for review.");
-        setShowPaymentModal(false);
-
-        if (pendingFormData) {
-          pendingFormData.append("status", "under_review");
-          await PublicationAPI.patch(publicationId, pendingFormData);
-          setPendingFormData(null);
-        }
-
-        router.push(`/publications/${publicationId}`);
+      const verifyRes = await PaymentAPI.verifyPayment(reference);
+      if (verifyRes.data.payment?.status !== "success") {
+        throw new Error("Payment not successful");
       }
+
+      const finalPayload = new FormData();
+      for (const [k, v] of pendingBaseData.entries()) finalPayload.append(k, v);
+      finalPayload.append("status", "pending");
+      finalPayload.append("is_free_review", "false");
+
+      await PublicationAPI.patch(publicationId, finalPayload);
+
+      toast.success("Payment confirmed. Resubmitted for review.");
+      router.push(`/publications/${publicationId}`);
     } catch (err) {
-      if (err.response?.status !== 401) {
-        toast.error("Payment verification failed.");
-      }
+      console.error(err);
+      toast.error("Payment failed or update unsuccessful.");
+    } finally {
       setShowPaymentModal(false);
-      setIsSubmitting(false);
+      setPendingBaseData(null);
     }
   };
 
+  /* --------------------------------------------------------------
+     UI
+  -------------------------------------------------------------- */
   if (isLoading) {
-    return <p className="text-center text-gray-600 mt-10">Loading publication data...</p>;
+    return (
+      <div className="flex justify-center items-center h-64">
+        <p className="text-gray-600 text-lg">Loading publication...</p>
+      </div>
+    );
   }
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md">
       <ToastContainer position="top-right" autoClose={5000} theme="colored" />
-      <h2 className="text-2xl font-semibold mb-4">Resubmit Publication</h2>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <h2 className="text-2xl font-bold text-red-700 mb-4">
+        Resubmit Publication
+      </h2>
+      <p className="text-sm text-gray-600 mb-6">
+        Update any field (title, abstract, content, file, video) before
+        resubmitting. You can also save as draft.
+      </p>
+
+      <form onSubmit={handleSubmit} className="space-y-5">
         {/* Title */}
         <div>
-          <label className="block text-sm font-medium text-gray-700">Title</label>
+          <label className="block text-sm font-medium text-gray-700">
+            Title
+          </label>
           <input
             type="text"
             name="title"
             value={formData.title}
             onChange={handleChange}
-            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+            className="mt-1 block w-full border rounded-md p-3 focus:ring-2 focus:ring-red-500 focus:border-transparent"
             required
           />
-          {errors.title && <p className="text-red-600 text-sm">{errors.title}</p>}
+          {errors.title && (
+            <p className="text-red-600 text-sm mt-1">{errors.title}</p>
+          )}
         </div>
 
         {/* Abstract */}
         <div>
-          <label className="block text-sm font-medium text-gray-700">Abstract</label>
+          <label className="block text-sm font-medium text-gray-700">
+            Abstract
+          </label>
           <textarea
             name="abstract"
             value={formData.abstract}
             onChange={handleChange}
-            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
-            rows="4"
+            rows={5}
+            className="mt-1 block w-full border rounded-md p-3 focus:ring-2 focus:ring-red-500 focus:border-transparent"
             required
-          ></textarea>
-          {errors.abstract && <p className="text-red-600 text-sm">{errors.abstract}</p>}
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            {formData.abstract.length}/2500 characters
+          </p>
+          {errors.abstract && (
+            <p className="text-red-600 text-sm mt-1">{errors.abstract}</p>
+          )}
         </div>
 
         {/* Content */}
         <div>
-          <label className="block text-sm font-medium text-gray-700">Content</label>
+          <label className="block text-sm font-medium text-gray-700">
+            Content
+          </label>
           <textarea
             name="content"
             value={formData.content}
             onChange={handleChange}
-            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
-            rows="6"
+            rows={8}
+            className="mt-1 block w-full border rounded-md p-3 focus:ring-2 focus:ring-red-500 focus:border-transparent"
             required
-          ></textarea>
-          {errors.content && <p className="text-red-600 text-sm">{errors.content}</p>}
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            {formData.content.length}/15000 characters
+          </p>
+          {errors.content && (
+            <p className="text-red-600 text-sm mt-1">{errors.content}</p>
+          )}
         </div>
 
         {/* Category */}
         <div>
-          <label className="block font-medium mb-1">Category</label>
+          <label className="block text-sm font-medium text-gray-700">
+            Category
+          </label>
           <select
             name="category_name"
             value={formData.category_name}
             onChange={handleChange}
-            className="w-full border p-2 rounded"
+            className="mt-1 block w-full border rounded-md p-3 focus:ring-2 focus:ring-red-500 focus:border-transparent"
             required
           >
             <option value="">Select category</option>
-            {CATEGORY_CHOICES.map((cat) => (
-              <option key={cat.value} value={cat.value}>
-                {cat.label}
+            {CATEGORY_CHOICES.map((c) => (
+              <option key={c.value} value={c.value}>
+                {c.label}
               </option>
             ))}
           </select>
-          {errors.category_name && <p className="text-red-600 text-sm">{errors.category_name}</p>}
+          {errors.category_name && (
+            <p className="text-red-600 text-sm mt-1">{errors.category_name}</p>
+          )}
         </div>
 
         {/* Keywords */}
@@ -275,11 +356,15 @@ export default function PublicationResubmitForm({ publicationId: propPublication
             name="keywords"
             value={formData.keywords}
             onChange={handleChange}
-            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+            placeholder="e.g. AI, Machine Learning, NLP"
+            className="mt-1 block w-full border rounded-md p-3 focus:ring-2 focus:ring-red-500 focus:border-transparent"
           />
+          {errors.keywords && (
+            <p className="text-red-600 text-sm mt-1">{errors.keywords}</p>
+          )}
         </div>
 
-        {/* File Upload */}
+        {/* File */}
         <div>
           <label className="block text-sm font-medium text-gray-700">
             Updated File (PDF/Word)
@@ -289,11 +374,19 @@ export default function PublicationResubmitForm({ publicationId: propPublication
             name="file"
             accept=".pdf,.doc,.docx"
             onChange={handleChange}
-            className="mt-1 block w-full"
+            className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
           />
+          {formData.file && (
+            <p className="text-sm text-green-600 mt-1">
+              Selected: {formData.file.name}
+            </p>
+          )}
+          {errors.file && (
+            <p className="text-red-600 text-sm mt-1">{errors.file}</p>
+          )}
         </div>
 
-        {/* Video Upload */}
+        {/* Video */}
         <div>
           <label className="block text-sm font-medium text-gray-700">
             Updated Video (optional)
@@ -303,29 +396,46 @@ export default function PublicationResubmitForm({ publicationId: propPublication
             name="video_file"
             accept=".mp4,.avi,.mov"
             onChange={handleChange}
-            className="mt-1 block w-full"
+            className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
           />
+          {formData.video_file && (
+            <p className="text-sm text-green-600 mt-1">
+              Selected: {formData.video_file.name}
+            </p>
+          )}
+          {errors.video_file && (
+            <p className="text-red-600 text-sm mt-1">{errors.video_file}</p>
+          )}
         </div>
 
-        {/* Submit Button */}
-        <button
-          type="submit"
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:bg-gray-400"
-          disabled={isSubmitting}
-        >
-          Resubmit Publication
-        </button>  {/* Updated label to not assume payment */}
+        {/* Buttons */}
+        <div className="flex gap-3 pt-4">
+          <button
+            type="button"
+            onClick={handleSaveDraft}
+            disabled={isSavingDraft}
+            className="flex-1 bg-gray-600 text-white py-3 rounded-md hover:bg-gray-700 disabled:bg-gray-400 font-medium transition"
+          >
+            {isSavingDraft ? "Saving..." : "Save as Draft"}
+          </button>
+
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="flex-1 bg-red-600 text-white py-3 rounded-md hover:bg-red-700 disabled:bg-gray-400 font-medium transition"
+          >
+            {isSubmitting ? "Submitting..." : "Resubmit for Review"}
+          </button>
+        </div>
       </form>
 
+      {/* Payment Modal */}
       {showPaymentModal && (
         <PaymentModal
           publicationId={publicationId}
           paymentType="review_fee"
           onSuccess={handlePaymentSuccess}
-          onClose={() => {
-            setShowPaymentModal(false);
-            setIsSubmitting(false);
-          }}
+          onClose={() => setShowPaymentModal(false)}
         />
       )}
     </div>

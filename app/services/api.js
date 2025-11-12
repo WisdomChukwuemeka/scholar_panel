@@ -87,9 +87,21 @@ export const PublicationAPI = {
   listitem: (options = {}) => api.get("/publications/", options),
   create: (data) => api.post('/publications/', data),
   detail: (id) => api.get(`/publications/${id}/`),
-  patch: (id, data) => api.patch(`/publications/${id}/update/`, data), // Fixed to use /update/
-  update: async (publicationId, data) => { return await api.patch(`/publications/${publicationId}/update/`, data); }, // Changed to PATCH
-  getPublication: (publicationId) => api.get(`/publications/${publicationId}/`),
+patch: (id, data) => {
+    const isForm = data instanceof FormData;
+    return api.patch(`/publications/${id}/update/`, data, {
+      // Let axios set multipart/form-data automatically
+      headers: isForm ? {} : { "Content-Type": "application/json" },
+    });
+  },    // console.log(`PATCH URL: ${api.defaults.baseURL}/publications/${publicationId}/update/`);
+    // return await api.patch(`/publications/${publicationId}/update/`, data, {
+    //   headers: { 'Content-Type': 'multipart/form-data' }  // Explicit for FormData
+    // });},
+  review: (id, data) => {
+      return api.post(`/publications/${id}/review/`, data);
+    },
+    delete: (id) => api.delete(`/publications/${id}/`),
+    getPublication: (publicationId) => api.get(`/publications/${publicationId}/`),
   get: (id) => api.get(`/publications/${id}/`),
   // ✅ Pagination-safe custom fetch
   customGet: async (url) => {

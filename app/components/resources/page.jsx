@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 export default function ResourcesPage() {
   return (
     <section className="bg-gray-50 py-16 px-6 sm:px-12 lg:px-24">
@@ -52,9 +53,9 @@ export default function ResourcesPage() {
           <div className="bg-white shadow-lg rounded-2xl p-8 hover:shadow-2xl transition">
             <h3 className="text-xl font-semibold text-gray-900 mb-3">Open Access & Policies</h3>
             <ul className="text-gray-600 space-y-2">
-              <li>🌍 <a href="#" className="text-blue-600 hover:underline">Open Access Policy</a></li>
+              <li>🌍 <a href="/components/resources/open-access/" className="text-blue-600 hover:underline">Open Access Policy</a></li>
               <li>🔒 <a href="#" className="text-blue-600 hover:underline">Copyright & Licensing</a></li>
-              <li>🖊️ <a href="#" className="text-blue-600 hover:underline">Plagiarism & Ethics</a></li>
+              <li>🖊️ <a href="/components/resources/plagiarism-and-ethics/" className="text-blue-600 hover:underline">Plagiarism & Ethics</a></li>
               <li>📄 <a href="#" className="text-blue-600 hover:underline">Retraction Policy</a></li>
             </ul>
           </div>
@@ -63,7 +64,7 @@ export default function ResourcesPage() {
           <div className="bg-white shadow-lg rounded-2xl p-8 hover:shadow-2xl transition">
             <h3 className="text-xl font-semibold text-gray-900 mb-3">Tools & Templates</h3>
             <ul className="text-gray-600 space-y-2">
-              <li>📝 <a href="#" className="text-blue-600 hover:underline">Cover Letter Template</a></li>
+              <li>📝 <a href="/components/resources/cover-letter/" className="text-blue-600 hover:underline">Cover Letter Template</a></li>
               <li>📊 <a href="#" className="text-blue-600 hover:underline">Data Sharing Policy</a></li>
               <li>📄 <a href="#" className="text-blue-600 hover:underline">Conflict of Interest Form</a></li>
               <li>📘 <a href="#" className="text-blue-600 hover:underline">Acknowledgement Guidelines</a></li>

@@ -49,13 +49,13 @@ export default function PublicationForm() {
     if (!formData.abstract || formData.abstract.length < 200) {
       newErrors.abstract = "Abstract must be at least 200 characters long.";
     }
-    if (formData.abstract && formData.abstract.length > 1500) {
+    if (formData.abstract && formData.abstract.length > 2500) {
       newErrors.abstract = "Abstract cannot exceed 1000 characters.";
     }
     if (!formData.content || formData.content.length < 500) {
       newErrors.content = "Content must be at least 500 characters long.";
     }
-    if (formData.content && formData.content.length > 10000) {
+    if (formData.content && formData.content.length > 15000) {
       newErrors.content = "Content cannot exceed 10000 characters.";
     }
     if (!formData.category_name) {
@@ -191,9 +191,18 @@ export default function PublicationForm() {
             name="title"
             value={formData.title}
             onChange={handleChange}
-            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+            className="mt-1 block w-full h-10 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
             required
           />
+          <p className="text-xs text-gray-500 mt-1">
+            {formData.title.length <= 10 ? 
+              <p className="text-red-600">
+                {formData.title.length}/10 characters
+              </p> : <p className="text-green-600">
+                {formData.title.length}/10 characters
+              </p>
+            }
+          </p>
           {errors.title && <p className="text-red-600 text-sm">{errors.title}</p>}
         </div>
 
@@ -207,7 +216,18 @@ export default function PublicationForm() {
             className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
             rows="4"
             required
-          ></textarea>
+          />
+         <p
+  className={`text-xs mt-1 ${
+    formData.abstract.length < 200
+      ? 'text-red-600'
+      : formData.abstract.length > 2500
+      ? 'text-red-600'
+      : 'text-green-600'
+  }`}
+>
+  {formData.abstract.length}/2500 characters
+</p>
           {errors.abstract && <p className="text-red-600 text-sm">{errors.abstract}</p>}
         </div>
 
@@ -221,7 +241,18 @@ export default function PublicationForm() {
             className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
             rows="6"
             required
-          ></textarea>
+          />
+          <p
+  className={`text-xs mt-1 ${
+    formData.content.length < 500
+      ? 'text-red-600'
+      : formData.content.length > 15000
+      ? 'text-red-600'
+      : 'text-green-600'
+  }`}
+>
+  {formData.content.length}/15000 characters
+</p>
           {errors.content && <p className="text-red-600 text-sm">{errors.content}</p>}
         </div>
 
@@ -257,7 +288,7 @@ export default function PublicationForm() {
             name="keywords"
             value={formData.keywords}
             onChange={handleChange}
-            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+            className="mt-1 block w-full h-10 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
 
@@ -269,7 +300,7 @@ export default function PublicationForm() {
             name="file"
             accept=".pdf,.doc,.docx"
             onChange={handleChange}
-            className="mt-1 block w-full"
+            className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
           />
         </div>
 
@@ -283,7 +314,7 @@ export default function PublicationForm() {
             name="video_file"
             accept=".mp4,.avi,.mov"
             onChange={handleChange}
-            className="mt-1 block w-full"
+            className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
           />
         </div>
 

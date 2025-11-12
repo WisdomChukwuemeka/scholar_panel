@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { PublicationAPI } from "@/app/services/api";
+import { PublicationAPI } from "../services/api";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -25,9 +25,8 @@ export default function EditorDashboard() {
         const response = await PublicationAPI.list(`?page=${page}`);
         setPublications(response.data.results || []);
         setCount(response.data.count || 0);
-        console.log("Publications:", response.data.results);
+        console.log("Fetched publications:", response.data.results);
       } catch (error) {
-        console.error("Error fetching publications:", error);
         toast.error("Failed to load publications");
       } finally {
         setLoading(false);
@@ -36,37 +35,27 @@ export default function EditorDashboard() {
     fetchPublications();
   }, [page]);
 
-  const handleUnderReview = async (id) => {
+  // ALL EDITOR ACTIONS USE /review/
+  const handleAction = async (id, action, note = "") => {
     try {
-      await PublicationAPI.update(id, { status: "under_review" });
-      setPublications((prev) =>
-        prev.map((pub) =>
-          pub.id === id
-            ? { ...pub, status: "under_review", rejection_note: null }
-            : pub
-        )
-      );
-      toast.info("Publication marked as under review.");
-    } catch (error) {
-      console.error("Error marking as under review:", error);
-      toast.error(error.response?.data?.status || "Failed to update publication status.");
-    }
-  };
+      const payload = { action };
+      if (action === "reject") payload.rejection_note = note;
 
-  const handleApprove = async (id) => {
-    try {
-      await PublicationAPI.update(id, { status: "approved" });
-      setPublications((prev) =>
-        prev.map((pub) =>
-          pub.id === id
-            ? { ...pub, status: "approved", rejection_note: null }
-            : pub
-        )
+      await PublicationAPI.review(id, payload);
+
+      setPublications(prev =>
+        prev.map(pub => {
+          if (pub.id !== id) return pub;
+          const updated = { ...pub, status: action === "under_review" ? "under_review" : action };
+          if (action === "reject") updated.rejection_note = note;
+          return updated;
+        })
       );
-      toast.success("Publication approved successfully!");
+
+      const msg = action === "under_review" ? "under review" : action;
+      toast.success(`Publication marked as ${msg}!`);
     } catch (error) {
-      console.error("Error approving publication:", error);
-      toast.error(error.response?.data?.status || "Failed to approve publication.");
+      toast.error(error.response?.data?.detail || "Failed");
     }
   };
 
@@ -77,76 +66,44 @@ export default function EditorDashboard() {
   };
 
   const handleReject = async () => {
-    if (!selectedPub || !rejectionNote.trim()) {
+    if (!rejectionNote.trim()) {
       toast.error("Rejection note is required.");
       return;
     }
-    try {
-      await PublicationAPI.update(selectedPub.id, {
-        status: "rejected",
-        rejection_note: rejectionNote,
-      });
-      setPublications((prev) =>
-        prev.map((pub) =>
-          pub.id === selectedPub.id
-            ? { ...pub, status: "rejected", rejection_note: rejectionNote }
-            : pub
-        )
-      );
-      setIsModalOpen(false);
-      toast.success("Publication rejected with note sent.");
-    } catch (error) {
-      console.error("Error rejecting publication:", error);
-      toast.error(error.response?.data?.rejection_note || "Failed to reject publication.");
-    }
+    await handleAction(selectedPub.id, "reject", rejectionNote);
+    setIsModalOpen(false);
   };
 
   const handleViewDocument = (pub) => {
     if (pub.file) {
       window.open(pub.file, "_blank");
     } else if (pub.content) {
-      const newWindow = window.open("", "_blank");
-      newWindow.document.write(`
-        <html>
-          <head>
-            <title>${pub.title}</title>
-            <style>
-              body { font-family: sans-serif; line-height: 1.6; padding: 20px; }
-              h1 { color: #1e293b; }
-              p { color: #374151; }
-            </style>
-          </head>
-          <body>
-            <h1>${pub.title}</h1>
-            <h3>Abstract</h3>
-            <p>${pub.abstract}</p>
-            <h3>Content</h3>
-            <p>${pub.content}</p>
-          </body>
-        </html>
+      const win = window.open("", "_blank");
+      win.document.write(`
+        <html><head><title>${pub.title}</title></head>
+        <body style="font-family:sans-serif;padding:20px;">
+          <h1>${pub.title}</h1>
+          <h3>Abstract</h3><p>${pub.abstract}</p>
+          <h3>Content</h3><p>${pub.content}</p>
+        </body></html>
       `);
-      newWindow.document.close();
+      win.document.close();
     } else {
-      toast.warning("No document or content available to view.");
+      toast.warning("No content available.");
     }
   };
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen text-gray-600 text-lg">
-        Loading publications...
-      </div>
-    );
+    return <div className="flex justify-center items-center h-screen">Loading...</div>;
   }
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <ToastContainer />
-      <h1 className="text-3xl font-bold text-gray-800 mb-6 text-center">
-        Editor Dashboard — Manage Publications
-      </h1>
+      <h1 className="text-3xl font-bold text-center mb-6">Editor Dashboard</h1>
+
       {publications.length === 0 ? (
-        <p className="text-center text-gray-500">No publications available.</p>
+        <p className="text-center text-gray-500">No publications.</p>
       ) : (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -154,97 +111,72 @@ export default function EditorDashboard() {
               <motion.div
                 key={pub.id}
                 layout
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                className="bg-white rounded-2xl shadow-md p-5 flex flex-col justify-between"
+                className="bg-white rounded-2xl shadow-md p-5"
               >
-                <div>
-                  {pub.video_file ? (
-                    <div className="mb-4">
-                      <video
-                        src={pub.video_file}
-                        controls
-                        className="w-full rounded-lg"
-                        style={{ maxHeight: "200px" }}
-                        onError={() => toast.error(`Failed to load video for ${pub.title}`)}
-                      />
-                    </div>
-                  ) : (
-                    <p className="text-gray-500 text-sm mb-4">No video available</p>
-                  )}
-                  <h2 className="text-xl font-semibold text-gray-800 mb-2">
-                    {pub.title}
-                  </h2>
-                  <p className="text-gray-600 line-clamp-3 mb-3">
-                    {pub.abstract}
-                  </p>
-                  <p className="text-sm text-gray-400 mb-2">
-                    Author: {pub.author || "Unknown"}
-                  </p>
-                  <p
-                    className={`text-sm font-medium ${
-                      pub.status === "approved"
-                        ? "text-green-600"
-                        : pub.status === "rejected"
-                        ? "text-red-600"
-                        : pub.status === "under_review"
-                        ? "text-blue-600"
-                        : "text-yellow-600"
-                    }`}
-                  >
-                    Status: {pub.status.replace("_", " ")}
-                  </p>
-                  {pub.status === "rejected" && pub.rejection_note && (
-                    <div className="bg-red-50 border border-red-200 rounded-lg mt-3 p-3">
-                      <p className="text-red-700 text-sm font-medium">
-                        Editor’s Note:
-                      </p>
-                      <p className="text-gray-700 text-sm mt-1">
-                        {pub.rejection_note}
-                      </p>
-                    </div>
-                  )}
-                </div>
+                {pub.video_file ? (
+                  <video src={pub.video_file} controls className="w-full rounded-lg mb-4" style={{ maxHeight: "200px" }} />
+                ) : (
+                  <p className="text-gray-500 text-sm mb-4">No video</p>
+                )}
+
+                <h2 className="text-xl font-semibold mb-2">{pub.title}</h2>
+                <p className="text-gray-600 line-clamp-3 mb-3">{pub.abstract}</p>
+                <p className="text-sm text-gray-400 mb-2">Author: {pub.author}</p>
+
+                <p className={`text-sm font-medium ${
+                  pub.status === "approved" ? "text-green-600" :
+                  pub.status === "rejected" ? "text-red-600" :
+                  pub.status === "under_review" ? "text-blue-600" :
+                  "text-yellow-600"
+                }`}>
+                  Status: {pub.status}
+                </p>
+
+                {pub.status === "rejected" && pub.rejection_note && (
+                  <div className="bg-red-50 border border-red-200 rounded p-3 mt-3">
+                    <p className="text-red-700 text-sm font-medium">Editor’s Note:</p>
+                    <p className="text-sm">{pub.rejection_note}</p>
+                  </div>
+                )}
+
                 <button
                   onClick={() => handleViewDocument(pub)}
-                  className="bg-indigo-600 text-white px-3 py-2 rounded-lg hover:bg-indigo-700 transition mt-4"
+                  className="w-full bg-indigo-600 text-white py-2 rounded mt-4 hover:bg-indigo-700"
                 >
-                  View PDF
+                  View Document
                 </button>
 
-                   {/* <button
-                  onClick={() => window.open(`/dashboard/annotate/${pub.id}`, "_blank")}
-                  className="bg-indigo-600 text-white px-3 py-2 rounded-lg hover:bg-indigo-700 transition mt-4"
-                >
-                  ✏️ View & Annotate PDF
-                </button> */}
-
-                <div className="flex flex-wrap justify-between items-center mt-4 gap-2">
+                <div className="flex gap-2 mt-4">
                   <button
-                    onClick={() => handleUnderReview(pub.id)}
-                    className={`bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition ${
-                      pub.status === "under_review" && "opacity-50 cursor-not-allowed"
-                    }`}
+                    onClick={() => handleAction(pub.id, "under_review")}
                     disabled={pub.status === "under_review"}
+                    className={`flex-1 py-2 rounded text-white transition ${
+                      pub.status === "under_review"
+                        ? "bg-gray-400 cursor-not-allowed"
+                        : "bg-blue-600 hover:bg-blue-700"
+                    }`}
                   >
                     Under Review
                   </button>
                   <button
-                    onClick={() => handleApprove(pub.id)}
-                    className={`bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700 transition ${
-                      pub.status === "approved" && "opacity-50 cursor-not-allowed"
-                    }`}
+                    onClick={() => handleAction(pub.id, "approve")}
                     disabled={pub.status === "approved"}
+                    className={`flex-1 py-2 rounded text-white transition ${
+                      pub.status === "approved"
+                        ? "bg-gray-400 cursor-not-allowed"
+                        : "bg-green-600 hover:bg-green-700"
+                    }`}
                   >
                     Approve
                   </button>
                   <button
                     onClick={() => openRejectModal(pub)}
-                    className={`bg-red-600 text-white px-3 py-2 rounded-lg hover:bg-red-700 transition ${
-                      pub.status === "rejected" && "opacity-50 cursor-not-allowed"
-                    }`}
                     disabled={pub.status === "rejected"}
+                    className={`flex-1 py-2 rounded text-white transition ${
+                      pub.status === "rejected"
+                        ? "bg-gray-400 cursor-not-allowed"
+                        : "bg-red-600 hover:bg-red-700"
+                    }`}
                   >
                     Reject
                   </button>
@@ -252,93 +184,71 @@ export default function EditorDashboard() {
               </motion.div>
             ))}
           </div>
+
+          {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex justify-center items-center mt-8 space-x-2">
+            <div className="flex justify-center mt-8 gap-2">
               <button
-                className={`px-4 py-2 rounded-md border ${
-                  page === 1
-                    ? "text-gray-400 border-gray-300 cursor-not-allowed"
-                    : "text-blue-600 border-blue-500 hover:bg-blue-100"
-                }`}
+                onClick={() => setPage(p => Math.max(1, p - 1))}
                 disabled={page === 1}
-                onClick={() => setPage(page - 1)}
-              >
-                Prev
-              </button>
+                className="px-4 py-2 border rounded disabled:opacity-50"
+              >Prev</button>
               {[...Array(totalPages)].map((_, i) => (
-                <motion.button
+                <button
                   key={i}
-                  whileHover={{ scale: 1.05 }}
-                  className={`px-3 py-1 rounded-md border transition ${
-                    page === i + 1
-                      ? "bg-blue-600 text-white border-blue-600"
-                      : "text-blue-600 border-blue-400 hover:bg-blue-100"
-                  }`}
                   onClick={() => setPage(i + 1)}
-                >
-                  {i + 1}
-                </motion.button>
+                  className={`px-3 py-1 border rounded ${page === i + 1 ? "bg-blue-600 text-white" : ""}`}
+                >{i + 1}</button>
               ))}
               <button
-                className={`px-4 py-2 rounded-md border ${
-                  page === totalPages
-                    ? "text-gray-400 border-gray-300 cursor-not-allowed"
-                    : "text-blue-600 border-blue-500 hover:bg-blue-100"
-                }`}
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
-                onClick={() => setPage(page + 1)}
-              >
-                Next
-              </button>
+                className="px-4 py-2 border rounded disabled:opacity-50"
+              >Next</button>
             </div>
           )}
         </>
       )}
+
+      {/* Rejection Modal */}
       <AnimatePresence>
         {isModalOpen && (
           <motion.div
-            className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-2xl p-6 w-[90%] md:w-[400px] shadow-xl"
+              className="bg-white rounded-2xl p-6 w-full max-w-md"
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.9 }}
             >
-              <h2 className="text-xl font-semibold text-gray-800 mb-3">
-                Reject Publication
-              </h2>
-              <p className="text-gray-600 text-sm mb-4">
-                Provide a reason for rejecting{" "}
-                <span className="font-semibold">{selectedPub?.title}</span>.
+              <h2 className="text-xl font-bold mb-3">Reject Publication</h2>
+              <p className="text-sm text-gray-600 mb-4">
+                Reason for rejecting <strong>{selectedPub?.title}</strong>:
               </p>
               <textarea
-                className="w-full border border-gray-300 rounded-lg p-2 h-28 focus:outline-none focus:ring-2 focus:ring-red-400"
+                className="w-full p-3 border rounded-lg h-32 focus:ring-2 focus:ring-red-500"
                 value={rejectionNote}
                 onChange={(e) => setRejectionNote(e.target.value)}
-                placeholder="Enter rejection reason..."
+                placeholder="Enter detailed feedback..."
               />
-              <div className="flex justify-end mt-4 space-x-3">
+              <div className="flex justify-end gap-3 mt-4">
                 <button
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 rounded-lg bg-gray-300 hover:bg-gray-400 transition"
-                >
-                  Cancel
-                </button>
+                  className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                >Cancel</button>
                 <button
                   onClick={handleReject}
                   disabled={!rejectionNote.trim()}
-                  className={`px-4 py-2 rounded-lg text-white transition ${
+                  className={`px-4 py-2 rounded text-white ${
                     rejectionNote.trim()
                       ? "bg-red-600 hover:bg-red-700"
                       : "bg-red-300 cursor-not-allowed"
                   }`}
-                >
-                  Submit Rejection
-                </button>
+                >Submit Rejection</button>
               </div>
             </motion.div>
           </motion.div>

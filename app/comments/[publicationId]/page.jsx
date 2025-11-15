@@ -5,11 +5,15 @@ import { useParams } from "next/navigation";
 import NewCommentForm from "@/app/components/comments/NewCommentForm";
 
 export default function CommentsPage() {
-  const { publicationId } = useParams(); // ← full UUID
+  const { publicationId } = useParams(); // This is a string (e.g. "123" or UUID)
+
+  // Add this log to debug
+  console.log("Publication ID from URL:", publicationId);
 
   return (
     <div className="container mx-auto p-4">
-      <NewCommentForm />
+      {/* Pass it here! */}
+      <NewCommentForm publicationId={publicationId} />
     </div>
   );
 }

@@ -243,16 +243,16 @@ export default function PublicationForm() {
             required
           />
           <p
-  className={`text-xs mt-1 ${
-    formData.content.length < 500
-      ? 'text-red-600'
-      : formData.content.length > 15000
-      ? 'text-red-600'
-      : 'text-green-600'
-  }`}
->
-  {formData.content.length}/15000 characters
-</p>
+          className={`text-xs mt-1 ${
+            formData.content.length < 500
+              ? 'text-red-600'
+              : formData.content.length > 15000
+              ? 'text-red-600'
+              : 'text-green-600'
+          }`}
+        >
+          {formData.content.length}/15000 characters
+        </p>
           {errors.content && <p className="text-red-600 text-sm">{errors.content}</p>}
         </div>
 

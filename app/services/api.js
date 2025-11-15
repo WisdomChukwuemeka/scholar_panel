@@ -206,17 +206,33 @@ export const PaymentAPI = {
 },
 };
 
+// export const CommentAPI = {
+//   list: (publicationId, params = "") =>
+//     api.get(`/publications/${publicationId}/comments/${params}`),
+//   create: (publicationId, data) =>
+//     api.post(`/publications/${publicationId}/comments/`, data),
+//   detail: (publicationId, commentId) =>
+//     api.get(`/publications/${publicationId}/comments/${commentId}/`),
+//   update: (publicationId, commentId, data) =>
+//     api.patch(`/publications/${publicationId}/comments/${commentId}/`, data),
+//   delete: (publicationId, commentId) =>
+//     api.delete(`/publications/${publicationId}/comments/${commentId}/`),
+// };
+
 export const CommentAPI = {
-  list: (publicationId, params = "") =>
-    api.get(`/publications/${publicationId}/comments/${params}`),
+  list: (publicationId) =>
+    api.get(`/publications/${publicationId}/comments/`),
+
   create: (publicationId, data) =>
     api.post(`/publications/${publicationId}/comments/`, data),
-  detail: (publicationId, commentId) =>
+  // … other methods unchanged
+    detail: (publicationId, commentId) =>
     api.get(`/publications/${publicationId}/comments/${commentId}/`),
   update: (publicationId, commentId, data) =>
     api.patch(`/publications/${publicationId}/comments/${commentId}/`, data),
   delete: (publicationId, commentId) =>
     api.delete(`/publications/${publicationId}/comments/${commentId}/`),
+
 };
 
 export const ProfileAPI = {
@@ -251,7 +267,35 @@ export const PointRewardAPI = {
     api.delete(`/publications/${publicationId}/pointrewards/${pointId}/`),
 };
 
+// export const RewardCodeAPI = {
+//   // Allow passing publicationId so we can send it as query param for backend filtering
+//   list: (publicationId = "") =>
+//     api.get(publicationId ? `/rewardcodes/?publication_id=${publicationId}` : "/rewardcodes/"),
+//   // create(publicationId) -> POST /rewardcodes/ with optional body
+//   create: (publicationId = "") =>
+//     api.post("/rewardcodes/", publicationId ? { publication_id: publicationId } : {}),
+//   // redeem if you want to use this endpoint
+//   redeem: (data) => api.post("/rewardcodes/redeem/", data),
+// };
 
+// ---- RewardCodeAPI ---------------------------------------------
+// In @/app/services/api.js
+export const RewardCodeAPI = {
+  list: (publicationId) =>
+    api.get("/rewardcodes/", { params: { publication_id: publicationId } }),
+
+  create: (publicationId) =>
+    api.post("/rewardcodes/", {}, { params: { publication_id: publicationId } }),
+
+  redeem: (codeId) =>
+    api.post("/rewardcodes/redeem/", { reward_code_id: codeId }),
+};
+
+// --- Reward redemption helper (for the frontend to call)
+export const RewardRedemptionAPI = {
+  // data: { code: "<uuid-string>", publication_id: <id> }
+  redeem: (data) => api.post("/rewardcodes/redeem/", data),
+};
 
 
 export default api;

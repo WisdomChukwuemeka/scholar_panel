@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useState } from "react";
 import { AuthAPI } from "../services/api";
-import { toast, ToastContainer } from "react-toastify";
 import { useRouter } from "next/navigation";
 
 export default function Register({ onRegister }) {
@@ -18,7 +17,8 @@ export default function Register({ onRegister }) {
     agreement: false,
   });
 
-  const [loading, setLoading] = useState(false); // added
+  const [loading, setLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({}); // ✅ new state
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -26,11 +26,14 @@ export default function Register({ onRegister }) {
       ...prevData,
       [name]: type === "checkbox" ? checked : value,
     }));
+    setFieldErrors((prev) => ({ ...prev, [name]: "" })); // clear error when typing
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true); //  start spinner
+    setLoading(true);
+    setFieldErrors({}); // clear previous
+
     try {
       const response = await AuthAPI.register(formData);
 
@@ -46,24 +49,32 @@ export default function Register({ onRegister }) {
     } catch (error) {
       if (error.response) {
         const errors = error.response.data;
-        let delay = 0;
+        let fieldErrs = {};
+
+        // Capture field-based messages
         for (const key in errors) {
           if (Array.isArray(errors[key])) {
-            errors[key].forEach((msg) => {
-              setTimeout(() => {
-                toast.error(`${msg}`);
-              }, delay);
-              delay += 2000;
-            });
+            fieldErrs[key] = errors[key].join(" ");
           }
         }
+
+        // Default fallback if no specific field
+        if (Object.keys(fieldErrs).length === 0) {
+          fieldErrs.non_field = "Something went wrong. Please check your inputs.";
+        }
+
+        setFieldErrors(fieldErrs);
       } else if (error.request) {
-        toast.error("No response from server. Check your connection.");
+        setFieldErrors({
+          non_field: "No response from server. Please check your connection.",
+        });
       } else {
-        toast.error("Something went wrong.");
+        setFieldErrors({
+          non_field: "Something went wrong. Please try again.",
+        });
       }
     } finally {
-      setLoading(false); // ✅ stop spinner
+      setLoading(false);
     }
   };
 
@@ -73,7 +84,9 @@ export default function Register({ onRegister }) {
         <h2 className="text-2xl font-bold mb-6 text-center">
           Create a New Account
         </h2>
+
         <form className="space-y-4" onSubmit={handleSubmit}>
+          {/* FULL NAME */}
           <div>
             <label
               htmlFor="full_name"
@@ -87,11 +100,20 @@ export default function Register({ onRegister }) {
               name="full_name"
               value={formData.full_name}
               onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              className={`mt-1 block w-full px-3 py-2 border ${
+                fieldErrors.full_name ? "border-red-500" : "border-gray-300"
+              } rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500`}
               placeholder="John Doe"
               required
             />
+            {fieldErrors.full_name && (
+              <p className="text-red-600 text-xs mt-1">
+                {fieldErrors.full_name}
+              </p>
+            )}
           </div>
+
+          {/* EMAIL */}
           <div>
             <label
               htmlFor="email"
@@ -105,10 +127,17 @@ export default function Register({ onRegister }) {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              className={`mt-1 block w-full px-3 py-2 border ${
+                fieldErrors.email ? "border-red-500" : "border-gray-300"
+              } rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500`}
               required
             />
+            {fieldErrors.email && (
+              <p className="text-red-600 text-xs mt-1">{fieldErrors.email}</p>
+            )}
           </div>
+
+          {/* PASSWORD */}
           <div>
             <label
               htmlFor="password"
@@ -122,11 +151,18 @@ export default function Register({ onRegister }) {
               name="password"
               value={formData.password}
               onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              className={`mt-1 block w-full px-3 py-2 border ${
+                fieldErrors.password ? "border-red-500" : "border-gray-300"
+              } rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500`}
               placeholder="***"
               required
             />
+            {fieldErrors.password && (
+              <p className="text-red-600 text-xs mt-1">{fieldErrors.password}</p>
+            )}
           </div>
+
+          {/* CONFIRM PASSWORD */}
           <div>
             <label
               htmlFor="confirm_password"
@@ -140,11 +176,20 @@ export default function Register({ onRegister }) {
               name="confirm_password"
               value={formData.confirm_password}
               onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              className={`mt-1 block w-full px-3 py-2 border ${
+                fieldErrors.confirm_password ? "border-red-500" : "border-gray-300"
+              } rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500`}
               placeholder="****"
               required
             />
+            {fieldErrors.confirm_password && (
+              <p className="text-red-600 text-xs mt-1">
+                {fieldErrors.confirm_password}
+              </p>
+            )}
           </div>
+
+          {/* ROLE */}
           <div>
             <label
               htmlFor="role"
@@ -157,7 +202,9 @@ export default function Register({ onRegister }) {
               name="role"
               value={formData.role}
               onChange={handleChange}
-              className="text mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              className={`text mt-1 block w-full px-3 py-2 border ${
+                fieldErrors.role ? "border-red-500" : "border-gray-300"
+              } rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500`}
               required
             >
               <option value="">Select your role</option>
@@ -165,7 +212,12 @@ export default function Register({ onRegister }) {
               <option value="editor">Editor</option>
               <option value="reader">Reader</option>
             </select>
+            {fieldErrors.role && (
+              <p className="text-red-600 text-xs mt-1">{fieldErrors.role}</p>
+            )}
           </div>
+
+          {/* SCHOLAR */}
           <div className="flex items-center space-x-2">
             <input
               type="checkbox"
@@ -183,6 +235,11 @@ export default function Register({ onRegister }) {
               Are you a scholar?
             </label>
           </div>
+          {fieldErrors.is_scholar && (
+            <p className="text-red-600 text-xs mt-1">{fieldErrors.is_scholar}</p>
+          )}
+
+          {/* AGREEMENT */}
           <div className="flex items-center">
             <input
               type="checkbox"
@@ -206,10 +263,19 @@ export default function Register({ onRegister }) {
               </Link>
             </label>
           </div>
+          {fieldErrors.agreement && (
+            <p className="text-red-600 text-xs mt-1">{fieldErrors.agreement}</p>
+          )}
+
+          {/* NON-FIELD ERROR */}
+          {fieldErrors.non_field && (
+            <p className="text-red-600 text-sm mt-2">{fieldErrors.non_field}</p>
+          )}
+
           <div>
             <button
               type="submit"
-              disabled={loading} // ✅ disable button
+              disabled={loading}
               className={`text w-full flex justify-center items-center py-2 px-4 border border-transparent rounded-md shadow-sm font-medium text-white ${
                 loading
                   ? "bg-blue-400 cursor-not-allowed"
@@ -246,6 +312,7 @@ export default function Register({ onRegister }) {
             </button>
           </div>
         </form>
+
         <p className="text mt-6 text-center text-gray-600">
           Already have an account?{" "}
           <Link
@@ -256,8 +323,6 @@ export default function Register({ onRegister }) {
           </Link>
         </p>
       </div>
-
-      {/* Toast Container */}
     </>
   );
 }

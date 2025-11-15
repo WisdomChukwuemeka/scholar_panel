@@ -329,13 +329,13 @@ export const Header = () => {
             {/* Role-specific Buttons */}
             {role === "editor" ? (
               <Link href="/dashboard">
-                <button className="hidden xl:flex bg-blue-600 text-white btn hover:bg-blue-800 duration-500 px-4 py-2 rounded-md">
+                <button className="hidden xl:flex bg-blue-600 text-white btn hover:bg-blue-800 duration-500 px-4 py-2 rounded-md cursor-pointer">
                   Dashboard
                 </button>
               </Link>
             ) : (
               <Link href="/publications/create">
-                <button className="hidden xl:flex bg-orange-600 text-white btn hover:bg-orange-800 duration-500">
+                <button className="hidden xl:flex bg-orange-600 text-white btn hover:bg-orange-800 duration-500 cursor-pointer">
                   Submit an Article
                 </button>
               </Link>
@@ -492,13 +492,13 @@ export const Header = () => {
             <div className="col-span-3 flex justify-center">
             {role === "editor" ? (
               <Link href="/dashboard" className="flex justify-center">
-                <button className="bg-blue-600 text-white btn hover:bg-blue-800 duration-500 px-4 py-2 rounded-md">
+                <button className="bg-blue-600 text-white btn hover:bg-blue-800 duration-500 px-4 py-2 rounded-md cursor-pointer">
                   Dashboard
                 </button>
               </Link>
             ) : (
               <Link href="/publications/create" className="flex justify-center">
-                <button className="bg-orange-600 text-white btn hover:bg-orange-800 duration-500 px-4 py-2 rounded-md">
+                <button className="bg-orange-600 text-white btn hover:bg-orange-800 duration-500 px-4 py-2 rounded-md cursor-pointer">
                   Submit an Article
                 </button>
               </Link>

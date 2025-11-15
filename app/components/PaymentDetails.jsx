@@ -181,7 +181,8 @@ export default function PublicationDetail() {
             </div>
             </div>
           </div>
-
+          
+          <span>DOI: {publication.doi}</span>
           <p>
             <strong>Publication date: </strong>
             <span>{new Date (publication.publication_date).toLocaleDateString()}</span>
@@ -191,6 +192,7 @@ export default function PublicationDetail() {
             <strong>Author: </strong>
             <span>{publication.author}</span>
           </p>
+
 
           {/* Status Info */}
           <div>

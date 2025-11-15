@@ -16,8 +16,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Journivo",
+  title: {
+    default: "Journivo",
+    template: "%s | Journivo",
+  },
   description: "Publish your journal, article, books from the comfort of your home.",
+  url: "https://www.journivo.com", // replace with your domain
+  siteName: "Journivo",
   keywords: [
     "Journivo",
     "Journal Publishing",

@@ -177,13 +177,6 @@ export default function PublicationResubmitForm({
     const baseData = buildBaseFormData();
 
     try {
-
-      const draftPayload = new FormData();
-      for (const [k, v] of baseData.entries()) draftPayload.append(k, v);
-
-      await PublicationAPI.patch(publicationId, draftPayload);
-      toast.info("Saved, kindly be patient...");
-
       const freeRes = await PaymentAPI.getFreeReviewStatus();
       const hasFree = freeRes.data.has_free_review_available;
 
@@ -275,6 +268,15 @@ export default function PublicationResubmitForm({
             className="mt-1 block w-full border rounded-md p-3 focus:ring-2 focus:ring-red-500 focus:border-transparent"
             required
           />
+          <p className="text-xs text-gray-500 mt-1">
+            {formData.title.length <= 10 ? 
+              <p className="text-red-600">
+                {formData.title.length}/10 characters
+              </p> : <p className="text-green-600">
+                {formData.title.length}/10 characters
+              </p>
+            }
+          </p>
           {errors.title && (
             <p className="text-red-600 text-sm mt-1">{errors.title}</p>
           )}
@@ -293,8 +295,16 @@ export default function PublicationResubmitForm({
             className="mt-1 block w-full border rounded-md p-3 focus:ring-2 focus:ring-red-500 focus:border-transparent"
             required
           />
-          <p className="text-xs text-gray-500 mt-1">
-            {formData.abstract.length}/2500 characters
+          <p
+          className={`text-xs mt-1 ${
+            formData.abstract.length < 200
+              ? 'text-red-600'
+              : formData.abstract.length > 2500
+              ? 'text-red-600'
+              : 'text-green-600'
+          }`}
+        >
+          {formData.abstract.length}/2500 characters
           </p>
           {errors.abstract && (
             <p className="text-red-600 text-sm mt-1">{errors.abstract}</p>
@@ -314,7 +324,15 @@ export default function PublicationResubmitForm({
             className="mt-1 block w-full border rounded-md p-3 focus:ring-2 focus:ring-red-500 focus:border-transparent"
             required
           />
-          <p className="text-xs text-gray-500 mt-1">
+          <p
+            className={`text-xs mt-1 ${
+              formData.content.length < 500
+                ? 'text-red-600'
+                : formData.content.length > 15000
+                ? 'text-red-600'
+                : 'text-green-600'
+            }`}
+          >
             {formData.content.length}/15000 characters
           </p>
           {errors.content && (

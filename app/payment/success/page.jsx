@@ -1,9 +1,11 @@
-export const dynamic = "force-dynamic";
+'use client';
 
+export const dynamic = "force-dynamic";
+export const dynamicParams = true;
+export const revalidate = 0;
 
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { useRouter } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { PaymentAPI } from '@/app/services/api';
@@ -15,7 +17,9 @@ export default function PaymentSuccess() {
 
   useEffect(() => {
     async function verify() {
-      const reference = searchParams.get('reference') || localStorage.getItem('paymentReference');
+      const reference =
+        searchParams.get('reference') || localStorage.getItem('paymentReference');
+
       if (!reference) {
         setStatus('Error: Missing reference');
         toast.error('Missing payment reference', { position: 'top-right' });
@@ -30,7 +34,8 @@ export default function PaymentSuccess() {
         localStorage.removeItem('paymentReference');
         localStorage.removeItem('pendingPublicationId');
       } catch (err) {
-        const errorMessage = err.response?.data?.error || 'Payment verification failed';
+        const errorMessage =
+          err.response?.data?.error || 'Payment verification failed';
         setStatus(errorMessage);
         toast.error(errorMessage, { position: 'top-right' });
         localStorage.removeItem('paymentReference');
@@ -38,6 +43,7 @@ export default function PaymentSuccess() {
         setTimeout(() => router.push('/'), 2000);
       }
     }
+
     verify();
   }, [searchParams, router]);
 

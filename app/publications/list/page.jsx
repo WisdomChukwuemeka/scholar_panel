@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { PublicationAPI } from "@/app/services/api";
 import { toast } from "react-toastify";
+import { motion } from 'framer-motion'
 
 export default function PublicationListPage() {
   const [publications, setPublications] = useState([]);
@@ -17,24 +18,16 @@ export default function PublicationListPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
 
-  // Simulate 5-second loading
+  const router = useRouter();
+  const pageSize = 10;
+
+  // Loading timer
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 2000);
     return () => clearTimeout(timer);
   }, []);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-10 w-10 border-4 border-gray-300 border-t-blue-600"></div>
-      </div>
-    );
-  }
-
-  const router = useRouter();
-  const pageSize = 10; // DRF default (change if your pagination size differs)
-
-  // ✅ Fetch publications (supports pagination + search)
+  // Fetch publications
   const fetchPublications = async (url = null, page = 1, query = "") => {
     try {
       const response = url
@@ -51,11 +44,10 @@ export default function PublicationListPage() {
       console.log(data.results)
     } catch (err) {
       // console.error(err);
-      // setError("Failed to load publications.");
     }
   };
 
-  // ✅ Fetch user + publications
+  // Fetch user + publications
   useEffect(() => {
     const fetchUserAndData = async () => {
       try {
@@ -70,7 +62,6 @@ export default function PublicationListPage() {
     fetchUserAndData();
   }, []);
 
-  // ✅ Permission: Only owner can edit rejected/draft/pending publications
   const canEdit = (pub) => {
     if (!currentUser) return false;
     const isOwner =
@@ -79,18 +70,19 @@ export default function PublicationListPage() {
     return isOwner && editableStatuses.includes(pub.status);
   };
 
-  // ✅ Pagination buttons
+  const handlePagination = (e, page) => {
+    e.preventDefault();
+    fetchPublications(null, page, search);
+  };
+
   const renderPaginationButtons = () => {
     if (totalPages <= 1) return null;
-
     const pages = [];
     const maxButtons = 5;
     let start = Math.max(1, currentPage - 2);
     let end = Math.min(totalPages, start + maxButtons - 1);
 
-    if (end - start < maxButtons - 1) {
-      start = Math.max(1, end - maxButtons + 1);
-    }
+    if (end - start < maxButtons - 1) start = Math.max(1, end - maxButtons + 1);
 
     for (let i = start; i <= end; i++) {
       pages.push(
@@ -124,86 +116,85 @@ export default function PublicationListPage() {
         </button>
       );
     }
-
     return pages;
   };
 
-  // ✅ Prevent page reload on pagination
-  const handlePagination = (e, page) => {
+  const handleSearch = async (e) => {
     e.preventDefault();
-    fetchPublications(null, page, search);
+    const query = search.trim();
+    await fetchPublications(null, 1, query || "");
   };
 
- // ✅ Search handling
-const handleSearch = async (e) => {
-  e.preventDefault();
-  const query = search.trim();
+  useEffect(() => {
+    if (search.trim() === "") fetchPublications(null, 1, "");
+  }, [search]);
 
-  if (!query) {
-    // If search is empty, show all publications
-    await fetchPublications(null, 1, "");
-  } else {
-    await fetchPublications(null, 1, query);
-  }
-};
-
-// ✅ Automatically show all publications when search is cleared
-useEffect(() => {
-  if (search.trim() === "") {
-    fetchPublications(null, 1, "");
-  }
-}, [search]);
-
-
+  // ✅ Updated render: never return early
+  const colors = ["bg-blue-500", "bg-red-500", "bg-green-500", "bg-yellow-500"];
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 bg-gray-50 min-h-screen">
-      <div className="bg-white rounded-xl shadow-lg p-6 sm:p-8">
-        <h2 className="text-3xl font-bold text-gray-900 mb-6 tracking-tight">
-          Publications
-        </h2>
-
-        {/* ✅ Create & Search Controls */}
-        <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
-          <form onSubmit={handleSearch} className="flex w-full sm:w-auto">
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search publications..."
-              className="px-3 py-2 border border-gray-300 rounded-l-md focus:ring-2 focus:ring-indigo-500 focus:outline-none w-full sm:w-64"
+      {loading ? (
+        <div className="flex items-center justify-center h-screen space-x-4">
+          {colors.map((color, index) => (
+            <motion.div
+              key={index}
+              className={`h-6 w-6 rounded-full ${color}`}
+              animate={{ y: [0, -20, 0] }}
+              transition={{
+                duration: 0.6,
+                repeat: Infinity,
+                repeatType: "loop",
+                delay: index * 0.15,
+              }}
             />
-            <button
-              type="submit"
-              className="px-4 py-2 bg-indigo-600 text-white text-sm rounded-r-md hover:bg-indigo-700"
-            >
-              Search
-            </button>
-          </form>
+          ))}
         </div>
+      ) : (
+        <div className="bg-white rounded-xl shadow-lg p-6 sm:p-8">
+          <h2 className="text-3xl font-bold text-gray-900 mb-6 tracking-tight">
+            Publications
+          </h2>
 
-        {error && (
-          <p className="text-red-600 bg-red-50 p-3 rounded-md mb-6 text-sm font-medium">
-            {error}
-          </p>
-        )}
+          <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+            <form onSubmit={handleSearch} className="flex w-full sm:w-auto">
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search publications..."
+                className="px-3 py-2 border border-gray-300 rounded-l-md focus:ring-2 focus:ring-indigo-500 focus:outline-none w-full sm:w-64"
+              />
+              <button
+                type="submit"
+                className="px-4 py-2 bg-indigo-600 text-white text-sm rounded-r-md hover:bg-indigo-700"
+              >
+                Search
+              </button>
+            </form>
+          </div>
 
-        {publications.length === 0 ? (
-          <p className="text-gray-600 text-center py-6">No publications found.</p>
-        ) : (
-          <>
+          {error && (
+            <p className="text-red-600 bg-red-50 p-3 rounded-md mb-6 text-sm font-medium">
+              {error}
+            </p>
+          )}
 
-          {
-            publications.map((pub) => (
-              <div key={pub.id} className="border border-gray-200 rounded-lg p-6 mb-6 bg-white 
-              hover:shadow-md transition-shadow duration-200
-              flex justify-between items-center">
-                <div>
-                <h3 className=" text ">{pub.title}</h3>
-                <p>Author: {pub.author}</p>
-                <p>Date: {new Date(pub.publication_date).toLocaleDateString()}</p>
-                </div>
-                <div className="flex space-x-4">
+          {publications.length === 0 ? (
+            <p className="text-gray-600 text-center py-6">No publications found.</p>
+          ) : (
+            <>
+              {publications.map((pub) => (
+                <div
+                  key={pub.id}
+                  className="border border-gray-200 rounded-lg p-6 mb-6 bg-white hover:shadow-md transition-shadow duration-200 flex justify-between items-center"
+                >
+                  <div>
+                    <h3>{pub.title}</h3>
+                    <p>Author: {pub.author}</p>
+                    <p>Date: {new Date(pub.publication_date).toLocaleDateString()}</p>
+                  </div>
+                  <div className="flex space-x-4">
                     <button
                       onClick={() => router.push(`/publications/${pub.id}`)}
                       className="text-indigo-600 hover:text-indigo-800 font-medium text-sm transition-colors duration-150 cursor-pointer"
@@ -211,100 +202,40 @@ useEffect(() => {
                       View
                     </button>
                   </div>
-              </div>
-            ))
-          }
-
-            {/* <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {publications.map((pub) => (
-                <div
-                  key={pub.id}
-                  className="border border-gray-200 rounded-lg p-6 bg-white hover:shadow-md transition-shadow duration-200"
-                >
-                  {pub.video_file ? (
-                    <div className="mb-6">
-                      <video
-                        src={pub.video_file}
-                        controls
-                        className="w-full rounded-lg object-cover"
-                        style={{ maxHeight: "200px" }}
-                        onError={() =>
-                          toast.error(`Failed to load video for ${pub.title}`)
-                        }
-                      />
-                    </div>
-                  ) : (
-                    <p className="text-gray-500 text-sm mb-4 italic">
-                      No video available
-                    </p>
-                  )}
-
-                  <h3 className="text-md font-semibold text-gray-900 mb-2 ">
-                    {pub.title}
-                  </h3>
-
-                  <p className="text-gray-700 text-base mb-3 line-clamp-3">
-                    <strong>Abstract:</strong> {pub.abstract}
-                  </p>
-
-                  <p className="text-gray-600 text-sm mb-4">
-                    <strong>Category:</strong>{" "}
-                    {pub.category_labels || pub.category_name}
-                  </p>
-
-                  <div className="flex space-x-4">
-                    <button
-                      onClick={() => router.push(`/publications/${pub.id}`)}
-                      className="text-indigo-600 hover:text-indigo-800 font-medium text-sm transition-colors duration-150"
-                    >
-                      View
-                    </button>
-                    {canEdit(pub) && (
-                      <button
-                        onClick={() =>
-                          router.push(`/publications/${pub.id}/edit`)
-                        }
-                        className="text-indigo-600 hover:text-indigo-800 font-medium text-sm transition-colors duration-150"
-                      >
-                        Edit
-                      </button>
-                    )}
-                  </div>
                 </div>
               ))}
-            </div> */}
 
-            {/* ✅ Pagination */}
-            <div className="flex justify-center items-center space-x-2 mt-8 flex-wrap">
-              <button
-                disabled={!prevPage}
-                onClick={(e) => handlePagination(e, currentPage - 1)}
-                className={`px-3 py-1 rounded-md text-sm font-medium ${
-                  prevPage
-                    ? "bg-indigo-600 text-white hover:bg-indigo-700"
-                    : "bg-gray-400 text-white cursor-not-allowed"
-                }`}
-              >
-                Previous
-              </button>
+              <div className="flex justify-center items-center space-x-2 mt-8 flex-wrap">
+                <button
+                  disabled={!prevPage}
+                  onClick={(e) => handlePagination(e, currentPage - 1)}
+                  className={`px-3 py-1 rounded-md text-sm font-medium ${
+                    prevPage
+                      ? "bg-indigo-600 text-white hover:bg-indigo-700"
+                      : "bg-gray-400 text-white cursor-not-allowed"
+                  }`}
+                >
+                  Previous
+                </button>
 
-              {renderPaginationButtons()}
+                {renderPaginationButtons()}
 
-              <button
-                disabled={!nextPage}
-                onClick={(e) => handlePagination(e, currentPage + 1)}
-                className={`px-3 py-1 rounded-md text-sm font-medium ${
-                  nextPage
-                    ? "bg-indigo-600 text-white hover:bg-indigo-700"
-                    : "bg-gray-400 text-white cursor-not-allowed"
-                }`}
-              >
-                Next
-              </button>
-            </div>
-          </>
-        )}
-      </div>
+                <button
+                  disabled={!nextPage}
+                  onClick={(e) => handlePagination(e, currentPage + 1)}
+                  className={`px-3 py-1 rounded-md text-sm font-medium ${
+                    nextPage
+                      ? "bg-indigo-600 text-white hover:bg-indigo-700"
+                      : "bg-gray-400 text-white cursor-not-allowed"
+                  }`}
+                >
+                  Next
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }

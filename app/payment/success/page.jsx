@@ -1,6 +1,11 @@
 'use client';
 export const dynamic = "force-dynamic";
 
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
+export const revalidate = 0;
+
+
 
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -10,13 +15,15 @@ import 'react-toastify/dist/ReactToastify.css';
 import { PaymentAPI } from '@/app/services/api';
 
 export default function PaymentSuccess() {
+if (typeof window === "undefined") return null; // <-- Prevent SSR crash
+
   const [status, setStatus] = useState('Verifying...');
   const searchParams = useSearchParams();
   const router = useRouter();
 
   useEffect(() => {
     async function verify() {
-      const reference = searchParams.get('reference') || localStorage.getItem('paymentReference');
+      const reference = searchParams.get('reference')
       if (!reference) {
         setStatus('Error: Missing reference');
         toast.error('Missing payment reference', { position: 'top-right' });

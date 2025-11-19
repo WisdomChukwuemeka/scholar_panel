@@ -1,17 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { SecureStorage } from "@/utils/secureStorage";
 import { MessageAPI } from "@/app/services/api"; //  your Django API integration
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 export default function ContactPage() {
-  const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
-  const [hasToken, setHasToken] = useState(false);
   const [formData, setFormData] = useState({
     full_name: "",
     email: "",
@@ -19,20 +14,6 @@ export default function ContactPage() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    const token = SecureStorage.get("access_token");
-    setHasToken(!!token);
-    if (!token) router.replace("/login");
-    setTimeout(() => setIsLoading(false), 500);
-  }, []);
-
-  if (isLoading || !hasToken) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-600 border-solid"></div>
-      </div>
-    );
-  }
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });

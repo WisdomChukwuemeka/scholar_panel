@@ -22,7 +22,7 @@ export default function JournivoTerms() {
           <p>By submitting content to Journivo, you grant us a worldwide, perpetual, irrevocable, royalty-free license to use, reproduce, modify, distribute, display, and otherwise exploit your content for any purpose related to our services. You warrant that you have all rights necessary to grant this license and that your content does not violate any law or third-party rights.</p>
 
           <h2>4. Prohibited Content</h2>
-          <p>Users may not post content that is illegal, defamatory, obscene, infringing, harmful, or violates the rights of others. This includes content promoting hate, violence, terrorism, or sexual exploitation.</p>
+          <p>Users should not post content that is illegal, defamatory, obscene, infringing, harmful, or violates the rights of others. This includes content promoting hate, violence, terrorism, or sexual exploitation.</p>
 
           <h2>5. Moderation and Editorial Discretion</h2>
           <p>Journivo reserves the right to review, edit, remove, or block any content or user accounts at its sole discretion. Editors act as agents of Journivo, and all moderation decisions are final and binding within the scope of applicable law.</p>

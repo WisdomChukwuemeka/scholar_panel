@@ -6,7 +6,6 @@ import { PublicationAPI, PaymentAPI, isTokenExpired } from "../services/api";
 import PaymentModal from "./PaymentModel";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { SecureStorage } from "@/utils/secureStorage";
 
 export default function PublicationForm() {
   const router = useRouter();
@@ -106,13 +105,6 @@ export default function PublicationForm() {
     setErrors({});
     setIsSubmitting(true);
 
-  const token = SecureStorage.get("access_token");
-  if (isTokenExpired(token)) {
-    toast.error("Session expired. Please log in again.", { toastId: "session-expired" });
-    setIsSubmitting(false);
-    router.push("/login");
-    return;
-  }
 
     const validationErrors = validateForm();
     if (Object.keys(validationErrors).length > 0) {

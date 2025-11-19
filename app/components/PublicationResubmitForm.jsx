@@ -130,7 +130,7 @@ export default function PublicationResubmitForm({
   /* --------------------------------------------------------------
      Save as Draft
   -------------------------------------------------------------- */
-  const handleSaveDraft = async () => {
+const handleSaveDraft = async () => {
   setIsSavingDraft(true);
   try {
     const payload = new FormData();
@@ -152,56 +152,81 @@ export default function PublicationResubmitForm({
   }
 };
 
-  /* --------------------------------------------------------------
-     Submit → free review OR payment modal
-  -------------------------------------------------------------- */
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setErrors({});
-    setIsSubmitting(true);
-
-    if (!publicationId) {
-      toast.error("Publication ID missing.");
-      setIsSubmitting(false);
-      return;
+/* --------------------------------------------------------------
+   Auto-save draft before any resubmit
+-------------------------------------------------------------- */
+const saveDraftBeforeSubmit = async () => {
+  const draftPayload = new FormData();
+  const allowed = ['title', 'abstract', 'content', 'category_name', 'keywords', 'file', 'video_file'];
+  allowed.forEach(key => {
+    const value = formData[key];
+    if (value !== null && value !== undefined) {
+      draftPayload.append(key, value);
     }
+  });
 
-    const validationErrors = validateForm();
-    if (Object.keys(validationErrors).length) {
-      setErrors(validationErrors);
-      Object.values(validationErrors).forEach((msg) => toast.error(msg));
-      setIsSubmitting(false);
-      return;
+  try {
+    await PublicationAPI.patch(publicationId, draftPayload);
+    toast.success("Draft saved automatically.");
+  } catch (err) {
+    console.warn("Auto-save draft failed (non-blocking):", err);
+    // Non-blocking: don't stop submission
+  }
+};
+
+/* --------------------------------------------------------------
+   Submit to free review OR payment modal
+-------------------------------------------------------------- */
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setErrors({});
+  setIsSubmitting(true);
+
+  if (!publicationId) {
+    toast.error("Publication ID missing.");
+    setIsSubmitting(false);
+    return;
+  }
+
+  const validationErrors = validateForm();
+  if (Object.keys(validationErrors).length) {
+    setErrors(validationErrors);
+    Object.values(validationErrors).forEach((msg) => toast.error(msg));
+    setIsSubmitting(false);
+    return;
+  }
+
+  const baseData = buildBaseFormData();
+
+  // AUTO-SAVE DRAFT FIRST
+  await saveDraftBeforeSubmit();
+
+  try {
+    const freeRes = await PaymentAPI.getFreeReviewStatus();
+    const hasFree = freeRes.data.has_free_review_available;
+
+    if (hasFree) {
+      const payload = new FormData();
+      for (const [k, v] of baseData.entries()) payload.append(k, v);
+      payload.append("status", "pending");
+      payload.append("is_free_review", "true");
+
+      await PublicationAPI.patch(publicationId, payload);
+      toast.success("Resubmitted! Now pending review.");
+      router.push(`/publications/${publicationId}`);
+    } else {
+      const clean = new FormData();
+      for (const [k, v] of baseData.entries()) clean.append(k, v);
+      setPendingBaseData(clean);
+      setShowPaymentModal(true);
     }
-
-    const baseData = buildBaseFormData();
-
-    try {
-      const freeRes = await PaymentAPI.getFreeReviewStatus();
-      const hasFree = freeRes.data.has_free_review_available;
-
-      if (hasFree) {
-        const payload = new FormData();
-        for (const [k, v] of baseData.entries()) payload.append(k, v);
-        payload.append("status", "pending");
-        payload.append("is_free_review", "true");
-
-        await PublicationAPI.patch(publicationId, payload);
-        toast.success("Resubmitted! Now pending review.");
-        router.push(`/publications/${publicationId}`);
-      } else {
-        const clean = new FormData();
-        for (const [k, v] of baseData.entries()) clean.append(k, v);
-        setPendingBaseData(clean);
-        setShowPaymentModal(true);
-      }
-    } catch (err) {
-      const msg = err.response?.data?.detail || "Resubmission failed.";
-      toast.error(msg);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  } catch (err) {
+    const msg = err.response?.data?.detail || "Resubmission failed.";
+    toast.error(msg);
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   /* --------------------------------------------------------------
      Payment success → final PATCH
@@ -270,11 +295,11 @@ export default function PublicationResubmitForm({
           />
           <p className="text-xs text-gray-500 mt-1">
             {formData.title.length <= 10 ? 
-              <p className="text-red-600">
+              (<p className="text-red-600">
                 {formData.title.length}/10 characters
-              </p> : <p className="text-green-600">
+              </p>) : (<p className="text-green-600">
                 {formData.title.length}/10 characters
-              </p>
+              </p>)
             }
           </p>
           {errors.title && (

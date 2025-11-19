@@ -9,10 +9,10 @@ export const Footer = () => {
           {/* Column 1: Logo + Mission */}
           <div>
             <div className="flex items-center space-x-2 mb-2">
-              <h2 className="text-lg font-bold text-white">Journivo</h2>
+              <h2 className="text-lg font-bold text-white">Journivor</h2>
             </div>
             <p className="text-xs leading-relaxed">
-              Breaking barriers in academic publishing. Journivo is dedicated to
+              Breaking barriers in academic publishing. Journivor is dedicated to
               making research accessible, afforadable, transparent, and globally impactful.
             </p>
           </div>
@@ -34,7 +34,7 @@ export const Footer = () => {
           <div>
             <h3 className="text-md font-semibold text-white mb-2">Get in Touch</h3>
             <p className="text-xs">📍 Port Harcourt, Rivers State, Nigeria</p>
-            <p className="text-xs">✉️ contact@journivo.org</p>
+            <p className="text-xs">✉️ contact@journivor.org</p>
             <p className="text-xs mb-2">📞 +234 800 123 4567</p>
 
             <div className="flex space-x-3 mt-1">
@@ -48,7 +48,7 @@ export const Footer = () => {
 
         {/* Bottom Bar */}
         <div className="mt-6 border-t border-white/20 py-3 text-center text-xs text-gray-400">
-          © {new Date().getFullYear()} Journivo. All Rights Reserved.
+          © {new Date().getFullYear()} Journivor. All Rights Reserved.
         </div>
       </footer>
     </>

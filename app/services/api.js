@@ -1,75 +1,78 @@
+// services/api.js
 import axios from 'axios';
-import { SecureStorage } from '@/utils/secureStorage';
 
-// Base URL for your backend API
-const myBaseUrl = 'http://localhost:8000/api';
-// const myBaseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+// Your backend URL
+const BASE_URL = 'http://localhost:8000/api'; 
+// const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://panel-ayrn.onrender.com/api';
 
 const api = axios.create({
-  baseURL: myBaseUrl,
+  baseURL: BASE_URL,
+  withCredentials: true, // This is the ONLY thing needed for cookies
 });
 
-// --- 🔐 Security Layer for localStorage ---
-// Token getter that protects against SSR and XSS
-const getToken = () => {
-  try {
-    if (typeof window !== "undefined") {
-      return SecureStorage.get("access_token"); // <-- Decrypted token
-    }
-    return null;
-  } catch (err) {
-    console.warn("Could not get token:", err);
-    return null;
-  }
-};
-
-// Add Authorization header to every request if token exists
+// Optional: Log for debugging (remove in production)
 api.interceptors.request.use((config) => {
-  const token = getToken();
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`; // For DRF TokenAuthentication
-  }
+  // console.log('Request →', config.method.toUpperCase(), config.url);
   return config;
 });
 
-// ---  Auto-logout on expired or invalid token ---
+// ————————————————————————
+// Token Refresh Logic (Cookie-Based)
+// ————————————————————————
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach((prom) => {
+    error ? prom.reject(error) : prom.resolve(token);
+  });
+  failedQueue = [];
+};
+
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      try {
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('role');
-      } catch (e) {
-        console.warn("Failed to clear localStorage:", e);
+  async (error) => {
+    const originalRequest = error.config;
+
+    // If 401 and not already retrying
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        // Wait for the refresh to finish
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then(() => api(originalRequest))
+          .catch((err) => Promise.reject(err));
       }
-      // Optional: redirect user to login
-      if (typeof window !== 'undefined') {
-        window.location.href = '/login';
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        // This calls your CookieTokenRefreshView → reads refresh_token from cookie
+        await api.post('/token/refresh/');
+        
+        processQueue(null);
+        return api(originalRequest); // Retry original request with new access_token cookie
+      } catch (refreshError) {
+        processQueue(refreshError);
+        // Optional: redirect to login
+        if (typeof window !== 'undefined') {
+          window.location.href = '/login';
+        }
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
       }
     }
+
     return Promise.reject(error);
   }
 );
 
-// --- Token Expiry Auto-Check (Optional) ---
-export const isTokenExpired = (token) => {
-  if (!token || typeof token !== "string") return true;
-
-  try {
-    const [, payload] = token.split(".");
-    if (!payload) return true;
-
-    const decoded = JSON.parse(atob(payload));
-    if (!decoded.exp) return true;
-
-    const expired = decoded.exp * 1000 < Date.now();
-    return expired;
-  } catch (error) {
-    // console.warn("Invalid token format in isTokenExpired:", error);
-    return true;
-  }
-};
+// ————————————————————————
+// All API Endpoints (No token handling needed!)
+// ————————————————————————
 
 
 // ---  API Endpoints ---
@@ -297,5 +300,5 @@ export const RewardRedemptionAPI = {
   redeem: (data) => api.post("/rewardcodes/redeem/", data),
 };
 
-
+// Export the axios instance if needed elsewhere
 export default api;

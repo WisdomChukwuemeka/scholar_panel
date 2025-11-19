@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
-import { PublicationAPI, ViewsAPI } from "@/app/services/api";
+import { PublicationAPI, ViewsAPI } from "../services/api";
 import { toast } from "react-toastify";
 import { motion } from "framer-motion";
 import { ThumbsUp, ThumbsDown, Eye } from "lucide-react";

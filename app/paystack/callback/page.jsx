@@ -12,6 +12,7 @@ export default function PaystackCallbackPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [paymentDetails, setPaymentDetails] = useState(null);
 
   useEffect(() => {
     const reference = searchParams.get("reference");
@@ -21,6 +22,7 @@ export default function PaystackCallbackPage() {
           const response = await PaymentAPI.verifyPayment(reference);
           if (response.data.payment.status === "success") {
             setSuccess(true);
+            setPaymentDetails(response.data.payment);
 
             // 🕔 Delay 5 seconds before redirect
             setTimeout(() => {
@@ -83,7 +85,7 @@ export default function PaystackCallbackPage() {
             </h2>
             <p className="text-gray-600">{error}</p>
             <button
-              onClick={() => router.push("/payments/history")}
+              onClick={() => router.push("/payment/history")}
               className="mt-6 bg-red-500 hover:bg-red-600 text-white font-medium px-5 py-2.5 rounded-lg shadow transition-all duration-200"
             >
               Go to Payment History
@@ -106,6 +108,43 @@ export default function PaystackCallbackPage() {
             <p className="text-gray-600 mb-6">
               Redirecting you to your publication page...
             </p>
+
+            {/* Ticket-like Receipt */}
+            {paymentDetails && (
+              <div className="bg-white rounded-lg shadow-md p-6 w-full max-w-sm mx-auto">
+                <div className="text-center mb-4">
+                  <div className="text-3xl mb-2">🎉</div>
+                  <h3 className="text-lg font-bold text-gray-900">Thank you.</h3>
+                  <p className="text-sm text-gray-600">Your payment has been processed successfully.</p>
+                </div>
+                <div className="border-t-2 border-dashed border-gray-300 pt-4">
+                  <div className="grid grid-cols-2 gap-2 text-sm text-gray-700">
+                    <span className="font-medium">Ticket ID</span>
+                    <span>{paymentDetails.reference || 'N/A'}</span>
+                    <span className="font-medium">Amount</span>
+                    <span>₦{(paymentDetails.amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    <span className="font-medium">Date & Time</span>
+                    <span>{new Date(paymentDetails.created_at || Date.now()).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase()} | {new Date(paymentDetails.created_at || Date.now()).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
+                  </div>
+                  <div className="mt-4 bg-blue-50 rounded-md p-2 text-sm text-gray-800 flex items-center justify-center">
+                    <span className="mr-2">💳</span>
+                    {paymentDetails.authorization ? `${paymentDetails.authorization.brand || 'Card'} ending in ${paymentDetails.authorization.last4 || 'XXXX'} Expiry: ${paymentDetails.authorization.exp_month || 'XX'}/${(paymentDetails.authorization.exp_year || 2000) % 100}` : 'Card details not available'}
+                  </div>
+                  <div className="mt-4 flex justify-center">
+                    <div className="flex space-x-px h-8 w-48 bg-white">
+                      {Array.from({ length: 30 }).map((_, i) => (
+                        <div
+                          key={i}
+                          className="h-full bg-black"
+                          style={{ width: `${Math.random() * 3 + 1}px` }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  <p className="text-center text-xs text-gray-500 mt-1">#{Math.random().toString(36).substring(2, 18).toUpperCase()}</p>
+                </div>
+              </div>
+            )}
 
             {/* 📖 Animated book */}
             <motion.div

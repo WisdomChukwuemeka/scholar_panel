@@ -1,58 +1,167 @@
-'use client';
+// components/ProtectedRoute.jsx
+"use client";
 
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { SecureStorage } from '@/utils/secureStorage'; // Adjust path as needed
 
-const AUTH_PATHS = ['/login', '/register', '/terms', '/verification']; // Paths where logged-in users should be redirected away from
-const PUBLIC_PATHS = ['/']; // Truly public paths like home, accessible regardless of auth
+const PUBLIC_PATHS = ['/', '/login', '/register', '/terms', '/verification'];
 
 export default function ProtectedRoute({ children }) {
   const router = useRouter();
   const pathname = usePathname();
-  const [isLoading, setIsLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(null); // null = loading
 
   useEffect(() => {
-    try {
-      const token = SecureStorage.get('access_token');
+    const checkAuth = async () => {
+      try {
+        const res = await fetch('http://localhost:8000/api/me/', {
+          credentials: 'include', // This sends cookies
+        });
 
-      const isAuthPath = AUTH_PATHS.includes(pathname);
-      const isPublicPath = PUBLIC_PATHS.includes(pathname) || isAuthPath;
-
-      if (token) {
-        if (isAuthPath) {
-          // Redirect logged-in users away from login/register to home
-          router.push('/');
-        }
-        // For logged-in users, allow access to protected and public paths
-        setIsAuthenticated(true);
-      } else {
-        if (isPublicPath) {
-          // Allow unauthenticated users on public paths (including home, login, register)
-          setIsAuthenticated(true);
+        if (res.ok) {
+          const data = await res.json();
+          localStorage.setItem('role', data.role || ''); // Only store role
+          if (PUBLIC_PATHS.includes(pathname) && pathname !== '/') {
+            router.replace('/');
+          } else {
+            setIsAuthenticated(true);
+          }
         } else {
-          // Redirect unauthenticated users from protected paths to login
-          router.push('/login');
+          localStorage.removeItem('role');
+          if (!PUBLIC_PATHS.includes(pathname)) {
+            router.replace('/login');
+          } else {
+            setIsAuthenticated(true); // Allow public pages
+          }
+        }
+      } catch (err) {
+        localStorage.removeItem('role');
+        if (!PUBLIC_PATHS.includes(pathname)) {
+          router.replace('/login');
+        } else {
+          setIsAuthenticated(true);
         }
       }
-    } catch (error) {
-      console.error('Error during auth check:', error);
-      // Optionally handle error, e.g., treat as unauthenticated
-      router.push('/login');
-    } finally {
-      setIsLoading(false);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname]);
+    };
 
-  if (isLoading) {
-    return <div className="flex justify-center items-center min-h-screen text-gray-600">Loading...</div>;
+    checkAuth();
+  }, [pathname, router]);
+
+  if (isAuthenticated === null) {
+    return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
   }
 
-  if (!isAuthenticated) {
-    return null; // Redirect will handle navigation
-  }
-
-  return children;
+  return <>{children}</>;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// // components/ProtectedRoute.jsx
+// "use client";
+
+// import { useEffect, useState } from "react";
+// import { useRouter, usePathname } from "next/navigation";
+
+// const PUBLIC_PATHS = [
+//   "/", 
+//   "/login", 
+//   "/register", 
+//   "/terms", 
+//   "/verification",
+//   "/components/about",
+//   "/components/contact",
+//   "/publications/list",
+//   "/our-services",
+//   "/resources",
+//   "/guidelines/author",
+//   "/guidelines/reviewers",
+//   "/guidelines/editors",
+//   // Add any other public pages here
+// ];
+
+// const AUTH_ONLY_PATHS = [
+//   "/dashboard",
+//   "/profile",
+//   "/publications/create",
+//   "/payment/history",
+//   // Add your protected pages here
+// ];
+
+// export default function ProtectedRoute({ children }) {
+//   const router = useRouter();
+//   const pathname = usePathname();
+//   const [isLoading, setIsLoading] = useState(true);
+
+//   useEffect(() => {
+//     const checkAuth = async () => {
+//       try {
+//         // Call a real authenticated endpoint
+//         const res = await fetch("http://localhost:8000/api/auth/me/", {
+//           credentials: "include",
+//         });
+
+//         if (res.ok) {
+//           const data = await res.json();
+//           localStorage.setItem("role", data.role || "");
+
+//           // If logged in and on login/register → go home
+//           if ((pathname === "/login" || pathname === "/register") && res.ok) {
+//             router.replace("/");
+//             return;
+//           }
+
+//           setIsLoading(false);
+//         } else {
+//           throw new Error("Not authenticated");
+//         }
+//       } catch (err) {
+//         // Not logged in
+//         localStorage.removeItem("role");
+
+//         // Allow access to public pages
+//         if (PUBLIC_PATHS.includes(pathname)) {
+//           setIsLoading(false);
+//         } 
+//         // Block access to protected pages
+//         else if (AUTH_ONLY_PATHS.some(path => pathname.startsWith(path))) {
+//           router.replace("/login");
+//         }
+//         // For any other page (like /about), allow if public
+//         else if (!PUBLIC_PATHS.includes(pathname)) {
+//           // Optional: treat unknown pages as public or redirect
+//           setIsLoading(false);
+//         } else {
+//           setIsLoading(false);
+//         }
+//       }
+//     };
+
+//     checkAuth();
+//   }, [pathname, router]);
+
+//   if (isLoading) {
+//     return (
+//       <div className="flex justify-center items-center min-h-screen">
+//         Loading...
+//       </div>
+//     );
+//   }
+
+//   return <>{children}</>;
+// }

@@ -1,6 +1,5 @@
 "use client";
 
-import { SecureStorage } from "@/utils/secureStorage";
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -8,6 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { NotificationAPI } from "../services/api";
 import { ProfileAPI } from "../services/api";
+
 
 export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -25,62 +25,49 @@ export const Header = () => {
   const router = useRouter();
 
   // ✅ Check user authentication and role
-  useEffect(() => {
-    const checkAuthAndRole = () => {
-      const token = SecureStorage.get("access_token");
-      const storedRole = SecureStorage.get("role");
-      setIsLoggin(!!token);
-      setRole(storedRole ? storedRole.trim().toLowerCase() : "");
+ useEffect(() => {
+    const updateAuthState = () => {
+      const storedRole = localStorage.getItem("role");
+      setIsLoggin(!!storedRole);           // ← Now correct
+      setRole(storedRole?.trim().toLowerCase() || "");
     };
 
-    checkAuthAndRole();
-    window.addEventListener("authChange", checkAuthAndRole);
-    window.addEventListener("storage", checkAuthAndRole);
+    updateAuthState();
+    window.addEventListener("authChange", updateAuthState);
 
     return () => {
-      window.removeEventListener("authChange", checkAuthAndRole);
-      window.removeEventListener("storage", checkAuthAndRole);
+      window.removeEventListener("authChange", updateAuthState);
     };
   }, []);
 
   // ✅ Fetch notifications without flicker
   useEffect(() => {
-    if (isLoggin && !isMarkingRead) {
-      const fetchNotifications = async () => {
-        try {
-          const listResponse = await NotificationAPI.list();
+    if (!isLoggin || isMarkingRead) return;
 
-          // ✅ Filter unread notifications only
-          const unreadOnly = (listResponse.data.results || []).filter(
-            (n) => !n.is_read
-          );
-
-          setNotifications(unreadOnly);
-          setUnreadCount(unreadOnly.length);
-        } catch (error) {
-          if (error.response?.status === 403 || error.response?.status === 401) {
-            SecureStorage.remove("access_token");
-            SecureStorage.remove("refresh_token");
-            SecureStorage.remove("is_superuser");
-            SecureStorage.remove("role");
-            setIsLoggin(false);
-            setRole("");
-            setNotifications([]);
-            setUnreadCount(0);
-            router.push("/login");
-          } else {
-            setNotifications([]);
-            setUnreadCount(0);
-          }
+    const fetchNotifications = async () => {
+      try {
+        const res = await NotificationAPI.list();
+        const unread = (res.data.results || []).filter(n => !n.is_read);
+        setNotifications(unread);
+        setUnreadCount(unread.length);
+      } catch (error) {
+        if (error.response?.status === 401 || error.response?.status === 403) {
+          // Token expired or invalid → force logout
+          localStorage.removeItem("role");
+          window.dispatchEvent(new Event("authChange"));
+          setIsLoggin(false);
+          setRole("");
+          router.push("/login");
         }
-      };
+      }
+    };
 
       fetchNotifications();
-      const intervalId = setInterval(fetchNotifications, 10000);
-      return () => clearInterval(intervalId);
-    }
+    const interval = setInterval(fetchNotifications, 10000);
+    return () => clearInterval(interval);
   }, [isLoggin, isMarkingRead, router]);
 
+  
   useEffect(() => {
   const fetchProfileImage = async () => {
     if (!isLoggin) return;
@@ -129,17 +116,15 @@ export const Header = () => {
   };
 
   // ✅ Logout
-  const handleLogout = () => {
-    SecureStorage.remove("access_token");
-    SecureStorage.remove("refresh_token");
-    SecureStorage.remove("is_superuser");
-    SecureStorage.remove("role");
-    setIsLoggin(false);
-    setRole("");
-    setNotifications([]);
-    setUnreadCount(0);
-    router.push("/login");
-  };
+  const handleLogout = async () => {
+  await fetch('http://localhost:8000/api/logout/', {
+    method: 'POST',
+    credentials: 'include',
+  });
+  localStorage.removeItem('role');
+  window.dispatchEvent(new Event('authChange'));
+  router.push('/login');
+};
 
   // ✅ Menu toggles
   const toggleMenu = () => {
@@ -259,8 +244,8 @@ export const Header = () => {
               </AnimatePresence>
             </div>
 
-            <Link href="/components/services"><li className="li-hover">Services</li></Link>
-            <Link href="/components/resources"><li className="li-hover">Resources</li></Link>
+            <Link href="/our-services"><li className="li-hover">Services</li></Link>
+            <Link href="/resources"><li className="li-hover">Resources</li></Link>
           </ul>
 
           {/* Right Section */}
@@ -482,10 +467,10 @@ export const Header = () => {
               </AnimatePresence>
             </div>
 
-            <Link href="/components/services"><li className="px-4 py-2 hover:bg-gray-100 cursor-pointer rounded-md font-medium text-gray-800">Services</li></Link>
-            <Link href="/components/resources"><li className="px-4 py-2 hover:bg-gray-100 cursor-pointer rounded-md font-medium text-gray-800">Resources</li></Link>
+            <Link href="/our-services"><li className="px-4 py-2 hover:bg-gray-100 cursor-pointer rounded-md font-medium text-gray-800">Services</li></Link>
+            <Link href={"/resources"}><li className="px-4 py-2 hover:bg-gray-100 cursor-pointer rounded-md font-medium text-gray-800">Resources</li></Link>
             {isLoggin && (
-                <Link href="/components/PaymentHistory"><li className="px-4 py-2 hover:bg-gray-100 cursor-pointer rounded-md font-medium text-gray-800">Payment History</li></Link>
+                <Link href="/payment/history"><li className="px-4 py-2 hover:bg-gray-100 cursor-pointer rounded-md font-medium text-gray-800">Payment History</li></Link>
             )}
 
             {/* Role-specific Buttons */}

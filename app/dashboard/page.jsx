@@ -15,7 +15,7 @@ export default function EditorDashboard() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [count, setCount] = useState(0);
-  const pageSize = 6;
+  const pageSize = 10;
   const totalPages = Math.ceil(count / pageSize);
 
   useEffect(() => {

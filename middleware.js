@@ -1,3 +1,4 @@
+// middleware.js
 import { NextResponse } from "next/server";
 
 const PROTECTED_PATHS = [
@@ -19,34 +20,49 @@ const PROTECTED_PATHS = [
   "/payments/history",
 ];
 
+// CORRECT URL – no double /api
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  "http://localhost:8000"; // ← ONLY THIS, no /api here!
+
 export async function middleware(request) {
   const pathname = request.nextUrl.pathname;
 
-  if (!PROTECTED_PATHS.some(path => pathname.startsWith(path))) {
-    return NextResponse.next();
-  }
+  // Skip only during actual Vercel build
+  const isVercelBuild =
+    process.env.VERCEL === "1" &&
+    process.env.NODE_ENV === "production" &&
+    !request.headers.get("x-vercel-deployment-url") &&
+    !request.headers.get("user-agent");
+
+  if (isVercelBuild) return NextResponse.next();
+
+  const isProtected = PROTECTED_PATHS.some((path) => pathname.startsWith(path));
+  if (!isProtected) return NextResponse.next();
 
   try {
-    const res = await fetch("http://localhost:8000/api/me/", {
+    const response = await fetch(`${API_BASE_URL}/api/me/`, {
       method: "GET",
       credentials: "include",
       headers: {
         Cookie: request.headers.get("cookie") || "",
+        // Optional: help with CORS in dev
+        "Content-Type": "application/json",
       },
     });
 
-    if (!res.ok) {
-      throw new Error("Not authenticated");
-    }
+    // Debug: uncomment these lines temporarily to see what's happening
+    // console.log("Middleware → /api/me status:", response.status);
+    // console.log("Cookies sent:", request.headers.get("cookie"));
 
-    const data = await res.json();
+    if (!response.ok) throw new Error("Unauthorized");
 
-    if (!data || !data.role || data.role === "") {
-      throw new Error("Not authenticated");
-    }
+    const user = await response.json();
+    if (!user?.role) throw new Error("No role");
 
     return NextResponse.next();
   } catch (error) {
+    console.error("Auth failed in middleware:", error.message);
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);

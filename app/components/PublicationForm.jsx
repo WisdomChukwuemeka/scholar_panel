@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { PublicationAPI, PaymentAPI, isTokenExpired } from "../services/api";
 import PaymentModal from "./PaymentModel";
@@ -25,7 +25,10 @@ export default function PublicationForm() {
   const [currentPublicationId, setCurrentPublicationId] = useState(null);
   const [pendingFormData, setPendingFormData] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loading, setLoading] = useState(true);
 
+  // Simulate 5-second loading
+  
   // ✅ Hardcoded Django category options
   const CATEGORY_CHOICES = [
     { value: "journal", label: "Journal Article" },
@@ -168,6 +171,19 @@ export default function PublicationForm() {
       setIsSubmitting(false);
     }
   };
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-10 w-10 border-4 border-gray-300 border-t-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md">

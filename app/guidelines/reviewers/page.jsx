@@ -1,8 +1,25 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 
 export default function ReviewerGuidelines() {
+  const [loading, setLoading] = useState(true);
+  
+    // Simulate 5-second loading
+    useEffect(() => {
+      const timer = setTimeout(() => setLoading(false), 2000);
+      return () => clearTimeout(timer);
+    }, []);
+  
+    if (loading) {
+      return (
+        <div className="flex items-center justify-center h-screen">
+          <div className="animate-spin rounded-full h-10 w-10 border-4 border-gray-300 border-t-blue-600"></div>
+        </div>
+      );
+    }
+    
   return (
     <div className="max-w-4xl mx-auto px-6 py-12">
       <motion.h1

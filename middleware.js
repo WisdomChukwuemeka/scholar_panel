@@ -12,6 +12,11 @@ const PROTECTED_PATHS = [
   "/guidelines/editors",
   "/guidelines/reviewers",
   "/publications/list",
+  "/PaymentDetails",
+  "/PaymentModel",
+  "/NotificationList",
+  "/SubscriptionGate",
+  "/payments/history",
 ];
 
 export async function middleware(request) {
@@ -61,5 +66,10 @@ export const config = {
     "/guidelines/editors/:path*",
     "/guidelines/reviewers/:path*",
     "/publications/list/:path*",
+    "/PaymentDetails/:path*",
+    "/PaymentModel/:path*",
+    "/NotificationList/:path*",
+    "/SubscriptionGate/:path*",
+    "/payments/history/:path*",
   ],
 };

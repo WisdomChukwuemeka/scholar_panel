@@ -14,35 +14,35 @@ export default function ContactPage() {
     text: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-const [loading, setLoading] = useState(true);
+// const [loading, setLoading] = useState(true);
 
-  // Simulate 5-second loading
-  useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 2000); // 2 seconds
-    return () => clearTimeout(timer);
-  }, []);
+  // // Simulate 5-second loading
+  // useEffect(() => {
+  //   const timer = setTimeout(() => setLoading(false), 2000); // 2 seconds
+  //   return () => clearTimeout(timer);
+  // }, []);
 
-  if (loading) {
-    const colors = ["bg-blue-500", "bg-red-500", "bg-green-500", "bg-yellow-500"];
+  // if (loading) {
+  //   const colors = ["bg-blue-500", "bg-red-500", "bg-green-500", "bg-yellow-500"];
 
-    return (
-      <div className="flex items-center justify-center h-screen space-x-4">
-        {colors.map((color, index) => (
-          <motion.div
-            key={index}
-            className={`h-6 w-6 rounded-full ${color}`}
-            animate={{ y: [0, -20, 0] }}
-            transition={{
-              duration: 0.6,
-              repeat: Infinity,
-              repeatType: "loop",
-              delay: index * 0.15, // stagger bounce
-            }}
-          />
-        ))}
-      </div>
-    );
-  }
+  //   return (
+  //     <div className="flex items-center justify-center h-screen space-x-4">
+  //       {colors.map((color, index) => (
+  //         <motion.div
+  //           key={index}
+  //           className={`h-6 w-6 rounded-full ${color}`}
+  //           animate={{ y: [0, -20, 0] }}
+  //           transition={{
+  //             duration: 0.6,
+  //             repeat: Infinity,
+  //             repeatType: "loop",
+  //             delay: index * 0.15, // stagger bounce
+  //           }}
+  //         />
+  //       ))}
+  //     </div>
+  //   );
+  // }
   
 
   const handleChange = (e) => {

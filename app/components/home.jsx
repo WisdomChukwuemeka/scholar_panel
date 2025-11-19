@@ -284,7 +284,7 @@ export default function HomePage () {
 
     {/* Floating Customer Care Icon */}
 <Link
-  href="/components/contact" 
+  href="/contact" 
   className={`fixed bottom-10 right-8 z-50 bg-blue-600 text-white p-4 rounded-full shadow-lg transition-all duration-300 hover:bg-blue-700 ${
     typeof window !== "undefined" && window.scrollY > window.innerHeight / 2
       ? "opacity-100 visible"

@@ -26,7 +26,7 @@ export default function PublicationForm() {
   const [currentPublicationId, setCurrentPublicationId] = useState(null);
   const [pendingFormData, setPendingFormData] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [loading, setLoading] = useState(true);
+  // const [loading, setLoading] = useState(true);
 
   // Simulate 5-second loading
   
@@ -174,32 +174,32 @@ export default function PublicationForm() {
   };
   
     // Simulate 5-second loading
-    useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 2000); // 2 seconds
-    return () => clearTimeout(timer);
-  }, []);
+  //   useEffect(() => {
+  //   const timer = setTimeout(() => setLoading(false), 2000); // 2 seconds
+  //   return () => clearTimeout(timer);
+  // }, []);
 
-  if (loading) {
-    const colors = ["bg-blue-500", "bg-red-500", "bg-green-500", "bg-yellow-500"];
+  // if (loading) {
+  //   const colors = ["bg-blue-500", "bg-red-500", "bg-green-500", "bg-yellow-500"];
 
-    return (
-      <div className="flex items-center justify-center h-screen space-x-4">
-        {colors.map((color, index) => (
-          <motion.div
-            key={index}
-            className={`h-6 w-6 rounded-full ${color}`}
-            animate={{ y: [0, -20, 0] }}
-            transition={{
-              duration: 0.6,
-              repeat: Infinity,
-              repeatType: "loop",
-              delay: index * 0.15, // stagger bounce
-            }}
-          />
-        ))}
-      </div>
-    );
-  }
+  //   return (
+  //     <div className="flex items-center justify-center h-screen space-x-4">
+  //       {colors.map((color, index) => (
+  //         <motion.div
+  //           key={index}
+  //           className={`h-6 w-6 rounded-full ${color}`}
+  //           animate={{ y: [0, -20, 0] }}
+  //           transition={{
+  //             duration: 0.6,
+  //             repeat: Infinity,
+  //             repeatType: "loop",
+  //             delay: index * 0.15, // stagger bounce
+  //           }}
+  //         />
+  //       ))}
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md">
@@ -218,7 +218,7 @@ export default function PublicationForm() {
             className="mt-1 block w-full h-10 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
             required
           />
-          <p className="text-xs text-gray-500 mt-1">
+          <div className="text-xs text-gray-500 mt-1">
             {formData.title.length <= 10 ? 
               <p className="text-red-600">
                 {formData.title.length}/10 characters
@@ -226,7 +226,7 @@ export default function PublicationForm() {
                 {formData.title.length}/10 characters
               </p>
             }
-          </p>
+          </div>
           {errors.title && <p className="text-red-600 text-sm">{errors.title}</p>}
         </div>
 

@@ -170,7 +170,7 @@ export const Header = () => {
           {/* Desktop Nav */}
           <ul className="hidden xl:flex space-x-6 text-one">
             <Link href="/"><li className="li-hover">Home</li></Link>
-            <Link href="/components/about"><li className="li-hover">About</li></Link>
+            <Link href="/about"><li className="li-hover">About</li></Link>
             <Link href="/publications/list"><li className="li-hover">Publications</li></Link>
 
             {/* Conferences Dropdown */}
@@ -206,7 +206,7 @@ export const Header = () => {
               </AnimatePresence>
             </div>
 
-            <Link href="/components/contact"><li className="li-hover">Contact</li></Link>
+            <Link href="/contact"><li className="li-hover">Contact</li></Link>
 
             {/* Guidelines Dropdown */}
             <div className="relative">
@@ -393,7 +393,7 @@ export const Header = () => {
           >
             <ul className=" text-one flex flex-col gap-5 justify-center items-center max-w-screen-md">
             <Link href="/"><li className="px-4 py-2 hover:bg-gray-100 cursor-pointer rounded-md font-medium text-gray-800">Home</li></Link>
-            <Link href="/components/about"><li className="px-4 py-2 hover:bg-gray-100 cursor-pointer rounded-md font-medium text-gray-800">About</li></Link>
+            <Link href="/about"><li className="px-4 py-2 hover:bg-gray-100 cursor-pointer rounded-md font-medium text-gray-800">About</li></Link>
             <Link href="/publications/list"><li className="px-4 py-2 hover:bg-gray-100 cursor-pointer rounded-md font-medium text-gray-800">Publications</li></Link>
 
             {/* Conferences Dropdown */}
@@ -429,7 +429,7 @@ export const Header = () => {
               </AnimatePresence>
             </div>
 
-            <Link href="/components/contact"><li className="px-4 py-2 hover:bg-gray-100 cursor-pointer rounded-md font-medium text-gray-800">Contact</li></Link>
+            <Link href="/contact"><li className="px-4 py-2 hover:bg-gray-100 cursor-pointer rounded-md font-medium text-gray-800">Contact</li></Link>
 
             {/* Guidelines Dropdown */}
             <div className="relative col-span-1">

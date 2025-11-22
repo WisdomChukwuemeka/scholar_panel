@@ -139,6 +139,7 @@ export const ViewsAPI = {
 export const NotificationAPI = {
   list: (params = "") => api.get(`/notifications/${params}`),
   unread: () => api.get('/notifications/unread/'),
+  listUnread: () => api.get('/notifications/?unread=1'),
   markRead: (id) => api.patch(`/notifications/${id}/read/`, { is_read: true }),
   markAllRead: () => api.patch('/notifications/mark-all-read/'),
 };
@@ -226,20 +227,31 @@ export const CommentAPI = {
   list: (publicationId) =>
     api.get(`/publications/${publicationId}/comments/`),
 
-  create: (publicationId, data) =>
-    api.post(`/publications/${publicationId}/comments/`, data),
-  // … other methods unchanged
+create: (publicationId, data) => {
+    // This is the fix – let axios handle FormData automatically
+    return api.post(`/publications/${publicationId}/comments/`, data, {
+    });
+  },  // … other methods unchanged
     detail: (publicationId, commentId) =>
     api.get(`/publications/${publicationId}/comments/${commentId}/`),
-  update: (publicationId, commentId, data) =>
+    update: (publicationId, commentId, data) =>
     api.patch(`/publications/${publicationId}/comments/${commentId}/`, data),
   delete: (publicationId, commentId) =>
     api.delete(`/publications/${publicationId}/comments/${commentId}/`),
 
 };
 
+export const CommentReactionAPI = {
+  react: (commentId, data) =>
+    api.post(`/comment/react/`, { comment_id: commentId, emoji: data.emoji }),
+  list: (commentId) => api.get(`/comments/${commentId}/reactions/`),
+};
+
+
 export const ProfileAPI = {
   list: () => api.get('/profiles/'),
+  name: () => api.get('/me/'),
+
   create: (data) =>
     api.post('/profiles/', data, {
       headers: { 'Content-Type': 'multipart/form-data' },
@@ -299,6 +311,26 @@ export const RewardRedemptionAPI = {
   // data: { code: "<uuid-string>", publication_id: <id> }
   redeem: (data) => api.post("/rewardcodes/redeem/", data),
 };
+
+
+export const TaskAPI = {
+  // Admin: Get ALL tasks (including completed/replied ones)
+  listAll: ({ page = 1 } = {}) => api.get(`/tasks/?page=${page}`),                     // Admin sees all
+  listMyTasks: ({ page = 1 } = {}) => api.get(`/tasks/?page=${page}`),
+                  // Editor sees only assigned
+
+  // Get single task detail
+  detail: (id) => api.get(`/tasks/${id}/`),
+
+  // Editor replies to task (PATCH)
+  reply: (id, data) => api.patch(`/tasks/${id}/reply/`, data),
+  markInProgress: (id) => api.patch(`/tasks/${id}/in-progress/`),
+
+  // Search editors (for dropdown)
+  searchEditors: (query = '') => 
+    api.get('/editors/', { params: { q: query } }),
+};
+
 
 // Export the axios instance if needed elsewhere
 export default api;

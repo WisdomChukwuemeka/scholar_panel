@@ -11,6 +11,7 @@ const ProfilePage = () => {
   const [error, setError] = useState(null);
   const [editing, setEditing] = useState(false);
   const [formData, setFormData] = useState({
+    name: '',
     bio: '',
     institution: '',
     affiliation: '',
@@ -29,6 +30,7 @@ const ProfilePage = () => {
         if (ownProfile) {
           setProfile(ownProfile);
           setFormData({
+            name: ownProfile.name || '',
             bio: ownProfile.bio || '',
             institution: ownProfile.institution || '',
             affiliation: ownProfile.affiliation || '',
@@ -83,6 +85,7 @@ const ProfilePage = () => {
     setError(null);
     try {
       const data = new FormData();
+      data.append('name', formData.name)
       data.append('bio', formData.bio);
       data.append('institution', formData.institution);
       data.append('affiliation', formData.affiliation);
@@ -138,13 +141,32 @@ const ProfilePage = () => {
                   />
                 </div>
               )}
-              <h1 className="text-xl font-serif font-semibold text-gray-800">{profile.institution || 'Unnamed User'}</h1>
-              <p className="text-gray-500 text-sm">{profile.affiliation || 'No affiliation added'}</p>
 
-             
-              <div className="mt-4 text-gray-700 text-sm leading-relaxed px-2">
+              <section>
+              <div className='flex flex-col gap-2'>
+
+                <div>
+                  <h2>Name</h2>
+                    <h1 className="text-xl font-serif font-semibold text-gray-800">{profile.name || 'Unnamed User'}</h1>
+                </div>
+                
+                <div>
+                  <h2>Institution</h2>
+                  <p className="text-gray-500 text-sm">{profile.institution || 'Unnamed Institution'}</p>
+                </div>
+                <div>
+                  <h2>Affiliation</h2>
+                  <p className="text-gray-500 text-sm">{profile.affiliation || 'No affiliation added'}</p>
+                </div>
+              </div>
+
+             <div className="mt-4 text-gray-700 text-sm leading-relaxed px-2">
+              <h2>Bio</h2>
+              <div>
                 {profile.bio || 'No bio available yet.'}
               </div>
+              </div>
+              </section>
 
               <button
                 onClick={() => setEditing(true)}
@@ -173,6 +195,17 @@ const ProfilePage = () => {
                   onChange={handleImageChange}
                   accept="image/*"
                   className="w-full text-sm border border-gray-300 p-2 rounded-lg focus:outline-none focus:border-gray-500"
+                />
+              </div>
+              <div>
+                <label className="block text-gray-600 text-sm mb-1">Name</label>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:border-gray-500"
+                  placeholder="Enter your name"
                 />
               </div>
 

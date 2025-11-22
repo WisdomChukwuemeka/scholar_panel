@@ -224,7 +224,7 @@ export default function HomePage () {
             className="bg-white/30 p-0 border-b-2 border-blue-400 rounded-lg shadow-sm 
                        flex flex-col items-start 
                        transition-transform duration-300 ease-in-out 
-                       hover:scale-105 hover:shadow-lg"
+                       hover:scale-105 hover:shadow-lg pl-2"
           >
             <i
               className={`${section.icon} text-3xl text-gray-600 mb-4 flex-shrink-0`}

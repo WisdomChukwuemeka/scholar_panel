@@ -84,7 +84,7 @@ export default function RootLayout({ children }) {
           {/* Header */}
           <Header />
           {/* Main fills space between header and footer */}
-          <main className="flex-grow container mx-auto px-4 py-8">
+          <main className="flex-grow container mx-auto ">
             {children}
           </main>
           {/* Footer stays at bottom */}

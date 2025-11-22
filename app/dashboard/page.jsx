@@ -6,6 +6,8 @@ import { PublicationAPI } from "../services/api";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { Book, UserRound } from "lucide-react";
+import Link from "next/link";
 
 export default function EditorDashboard() {
   const [publications, setPublications] = useState([]);
@@ -13,10 +15,44 @@ export default function EditorDashboard() {
   const [selectedPub, setSelectedPub] = useState(null);
   const [rejectionNote, setRejectionNote] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLoggin, setIsLoggin] = useState(false);
+  const [role, setRole] = useState("")
   const [page, setPage] = useState(1);
   const [count, setCount] = useState(0);
+  const [show404, setShow404] = useState(false);
   const pageSize = 10;
   const totalPages = Math.ceil(count / pageSize);
+
+
+
+  useEffect(() => {
+      const updateAuthState = () => {
+        const storedRole = localStorage.getItem("role");
+        setIsLoggin(!!storedRole);           // ← Now correct
+        setRole(storedRole?.trim().toLowerCase() || "");
+      };
+  
+      updateAuthState();
+      window.addEventListener("authChange", updateAuthState);
+  
+      return () => {
+        window.removeEventListener("authChange", updateAuthState);
+      };
+    }, []);
+
+    useEffect(() => {
+  if (!isLoggin || role !== "editor") {
+    setShow404(true);
+
+    const timer = setTimeout(() => {
+      window.location.href = "/";
+    }, 5000);
+
+    return () => clearTimeout(timer);
+  }
+}, [isLoggin, role]);
+
+
 
   useEffect(() => {
     const fetchPublications = async () => {
@@ -92,13 +128,16 @@ export default function EditorDashboard() {
       toast.warning("No content available.");
     }
   };
+  
 
-  if (loading) {
-    return <div className="flex justify-center items-center h-screen">Loading...</div>;
-  }
+  // if (loading) {
+  //   return <div className="flex justify-center items-center h-screen">Loading...</div>;
+  // }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <>
+    {isLoggin && role === "editor" ? (
+      <div className="min-h-screen bg-gray-50 p-6">
       <ToastContainer />
       <h1 className="text-3xl font-bold text-center mb-6">Editor Dashboard</h1>
 
@@ -145,6 +184,14 @@ export default function EditorDashboard() {
                 >
                   View Document
                 </button>
+                <Link href={`/dashboard/annotate/${pub.id}`}>
+                <div
+                  className="w-full bg-indigo-600 text-white py-2 rounded mt-4 hover:bg-indigo-700"
+                >
+                  Annotate
+                </div>
+                </Link>
+                
 
                 <div className="flex gap-2 mt-4">
                   <button
@@ -255,5 +302,64 @@ export default function EditorDashboard() {
         )}
       </AnimatePresence>
     </div>
+    ) : (
+  <div className="flex flex-col items-center justify-center h-screen text-center p-6">
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.6 }}
+        className="flex flex-col items-center"
+      >
+        {/* Man holding books */}
+        <motion.div
+        initial={{ y: 30, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.3, duration: 0.7 }}
+        className="mb-6"
+      >
+        <UserRound className="w-32 h-32 text-gray-700" />
+      </motion.div>
+
+
+        {/* Floating books */}
+        <div className="flex gap-6 mt-4">
+        {[1, 2, 3].map((i) => (
+          <motion.div
+            key={i}
+            initial={{ y: -10 }}
+            animate={{ y: 10 }}
+            transition={{
+              repeat: Infinity,
+              repeatType: "reverse",
+              duration: 1.2 + i * 0.2,
+            }}
+          >
+            <Book className="w-10 h-10 text-indigo-600 opacity-80" />
+          </motion.div>
+        ))}
+      </div>
+
+
+        <motion.h2
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.8 }}
+          className="text-2xl font-semibold mt-6 text-gray-700"
+        >
+          404 — Invalid Url
+        </motion.h2>
+
+        <p className="text-gray-500 mt-2">
+          Redirecting you to the home page...
+        </p>
+      </motion.div>
+    </AnimatePresence>
+  </div>
+
+)}
+    
+    </>
   );
 }

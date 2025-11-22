@@ -1,249 +1,278 @@
-// app/dashboard/annotate/[id]/page.jsx (or wherever this file is)
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { PublicationAPI } from "@/app/services/api";
 import {
   PdfLoader,
   PdfHighlighter,
+  Tip,
   Highlight,
   Popup,
-  AreaHighlight,
 } from "react-pdf-highlighter";
-import "react-pdf-highlighter/dist/style.css";
+import { PDFDocument, rgb } from "pdf-lib";
+import { toast } from "react-toastify";
 
-// Custom Tip component for better comment input
-const CustomTip = ({ onConfirm, onCancel }) => {
-  const [text, setText] = useState("");
-
-  return (
-    <div className="bg-white border border-gray-300 rounded p-2 shadow-md">
-      <textarea
-        className="w-full border border-gray-200 rounded p-1 mb-2"
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        placeholder="Add a note..."
-        rows={2}
-      />
-      <div className="flex justify-end space-x-2">
-        <button
-          className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
-          onClick={onCancel}
-        >
-          Cancel
-        </button>
-        <button
-          className="px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-          onClick={() => {
-            if (text.trim()) onConfirm({ text: text.trim() });
-          }}
-        >
-          Add
-        </button>
-      </div>
-    </div>
-  );
+const COLORS = {
+  yellow: { r: 1, g: 1, b: 0, opacity: 0.4 },
+  red: { r: 1, g: 0, b: 0, opacity: 0.4 },
+  blue: { r: 0, g: 0, b: 1, opacity: 0.4 },
+  green: { r: 0, g: 1, b: 0, opacity: 0.4 },
 };
 
 export default function AnnotatePDFPage() {
   const { id } = useParams();
   const [pub, setPub] = useState(null);
-  const [highlights, setHighlights] = useState([]);
   const [pdfUrl, setPdfUrl] = useState(null);
-  const [loadError, setLoadError] = useState(null);
-  const highlighterRef = useRef(null);
+  const [highlights, setHighlights] = useState([]);
+  const [color, setColor] = useState("yellow");
+  const [isGenerating, setIsGenerating] = useState(false);
 
-  // Fetch publication details and PDF as blob
+  /** LOAD PUBLICATION */
   useEffect(() => {
-    const fetchPublication = async () => {
+    const load = async () => {
       try {
         const res = await PublicationAPI.detail(id);
         setPub(res.data);
-        console.log("Publication details:", res.data);
 
-        // Load existing annotations if any
+        console.log("Publication Loaded:", res.data);
+
+        /** Load saved editor highlights */
         if (res.data.editor_comments) {
           try {
             const parsed = JSON.parse(res.data.editor_comments);
             setHighlights(Array.isArray(parsed) ? parsed : []);
-          } catch (e) {
-            console.warn("Could not parse existing annotations:", e);
-          }
+          } catch (e) {}
         }
 
-        // Fetch PDF as blob to bypass potential CORS and add error handling
+        /** Fix Cloudinary PDF CORS issue */
         if (res.data.file) {
-          const fileResponse = await fetch(res.data.file);
-          if (!fileResponse.ok) {
-            throw new Error(`Failed to fetch PDF: ${fileResponse.status} ${fileResponse.statusText}`);
-          }
-          const blob = await fileResponse.blob();
-          if (blob.type !== "application/pdf") {
-            throw new Error("Fetched file is not a valid PDF");
-          }
-          setPdfUrl(URL.createObjectURL(blob));
-        } else {
-          throw new Error("No PDF file URL found in publication data");
+          const cloudinaryUrl = res.data.file + "?fl_attachment=false&force=true";
+
+          console.log("FINAL PDF URL:", cloudinaryUrl);
+
+          const response = await fetch(cloudinaryUrl, { mode: "cors" });
+
+          console.log("FETCH STATUS:", response.status);
+          console.log("FETCH TYPE:", response.type);
+
+          if (!response.ok) throw new Error("Failed to fetch PDF");
+
+          const blob = await response.blob();
+          const localUrl = URL.createObjectURL(blob);
+
+          console.log("PDF Blob Loaded:", blob);
+          setPdfUrl(localUrl);
         }
-      } catch (error) {
-        console.error("Failed to fetch publication or PDF:", error);
-        setLoadError(error.message || "Unknown error loading PDF");
+      } catch (e) {
+        console.log(e);
+        toast.error("Failed to load PDF");
       }
     };
-    fetchPublication();
+    load();
   }, [id]);
 
-  // Add a highlight with comment object
-  const handleAddHighlight = ({ content, position, comment }) => {
-    if (!comment?.text?.trim()) return;
-    const newHighlight = {
-      id: String(Math.random()).slice(2),
-      content,
-      position,
-      comment, // { text: string }
-    };
-    setHighlights((prev) => [...prev, newHighlight]);
-    handleSaveAnnotations(); // Auto-save
+  /** ADD HIGHLIGHT */
+  const addHighlight = (highlight) => {
+    setHighlights((prev) => [
+      ...prev,
+      {
+        id: Date.now().toString(),
+        color,
+        ...highlight,
+      },
+    ]);
   };
 
-  // Update a highlight's comment
-  const handleEditHighlight = (highlightId, newText) => {
-    if (!newText?.trim()) return;
+  /** UPDATE / DELETE HIGHLIGHT */
+  const updateHighlight = (id, data) => {
     setHighlights((prev) =>
-      prev.map((h) =>
-        h.id === highlightId ? { ...h, comment: { text: newText } } : h
-      )
+      prev.map((h) => (h.id === id ? { ...h, ...data } : h))
     );
-    handleSaveAnnotations(); // Auto-save
   };
 
-  // Delete a highlight
-  const handleDeleteHighlight = (highlightId) => {
-    setHighlights((prev) => prev.filter((h) => h.id !== highlightId));
-    handleSaveAnnotations(); // Auto-save
+  const deleteHighlight = (id) => {
+    setHighlights((prev) => prev.filter((h) => h.id !== id));
   };
 
-  // Save highlights to backend
-  const handleSaveAnnotations = async () => {
-    const formData = new FormData();
-    formData.append("editor_comments", JSON.stringify(highlights));
+  /** SAVE HIGHLIGHTS WITHOUT PDF GENERATION */
+  const saveHighlights = async () => {
+    const fd = new FormData();
+    fd.append("editor_comments", JSON.stringify(highlights));
 
     try {
-      await PublicationAPI.annotate(id, formData);
-      console.log("Annotations saved successfully!");
-    } catch (err) {
-      console.error(err);
-      alert("❌ Failed to save annotations");
+      await PublicationAPI.annotate(id, fd);
+      toast.success("Annotations saved!");
+    } catch {
+      toast.error("Failed to save");
     }
   };
 
-  if (loadError) {
-    return (
-      <div className="flex justify-center items-center h-screen text-red-600 text-lg">
-        Error loading PDF: {loadError}
-      </div>
-    );
-  }
+  /** GENERATE ANNOTATED PDF */
+  const generateAnnotatedPDF = async () => {
+    if (!pub?.file) return;
+    if (!highlights.length) return toast.warning("No highlights found");
 
-  if (!pub || !pdfUrl) {
-    return (
-      <div className="flex justify-center items-center h-screen text-gray-600 text-lg">
-        Loading publication details and PDF...
-      </div>
-    );
-  }
+    setIsGenerating(true);
+
+    try {
+      const originalUrl = pub.file + "?fl_attachment=false&force=true";
+      const bytes = await fetch(originalUrl).then((r) => r.arrayBuffer());
+      const pdfDoc = await PDFDocument.load(bytes);
+      const pages = pdfDoc.getPages();
+
+      for (const h of highlights) {
+        const rect = h.position?.boundingRect;
+        const viewport = h.position?.viewport;
+
+        if (!rect || !viewport) continue;
+
+        const page = pages[h.position.pageNumber - 1];
+        const col = COLORS[h.color] ?? COLORS.yellow;
+
+        const scale = page.getWidth() / viewport.width;
+
+        const x = rect.x1 * scale;
+        const y = page.getHeight() - rect.y2 * scale;
+        const width = rect.width * scale;
+        const height = rect.height * scale;
+
+        page.drawRectangle({
+          x,
+          y,
+          width,
+          height,
+          color: rgb(col.r, col.g, col.b),
+          opacity: col.opacity,
+          borderWidth: 0,
+        });
+      }
+
+      /** SAVE NEW PDF */
+      const newBytes = await pdfDoc.save();
+      const file = new File([newBytes], `annotated_${pub.id}.pdf`, {
+        type: "application/pdf",
+      });
+
+      /** UPLOAD FILE */
+      const fd = new FormData();
+      fd.append("annotated_file", file);
+      fd.append("editor_comments", JSON.stringify(highlights));
+
+      await PublicationAPI.annotate(id, fd);
+
+      toast.success("PDF Generated!");
+
+      /** Reload publication */
+      const refreshed = await PublicationAPI.detail(id);
+      setPub(refreshed.data);
+    } catch (e) {
+      console.error("PDF generation error:", e);
+      toast.error("PDF generation failed");
+    }
+
+    setIsGenerating(false);
+  };
+
+  if (!pub || !pdfUrl)
+    return <div className="p-8 text-center">Loading…</div>;
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <h1 className="text-3xl font-bold text-gray-800 mb-6 text-center">
-        Annotate — {pub.title}
-      </h1>
+    <div className="min-h-screen bg-gray-100">
+      
+      {/* HEADER */}
+      <div className="bg-white p-4 shadow flex justify-between">
+        <h1 className="text-lg font-bold">Annotate: {pub.title}</h1>
 
-      <div className="bg-white shadow-lg rounded-2xl overflow-hidden">
-        <div
-          style={{
-            height: "80vh",
-            width: "100%",
-            position: "relative",
-            borderBottom: "1px solid #e5e7eb",
-          }}
-        >
-          <PdfLoader url={pdfUrl} beforeLoad={<div>Loading PDF...</div>}>
-            {(pdfDocument) => (
+        <div className="flex gap-3">
+          <select
+            className="px-3 py-2 border rounded"
+            value={color}
+            onChange={(e) => setColor(e.target.value)}
+          >
+            {Object.keys(COLORS).map((c) => (
+              <option key={c} value={c}>
+                {c.toUpperCase()}
+              </option>
+            ))}
+          </select>
+
+          <button
+            onClick={saveHighlights}
+            className="px-4 py-2 bg-blue-600 text-white rounded"
+          >
+            Save
+          </button>
+
+          <button
+            onClick={generateAnnotatedPDF}
+            disabled={isGenerating}
+            className="px-4 py-2 bg-green-600 text-white rounded disabled:opacity-40"
+          >
+            {isGenerating ? "Processing…" : "Generate PDF"}
+          </button>
+        </div>
+      </div>
+
+      {/* MAIN CONTENT */}
+      <div className="flex h-[calc(100vh-70px)]">
+        
+        {/* PDF VIEWER */}
+        <div className="w-3/4 relative">
+          <PdfLoader url={pdfUrl}>
+            {(doc) => (
               <PdfHighlighter
-                ref={highlighterRef}
-                pdfDocument={pdfDocument}
-                enableAreaSelection={(event) => event.altKey}
-                onScrollChange={() => {}}
-                onSelectionFinished={(
-                  position,
-                  content,
-                  hideTipAndSelection,
-                  transformSelection
-                ) => (
-                  <CustomTip
-                    onCancel={() => {
-                      transformSelection(); // Reset selection
-                      hideTipAndSelection();
-                    }}
-                    onConfirm={(comment) => {
-                      handleAddHighlight({ content, position, comment });
-                      hideTipAndSelection();
+                pdfDocument={doc}
+                style={{ height: "100%" }}
+                enableAreaSelection={(e) => e.altKey}
+                onSelectionFinished={(position, content, hide) => (
+                  <Tip
+                    onConfirm={(text) => {
+                      addHighlight({
+                        position,
+                        content,
+                        comment: { text },
+                      });
+                      hide();
                     }}
                   />
                 )}
-                highlightTransform={(
-                  highlight,
-                  index,
-                  setTip,
-                  hideTip,
-                  viewportToScaled,
-                  screenshot,
-                  isScrolledTo
-                ) => {
-                  const isTextHighlight = !Boolean(
-                    highlight.content && highlight.content.image
-                  );
-
-                  const component = isTextHighlight ? (
-                    <Highlight
-                      isScrolledTo={isScrolledTo}
-                      position={highlight.position}
-                      comment={highlight.comment}
-                      onClick={() => {
-                        const newText = window.prompt(
-                          "Edit note:",
-                          highlight.comment?.text || ""
-                        );
-                        if (newText !== null) handleEditHighlight(highlight.id, newText);
-                      }}
-                    />
-                  ) : (
-                    <AreaHighlight
-                      isScrolledTo={isScrolledTo}
-                      highlight={highlight}
-                      onChange={(boundingRect) => {
-                        // Update area if resized (optional)
-                      }}
-                      onClick={() => {
-                        const newText = window.prompt(
-                          "Edit note:",
-                          highlight.comment?.text || ""
-                        );
-                        if (newText !== null) handleEditHighlight(highlight.id, newText);
-                      }}
-                    />
-                  );
-
+                highlightTransform={(h, i, setTip, hideTip) => {
+                  const col = COLORS[h.color];
                   return (
                     <Popup
-                      popupContent={<div>{highlight.comment?.text || "No note"}</div>}
-                      onMouseOver={(popupContent) => setTip(highlight, popupContent)}
+                      key={i}
+                      popupContent={
+                        <div className="bg-white p-2 border rounded shadow text-sm">
+                          <button
+                            onClick={() => {
+                              const action = prompt(
+                                `Edit note or type "delete":\n\n${h.comment?.text || ""}`
+                              );
+                              if (action === "delete") deleteHighlight(h.id);
+                              else if (action !== null)
+                                updateHighlight(h.id, {
+                                  comment: { text: action },
+                                });
+                              hideTip();
+                            }}
+                            className="text-blue-600 underline"
+                          >
+                            Edit
+                          </button>
+                        </div>
+                      }
+                      onMouseOver={() => setTip(i)}
                       onMouseOut={hideTip}
-                      key={index}
                     >
-                      {component}
+                      <Highlight
+                        isScrolledTo={false}
+                        position={h.position}
+                        comment={h.comment}
+                        color={`rgba(${col.r * 255}, ${col.g * 255}, ${
+                          col.b * 255
+                        }, ${col.opacity})`}
+                      />
                     </Popup>
                   );
                 }}
@@ -253,19 +282,39 @@ export default function AnnotatePDFPage() {
           </PdfLoader>
         </div>
 
-        <div className="p-4 flex justify-between items-center bg-gray-100">
-          <p className="text-gray-600 text-sm">
-            <strong>{highlights.length}</strong> highlight
-            {highlights.length !== 1 && "s"} added.
-          </p>
-          <button
-            onClick={handleSaveAnnotations}
-            className="bg-indigo-600 text-white px-5 py-2 rounded-lg hover:bg-indigo-700 transition"
-          >
-            💾 Save Annotations
-          </button>
+        {/* SIDEBAR */}
+        <div className="w-1/4 p-4 overflow-y-auto bg-gray-50">
+          <h3 className="font-bold mb-3">
+            Highlights ({highlights.length})
+          </h3>
+
+          {highlights.map((h) => (
+            <div
+              key={h.id}
+              className="bg-white p-3 mb-3 rounded shadow text-sm"
+            >
+              <strong>Page {h.position.pageNumber}</strong>
+              <p className="mt-1 text-gray-600">
+                {h.content.text?.slice(0, 80)}…
+              </p>
+              {h.comment?.text && (
+                <p className="mt-2 italic text-blue-600">
+                  "{h.comment.text}"
+                </p>
+              )}
+            </div>
+          ))}
         </div>
       </div>
+
+      {/* DOWNLOAD BUTTON */}
+      {pub.annotated_file && (
+        <div className="fixed bottom-4 right-4 bg-green-600 text-white p-4 rounded shadow">
+          <a href={pub.annotated_file} target="_blank">
+            Download Annotated PDF
+          </a>
+        </div>
+      )}
     </div>
   );
 }

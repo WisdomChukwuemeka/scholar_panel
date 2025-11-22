@@ -8,6 +8,15 @@ import { useRouter } from "next/navigation";
 import { NotificationAPI } from "../services/api";
 import { ProfileAPI } from "../services/api";
 
+const notificationRoutes = {
+  publication: (n) => `/publications/${n.related_id}`,
+  task: (n) => `/tasks/${n.related_id}`,
+  message: (n) => `/messages/${n.related_id}`,
+  comment: (n) => `/comments/${n.related_id}`,
+  // Add more here without breaking the component
+};
+
+
 
 export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -46,10 +55,19 @@ export const Header = () => {
 
     const fetchNotifications = async () => {
       try {
-        const res = await NotificationAPI.list();
+        const res = await NotificationAPI.listUnread();
         const unread = (res.data.results || []).filter(n => !n.is_read);
-        setNotifications(unread);
-        setUnreadCount(unread.length);
+        // Editors → see only task notifications
+        let filtered = unread;
+        if (role !== "editor") {
+          filtered = unread.filter((n) => n.type !== "task");
+        }
+
+        // Set final notifications
+        setNotifications(filtered);
+        setUnreadCount(filtered.length);
+
+        console.log(res.data)
       } catch (error) {
         if (error.response?.status === 401 || error.response?.status === 403) {
           // Token expired or invalid → force logout
@@ -105,10 +123,14 @@ export const Header = () => {
       setTimeout(() => setIsMarkingRead(false), 4000);
 
       router.push(
-        notification.related_publication
-          ? `/publications/${notification.related_publication}`
-          : "/dashboard"
-      );
+      notification.related_publication
+        ? `/publications/${notification.related_publication}`
+        : notification.related_task
+        ? `/tasks/${notification.related_task}`
+        : "/tasks"   // Default fallback for task notifications without ID
+    );
+
+
     } catch (error) {
       console.error("Failed to mark notification as read:", error);
       setIsMarkingRead(false);
@@ -152,7 +174,7 @@ export const Header = () => {
   };
 
   return (
-    <section>
+    <section className="mb-1 shadow-md">
       <header className="relative bg-white shadow-md">
         <nav className="container mx-auto flex items-center justify-between px-2 py-2">
           {/* Logo */}
@@ -271,7 +293,6 @@ export const Header = () => {
 )}
 
         
-
             {/* 🔔 Notifications */}
             <div
               className="relative flex items-center cursor-pointer"
@@ -471,6 +492,9 @@ export const Header = () => {
             <Link href={"/resources"}><li className="px-4 py-2 hover:bg-gray-100 cursor-pointer rounded-md font-medium text-gray-800">Resources</li></Link>
             {isLoggin && (
                 <Link href="/payment/history"><li className="px-4 py-2 hover:bg-gray-100 cursor-pointer rounded-md font-medium text-gray-800">Payment History</li></Link>
+            )}
+            {isLoggin && role === "editor" && (
+                <Link href="/tasks"><li className="px-4 py-2 hover:bg-gray-100 cursor-pointer rounded-md font-medium text-gray-800">Tasks</li></Link>
             )}
 
             {/* Role-specific Buttons */}

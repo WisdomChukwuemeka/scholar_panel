@@ -319,14 +319,14 @@ export const Header = () => {
             {/* Auth Buttons */}
             {isLoggin ? (
               <button
-                className="flex bg-blue-600 text-white btn hover:bg-blue-800 duration-500"
+                className="flex bg-blue-600 text-white btn hover:bg-blue-800 duration-500 cursor-pointer"
                 onClick={handleLogout}
               >
                 Logout
               </button>
             ) : (
               <Link href="/login">
-                <button className="flex bg-blue-600 text-white btn hover:bg-blue-800 duration-500">
+                <button className="flex bg-blue-600 text-white btn hover:bg-blue-800 duration-500 cursor-pointer">
                   Login
                 </button>
               </Link>

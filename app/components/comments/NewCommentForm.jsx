@@ -25,7 +25,8 @@ export default function NewCommentForm({ publicationId }) {
   const [isRecording, setIsRecording] = useState(false);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
-  
+  const [editingCommentId, setEditingCommentId] = useState(null);
+
 
   const scrollToBottom = () => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -60,6 +61,15 @@ export default function NewCommentForm({ publicationId }) {
   useEffect(() => {
     scrollToBottom();
   }, [comments]);
+
+
+  // Helper to check if comment is older than 1 hour
+const isEditable = (created_at) => {
+  const oneHour = 60 * 60 * 1000;
+  const createdTime = new Date(created_at).getTime();
+  return Date.now() - createdTime < oneHour;
+};
+
 
   // ---------------------------
   // AUDIO RECORDING (FIXED)
@@ -146,6 +156,28 @@ export default function NewCommentForm({ publicationId }) {
 
       fetchComments();
       toast.success("Comment posted!");
+
+      // If editing → update instead of creating
+if (editingCommentId) {
+  const formData = new FormData();
+  formData.append("text", newComment);
+  if (draftAudio) formData.append("audio", draftAudio);
+
+  try {
+    await CommentAPI.update(publicationId, editingCommentId, formData);
+    toast.success("Comment updated");
+  } catch (err) {
+    toast.error("Update failed");
+  }
+
+  setEditingCommentId(null);
+  setNewComment("");
+  setDraftAudio(null);
+  setDraftAudioURL("");
+  fetchComments();
+  return;
+}
+
 
     } catch (err) {
       console.error(err);
@@ -251,7 +283,42 @@ export default function NewCommentForm({ publicationId }) {
                       </div>
 
                       {/* AUDIO OR TEXT */}
-                      <p className="text-sm font-semibold text-gray-700">{cmt.text}</p>
+                      <div>
+                          <p className="text-sm font-semibold text-gray-700">{cmt.text}</p>
+                          {/* UPDATE + DELETE BUTTONS (Only for current user + editable within 1 hour) */}
+{isMe && isEditable(cmt.created_at) && (
+  <div className="flex justify-end gap-3 mt-2 text-xs">
+    <button
+      onClick={() => {
+        setNewComment(cmt.text);
+        setDraftAudio(null);
+        setDraftAudioURL("");
+        setEditingCommentId(cmt.id);
+      }}
+      className="text-blue-600 hover:underline"
+    >
+      Edit
+    </button>
+
+    <button
+      onClick={async () => {
+        try {
+          await CommentAPI.delete(publicationId, cmt.id);
+          fetchComments();
+          toast.success("Comment deleted");
+        } catch (err) {
+          toast.error("Delete failed");
+        }
+      }}
+      className="text-red-600 hover:underline"
+    >
+      Delete
+    </button>
+  </div>
+)}
+
+
+                      </div>
                       {cmt.audio_url && (
                         <audio controls>
                         <source src={cmt.audio_url + "?f=webm&resource_type=video"} type="audio/webm" />

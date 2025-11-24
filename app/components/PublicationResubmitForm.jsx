@@ -45,21 +45,7 @@ export default function PublicationResubmitForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  // const [loading, setLoading] = useState(true);
 
-  // Simulate 5-second loading
-  // useEffect(() => {
-  //   const timer = setTimeout(() => setLoading(false), 2000);
-  //   return () => clearTimeout(timer);
-  // }, []);
-
-  // if (loading) {
-  //   return (
-  //     <div className="flex items-center justify-center h-screen">
-  //       <div className="animate-spin rounded-full h-10 w-10 border-4 border-gray-300 border-t-blue-600"></div>
-  //     </div>
-  //   );
-  // }
   /* --------------------------------------------------------------
      Load publication (if not passed as prop)
   -------------------------------------------------------------- */
@@ -184,7 +170,6 @@ const saveDraftBeforeSubmit = async () => {
     toast.success("Draft saved automatically.");
   } catch (err) {
     console.warn("Auto-save draft failed (non-blocking):", err);
-    // Non-blocking: don't stop submission
   }
 };
 
@@ -212,7 +197,6 @@ const handleSubmit = async (e) => {
 
   const baseData = buildBaseFormData();
 
-  // AUTO-SAVE DRAFT FIRST
   await saveDraftBeforeSubmit();
 
   try {
@@ -275,216 +259,354 @@ const handleSubmit = async (e) => {
   -------------------------------------------------------------- */
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <p className="text-gray-600 text-lg">Loading publication...</p>
+      <div className="flex justify-center items-center h-screen bg-gradient-to-br from-slate-50 via-red-50 to-orange-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-gray-200 border-t-red-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 text-lg font-medium">Loading publication...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-red-50 to-orange-50 py-12 px-4 sm:px-6 lg:px-8">
       <ToastContainer position="top-right" autoClose={5000} theme="colored" />
 
-      <h2 className="text-2xl font-bold text-red-700 mb-4">
-        Resubmit Publication
-      </h2>
-      <p className="text-sm text-gray-600 mb-6">
-        Update any field (title, abstract, content, file, video) before
-        resubmitting. You can also save as draft.
-      </p>
-
-      <form onSubmit={handleSubmit} className="space-y-5">
-        {/* Title */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Title
-          </label>
-          <input
-            type="text"
-            name="title"
-            value={formData.title}
-            onChange={handleChange}
-            className="mt-1 block w-full border rounded-md p-3 focus:ring-2 focus:ring-red-500 focus:border-transparent"
-            required
-          />
-          <p className="text-xs text-gray-500 mt-1">
-            {formData.title.length <= 10 ? 
-              (<p className="text-red-600">
-                {formData.title.length}/10 characters
-              </p>) : (<p className="text-green-600">
-                {formData.title.length}/10 characters
-              </p>)
-            }
+      <div className="max-w-5xl mx-auto">
+        {/* Header Section */}
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
+            <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          </div>
+          <h1 className="text-4xl font-bold text-gray-900 mb-3">
+            Resubmit Your Publication
+          </h1>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            Review and update your rejected publication before resubmitting for another review
           </p>
-          {errors.title && (
-            <p className="text-red-600 text-sm mt-1">{errors.title}</p>
-          )}
+          <div className="mt-4 h-1 w-24 bg-gradient-to-r from-red-600 to-orange-600 mx-auto rounded-full"></div>
         </div>
 
-        {/* Abstract */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Abstract
-          </label>
-          <textarea
-            name="abstract"
-            value={formData.abstract}
-            onChange={handleChange}
-            rows={5}
-            className="mt-1 block w-full border rounded-md p-3 focus:ring-2 focus:ring-red-500 focus:border-transparent"
-            required
-          />
-          <p
-          className={`text-xs mt-1 ${
-            formData.abstract.length < 200
-              ? 'text-red-600'
-              : formData.abstract.length > 2500
-              ? 'text-red-600'
-              : 'text-green-600'
-          }`}
-        >
-          {formData.abstract.length}/2500 characters
-          </p>
-          {errors.abstract && (
-            <p className="text-red-600 text-sm mt-1">{errors.abstract}</p>
-          )}
+        {/* Alert Box */}
+        <div className="mb-8 bg-amber-50 border-l-4 border-amber-500 rounded-r-lg p-4 shadow-sm">
+          <div className="flex items-start">
+            <svg className="w-6 h-6 text-amber-500 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <div>
+              <h3 className="text-sm font-semibold text-amber-800">Important Notice</h3>
+              <p className="text-sm text-amber-700 mt-1">
+                Update any fields (title, abstract, content, files, video) based on reviewer feedback before resubmitting. 
+                You can save as draft to continue later.
+              </p>
+            </div>
+          </div>
         </div>
 
-        {/* Content */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Content
-          </label>
-          <textarea
-            name="content"
-            value={formData.content}
-            onChange={handleChange}
-            rows={8}
-            className="mt-1 block w-full border rounded-md p-3 focus:ring-2 focus:ring-red-500 focus:border-transparent"
-            required
-          />
-          <p
-            className={`text-xs mt-1 ${
-              formData.content.length < 500
-                ? 'text-red-600'
-                : formData.content.length > 15000
-                ? 'text-red-600'
-                : 'text-green-600'
-            }`}
-          >
-            {formData.content.length}/15000 characters
-          </p>
-          {errors.content && (
-            <p className="text-red-600 text-sm mt-1">{errors.content}</p>
-          )}
-        </div>
+        {/* Form Container */}
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+          <div className="bg-gradient-to-r from-red-600 to-orange-600 px-8 py-6">
+            <h2 className="text-2xl font-semibold text-white">Update Publication Details</h2>
+            <p className="text-red-100 mt-1">Make necessary changes based on reviewer feedback</p>
+          </div>
 
-        {/* Category */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Category
-          </label>
-          <select
-            name="category_name"
-            value={formData.category_name}
-            onChange={handleChange}
-            className="mt-1 block w-full border rounded-md p-3 focus:ring-2 focus:ring-red-500 focus:border-transparent"
-            required
-          >
-            <option value="">Select category</option>
-            {CATEGORY_CHOICES.map((c) => (
-              <option key={c.value} value={c.value}>
-                {c.label}
-              </option>
-            ))}
-          </select>
-          {errors.category_name && (
-            <p className="text-red-600 text-sm mt-1">{errors.category_name}</p>
-          )}
-        </div>
+          <div className="p-8">
+            <form onSubmit={handleSubmit}>
+              <div className="space-y-8">
+                {/* Section 1: Core Information */}
+                <div className="space-y-6">
+                  <div className="border-l-4 border-red-600 pl-4">
+                    <h3 className="text-xl font-semibold text-gray-900">Core Information</h3>
+                    <p className="text-sm text-gray-500 mt-1">Update the essential details of your publication</p>
+                  </div>
 
-        {/* Keywords */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Keywords (comma-separated)
-          </label>
-          <input
-            type="text"
-            name="keywords"
-            value={formData.keywords}
-            onChange={handleChange}
-            placeholder="e.g. AI, Machine Learning, NLP"
-            className="mt-1 block w-full border rounded-md p-3 focus:ring-2 focus:ring-red-500 focus:border-transparent"
-          />
-          {errors.keywords && (
-            <p className="text-red-600 text-sm mt-1">{errors.keywords}</p>
-          )}
-        </div>
+                  {/* Title */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-gray-700">
+                      Title <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="title"
+                      value={formData.title}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-red-500 focus:border-transparent transition duration-200 text-gray-900"
+                      placeholder="Enter your publication title"
+                      required
+                    />
+                    <div className="flex justify-between items-center">
+                      <p className={`text-xs font-medium ${
+                        formData.title.length < 10 ? 'text-red-600' : 'text-green-600'
+                      }`}>
+                        {formData.title.length}/10 minimum characters
+                      </p>
+                    </div>
+                    {errors.title && (
+                      <p className="text-red-600 text-sm flex items-center gap-1">
+                        <span>⚠</span> {errors.title}
+                      </p>
+                    )}
+                  </div>
 
-        {/* File */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Updated File (PDF/Word)
-          </label>
-          <input
-            type="file"
-            name="file"
-            accept=".pdf,.doc,.docx"
-            onChange={handleChange}
-            className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
-          />
-          {formData.file && (
-            <p className="text-sm text-green-600 mt-1">
-              Selected: {formData.file.name}
-            </p>
-          )}
-          {errors.file && (
-            <p className="text-red-600 text-sm mt-1">{errors.file}</p>
-          )}
-        </div>
+                  {/* Category */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-gray-700">
+                      Category <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      name="category_name"
+                      value={formData.category_name}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-red-500 focus:border-transparent transition duration-200 text-gray-900 bg-white"
+                      required
+                    >
+                      <option value="">Select a category</option>
+                      {CATEGORY_CHOICES.map((c) => (
+                        <option key={c.value} value={c.value}>
+                          {c.label}
+                        </option>
+                      ))}
+                    </select>
+                    {errors.category_name && (
+                      <p className="text-red-600 text-sm flex items-center gap-1">
+                        <span>⚠</span> {errors.category_name}
+                      </p>
+                    )}
+                  </div>
 
-        {/* Video */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Updated Video (optional)
-          </label>
-          <input
-            type="file"
-            name="video_file"
-            accept=".mp4,.avi,.mov"
-            onChange={handleChange}
-            className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
-          />
-          {formData.video_file && (
-            <p className="text-sm text-green-600 mt-1">
-              Selected: {formData.video_file.name}
-            </p>
-          )}
-          {errors.video_file && (
-            <p className="text-red-600 text-sm mt-1">{errors.video_file}</p>
-          )}
-        </div>
+                  {/* Keywords */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-gray-700">
+                      Keywords
+                    </label>
+                    <input
+                      type="text"
+                      name="keywords"
+                      value={formData.keywords}
+                      onChange={handleChange}
+                      placeholder="e.g., AI, Machine Learning, NLP (comma-separated)"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-red-500 focus:border-transparent transition duration-200 text-gray-900"
+                    />
+                    <p className="text-xs text-gray-500">Separate keywords with commas (maximum 20)</p>
+                    {errors.keywords && (
+                      <p className="text-red-600 text-sm flex items-center gap-1">
+                        <span>⚠</span> {errors.keywords}
+                      </p>
+                    )}
+                  </div>
+                </div>
 
-        {/* Buttons */}
-        <div className="flex gap-3 pt-4">
-          <button
-            type="button"
-            onClick={handleSaveDraft}
-            disabled={isSavingDraft}
-            className="flex-1 bg-gray-600 text-white py-3 rounded-md hover:bg-gray-700 disabled:bg-gray-400 font-medium transition"
-          >
-            {isSavingDraft ? "Saving..." : "Save as Draft"}
-          </button>
+                {/* Section 2: Content Details */}
+                <div className="space-y-6 pt-6 border-t border-gray-200">
+                  <div className="border-l-4 border-orange-600 pl-4">
+                    <h3 className="text-xl font-semibold text-gray-900">Content Revisions</h3>
+                    <p className="text-sm text-gray-500 mt-1">Revise your abstract and content based on feedback</p>
+                  </div>
 
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="flex-1 bg-red-600 text-white py-3 rounded-md hover:bg-red-700 disabled:bg-gray-400 font-medium transition"
-          >
-            {isSubmitting ? "Submitting..." : "Resubmit for Review"}
-          </button>
+                  {/* Abstract */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-gray-700">
+                      Abstract <span className="text-red-500">*</span>
+                    </label>
+                    <textarea
+                      name="abstract"
+                      value={formData.abstract}
+                      onChange={handleChange}
+                      rows={5}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-red-500 focus:border-transparent transition duration-200 text-gray-900 resize-none"
+                      placeholder="Provide a revised summary of your publication (200-2500 characters)"
+                      required
+                    />
+                    <div className="flex justify-between items-center">
+                      <p className={`text-xs font-medium ${
+                        formData.abstract.length < 200 ? 'text-red-600' :
+                        formData.abstract.length > 2500 ? 'text-red-600' : 'text-green-600'
+                      }`}>
+                        {formData.abstract.length}/2500 characters
+                      </p>
+                      <p className="text-xs text-gray-500">Minimum 200 characters required</p>
+                    </div>
+                    {errors.abstract && (
+                      <p className="text-red-600 text-sm flex items-center gap-1">
+                        <span>⚠</span> {errors.abstract}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Content */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-gray-700">
+                      Full Content <span className="text-red-500">*</span>
+                    </label>
+                    <textarea
+                      name="content"
+                      value={formData.content}
+                      onChange={handleChange}
+                      rows={10}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-red-500 focus:border-transparent transition duration-200 text-gray-900 resize-none"
+                      placeholder="Enter the revised complete content of your publication (500-15000 characters)"
+                      required
+                    />
+                    <div className="flex justify-between items-center">
+                      <p className={`text-xs font-medium ${
+                        formData.content.length < 500 ? 'text-red-600' :
+                        formData.content.length > 15000 ? 'text-red-600' : 'text-green-600'
+                      }`}>
+                        {formData.content.length}/15000 characters
+                      </p>
+                      <p className="text-xs text-gray-500">Minimum 500 characters required</p>
+                    </div>
+                    {errors.content && (
+                      <p className="text-red-600 text-sm flex items-center gap-1">
+                        <span>⚠</span> {errors.content}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Section 3: File Updates */}
+                <div className="space-y-6 pt-6 border-t border-gray-200">
+                  <div className="border-l-4 border-purple-600 pl-4">
+                    <h3 className="text-xl font-semibold text-gray-900">Updated Files</h3>
+                    <p className="text-sm text-gray-500 mt-1">Upload revised documents and media files</p>
+                  </div>
+
+                  {/* File Upload */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-gray-700">
+                      Updated Document (PDF/Word)
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="file"
+                        name="file"
+                        accept=".pdf,.doc,.docx"
+                        onChange={handleChange}
+                        className="w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-600 
+                        file:mr-4 file:py-2 file:px-6 file:rounded-full file:border-0 file:text-sm file:font-semibold 
+                        file:bg-red-50 file:text-red-700 hover:file:bg-red-100 file:cursor-pointer cursor-pointer
+                        hover:border-red-400 transition duration-200"
+                      />
+                    </div>
+                    {formData.file && (
+                      <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 px-3 py-2 rounded-lg">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        Selected: {formData.file.name}
+                      </div>
+                    )}
+                    <p className="text-xs text-gray-500">Accepted formats: PDF, DOC, DOCX</p>
+                    {errors.file && (
+                      <p className="text-red-600 text-sm flex items-center gap-1">
+                        <span>⚠</span> {errors.file}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Video Upload */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-gray-700">
+                      Updated Video File (Optional)
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="file"
+                        name="video_file"
+                        accept=".mp4,.avi,.mov"
+                        onChange={handleChange}
+                        className="w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-600 
+                        file:mr-4 file:py-2 file:px-6 file:rounded-full file:border-0 file:text-sm file:font-semibold 
+                        file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 file:cursor-pointer cursor-pointer
+                        hover:border-purple-400 transition duration-200"
+                      />
+                    </div>
+                    {formData.video_file && (
+                      <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 px-3 py-2 rounded-lg">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        Selected: {formData.video_file.name}
+                      </div>
+                    )}
+                    <p className="text-xs text-gray-500">Accepted formats: MP4, AVI, MOV</p>
+                    {errors.video_file && (
+                      <p className="text-red-600 text-sm flex items-center gap-1">
+                        <span>⚠</span> {errors.video_file}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="pt-6 border-t border-gray-200">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <button
+                      type="button"
+                      onClick={handleSaveDraft}
+                      disabled={isSavingDraft}
+                      className="bg-gradient-to-r from-gray-600 to-gray-700 text-white font-semibold py-4 px-6 rounded-lg 
+                      shadow-lg hover:shadow-xl hover:from-gray-700 hover:to-gray-800
+                      disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed 
+                      transform transition duration-200 hover:scale-[1.02] active:scale-[0.98]
+                      flex items-center justify-center gap-2"
+                    >
+                      {isSavingDraft ? (
+                        <>
+                          <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Saving Draft...
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                          </svg>
+                          Save as Draft
+                        </>
+                      )}
+                    </button>
+
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="bg-gradient-to-r from-red-600 to-orange-600 text-white font-semibold py-4 px-6 rounded-lg 
+                      shadow-lg hover:shadow-xl hover:from-red-700 hover:to-orange-700
+                      disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed 
+                      transform transition duration-200 hover:scale-[1.02] active:scale-[0.98]
+                      flex items-center justify-center gap-2"
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Submitting...
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                          </svg>
+                          Resubmit for Review
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  <p className="text-xs text-center text-gray-500 mt-4">
+                    Your publication will be reviewed again once resubmitted
+                  </p>
+                </div>
+              </div>
+            </form>
+          </div>
         </div>
-      </form>
+      </div>
 
       {/* Payment Modal */}
       {showPaymentModal && (

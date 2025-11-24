@@ -2,23 +2,23 @@
 import { NextResponse } from "next/server";
 
 const PROTECTED_PATHS = [
-  "/dashboard",
-  "/profile",
-  "/publications/create",
-  "/resources",
-  "/our-services",
-  "/about",
-  "/contact",
-  "/guidelines/author",
-  "/guidelines/editors",
-  "/guidelines/reviewers",
-  "/publications/list",
-  "/PaymentDetails",
-  "/PaymentModel",
-  "/NotificationList",
-  "/SubscriptionGate",
-  "/payments/history",
-  "/authorspage",
+  // "/dashboard",
+  // "/profile",
+  // "/publications/create",
+  // "/resources",
+  // "/our-services",
+  // "/about",
+  // "/contact",
+  // "/guidelines/author",
+  // "/guidelines/editors",
+  // "/guidelines/reviewers",
+  // "/publications/list",
+  // "/PaymentDetails",
+  // "/PaymentModel",
+  // "/NotificationList",
+  // "/SubscriptionGate",
+  // "/payment/history",
+  // "/authorspage",
 ];
 
 // CORRECT URL – no double /api
@@ -56,6 +56,14 @@ export async function middleware(request) {
     // console.log("Middleware → /api/me status:", response.status);
     // console.log("Cookies sent:", request.headers.get("cookie"));
 
+      // ✅ AUTO-LOGOUT when token expired (access OR refresh)
+    if (response.status === 401) {
+      const loginUrl = new URL("/login", request.url);
+      loginUrl.searchParams.set("expired", "1");
+      loginUrl.searchParams.set("redirect", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+
     if (!response.ok) throw new Error("Unauthorized");
 
     const user = await response.json();
@@ -72,22 +80,22 @@ export async function middleware(request) {
 
 export const config = {
   matcher: [
-    "/dashboard/:path*",
-    "/profile/:path*",
-    "/publications/create/:path*",
-    "/resources/:path*",
-    "/our-services/:path*",
-    "/about/:path*",
-    "/contact/:path*",
-    "/guidelines/author/:path*",
-    "/guidelines/editors/:path*",
-    "/guidelines/reviewers/:path*",
-    "/publications/list/:path*",
-    "/PaymentDetails/:path*",
-    "/PaymentModel/:path*",
-    "/NotificationList/:path*",
-    "/SubscriptionGate/:path*",
-    "/payments/history/:path*",
-    "/authorspage/:path*",
+    // "/dashboard/:path*",
+    // "/profile/:path*",
+    // "/publications/create/:path*",
+    // "/resources/:path*",
+    // "/our-services/:path*",
+    // "/about/:path*",
+    // "/contact/:path*",
+    // "/guidelines/author/:path*",
+    // "/guidelines/editors/:path*",
+    // "/guidelines/reviewers/:path*",
+    // "/publications/list/:path*",
+    // "/PaymentDetails/:path*",
+    // "/PaymentModel/:path*",
+    // "/NotificationList/:path*",
+    // "/SubscriptionGate/:path*",
+    // "/payment/history/:path*",
+    // "/authorspage/:path*",
   ],
 };

@@ -102,8 +102,12 @@ const ProfilePage = () => {
       setEditing(false);
       setSelectedImage(null);
       setPreviewUrl(updatedProfile.data.profile_image || null);
+
+      // Update header without reload
+      window.dispatchEvent(new Event("profileUpdated"));
+
       toast.success('Profile saved successfully');
-      window.location.reload();
+
     } catch (err) {
       console.error('Error saving profile:', err);
       let message = 'Failed to save profile';
@@ -123,8 +127,15 @@ const ProfilePage = () => {
       toast.error(message);
     }
   };
+  if (loading) {
+  return (
+    <div className="flex justify-center items-center min-h-screen">
+      <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-gray-700"></div>
+    </div>
+  );
+}
 
-  if (loading) return <div className="text-center mt-10 text-gray-600">Loading...</div>;
+
 
   return (
     <>

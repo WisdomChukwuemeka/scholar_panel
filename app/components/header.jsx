@@ -8,13 +8,13 @@ import { useRouter } from "next/navigation";
 import { NotificationAPI } from "../services/api";
 import { ProfileAPI } from "../services/api";
 
-const notificationRoutes = {
-  publication: (n) => `/publications/${n.related_id}`,
-  task: (n) => `/tasks/${n.related_id}`,
-  message: (n) => `/messages/${n.related_id}`,
-  comment: (n) => `/comments/${n.related_id}`,
-  // Add more here without breaking the component
-};
+// const notificationRoutes = {
+//   publication: (n) => `/publications/${n.related_id}`,
+//   task: (n) => `/tasks/${n.related_id}`,
+//   message: (n) => `/messages/${n.related_id}`,
+//   comment: (n) => `/comments/${n.related_id}`,
+//   // Add more here without breaking the component
+// };
 
 
 
@@ -30,6 +30,7 @@ export const Header = () => {
   const [isGuidelinesOpen, setIsGuidelinesOpen] = useState(false);
   const [isMarkingRead, setIsMarkingRead] = useState(false);
   const [profileImage, setProfileImage] = useState(null);
+  const [hydrated, setHydrated] = useState(false);
 
   const router = useRouter();
 
@@ -48,6 +49,10 @@ export const Header = () => {
       window.removeEventListener("authChange", updateAuthState);
     };
   }, []);
+
+  useEffect(() => {
+  setHydrated(true);
+}, []);
 
   // ✅ Fetch notifications without flicker
   useEffect(() => {
@@ -87,26 +92,19 @@ export const Header = () => {
 
   
   useEffect(() => {
-  const fetchProfileImage = async () => {
+  const loadProfile = async () => {
     if (!isLoggin) return;
-
-    try {
-      const res = await ProfileAPI.list();
-      const profiles = res.data.results;
-      if (profiles.length > 0 && profiles[0].profile_image) {
-        setProfileImage(profiles[0].profile_image);
-      } else {
-        setProfileImage(null);
-      }
-      console.log(res.data.results)
-    } catch (err) {
-      console.error("Error fetching profile image:", err);
-      setProfileImage(null);
-    }
+    const res = await ProfileAPI.list();
+    const profiles = res.data.results;
+    setProfileImage(profiles?.[0]?.profile_image || null);
   };
 
-  fetchProfileImage();
+  loadProfile();
+
+  window.addEventListener("profileUpdated", loadProfile);
+  return () => window.removeEventListener("profileUpdated", loadProfile);
 }, [isLoggin]);
+
 
 
   // ✅ Handle click on notification item
@@ -120,7 +118,7 @@ export const Header = () => {
       setUnreadCount((prev) => Math.max(prev - 1, 0));
 
       // Resume polling later
-      setTimeout(() => setIsMarkingRead(false), 4000);
+      // setTimeout(() => setIsMarkingRead(false), 4000);
 
       router.push(
       notification.related_publication
@@ -172,6 +170,8 @@ export const Header = () => {
     setIsPublicationsOpen(false);
     setIsConferencesOpen(false);
   };
+
+  if (!hydrated) return null;
 
   return (
     <section className="mb-1 shadow-md">

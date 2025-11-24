@@ -34,10 +34,8 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // If 401 and not already retrying
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
-        // Wait for the refresh to finish
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
@@ -49,23 +47,26 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        // This calls your CookieTokenRefreshView → reads refresh_token from cookie
         await api.post('/token/refresh/');
-        
         processQueue(null);
-        return api(originalRequest); // Retry original request with new access_token cookie
+        return api(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError);
-        // Optional: redirect to login
-        if (typeof window !== 'undefined') {
-          window.location.href = '/login';
+
+        if (typeof window !== "undefined") {
+          document.cookie = "access_token=; Max-Age=0";
+          document.cookie = "refresh_token=; Max-Age=0";
+
+          window.location.href = "/login?expired=1";
         }
+
         return Promise.reject(refreshError);
       } finally {
-        isRefreshing = false;
+        isRefreshing = false; // Don't forget finally
       }
     }
 
+    // This is critical: return Promise.reject for other errors
     return Promise.reject(error);
   }
 );

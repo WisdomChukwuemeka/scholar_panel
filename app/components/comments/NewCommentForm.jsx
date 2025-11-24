@@ -26,6 +26,9 @@ export default function NewCommentForm({ publicationId }) {
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const [editingCommentId, setEditingCommentId] = useState(null);
+  const [isSending, setIsSending] = useState(false);
+  const prevCommentsLength = useRef(0);
+
 
 
   const scrollToBottom = () => {
@@ -58,9 +61,13 @@ export default function NewCommentForm({ publicationId }) {
     if (publicationId) fetchComments();
   }, [publicationId, fetchComments]);
 
-  useEffect(() => {
+
+ useEffect(() => {
+  if (comments.length > prevCommentsLength.current) {
     scrollToBottom();
-  }, [comments]);
+  }
+  prevCommentsLength.current = comments.length;
+}, [comments]);
 
 
   // Helper to check if comment is older than 1 hour
@@ -132,58 +139,57 @@ const isEditable = (created_at) => {
   // ---------------------------
   // SUBMIT COMMENT (FIXED)
   // ---------------------------
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    if (!newComment && !draftAudio) {
-      toast.error("Write a message or attach audio");
-      return;
-    }
+  if (!newComment && !draftAudio) {
+    toast.error("Write a message or attach audio");
+    return;
+  }
 
-    const formData = new FormData();
-    formData.append("text", newComment);
+  setIsSending(true);  // ⬅ LOCK SEND BUTTON
 
-    if (draftAudio) {
-      formData.append("audio", draftAudio);
-    }
+  try {
+    // If editing
+    if (editingCommentId) {
+      const formData = new FormData();
+      formData.append("text", newComment);
+      if (draftAudio) formData.append("audio", draftAudio);
 
-    try {
-      await CommentAPI.create(publicationId, formData)
+      await CommentAPI.update(publicationId, editingCommentId, formData);
+      toast.success("Comment updated");
 
+      setEditingCommentId(null);
       setNewComment("");
       setDraftAudio(null);
       setDraftAudioURL("");
 
       fetchComments();
-      toast.success("Comment posted!");
-
-      // If editing → update instead of creating
-if (editingCommentId) {
-  const formData = new FormData();
-  formData.append("text", newComment);
-  if (draftAudio) formData.append("audio", draftAudio);
-
-  try {
-    await CommentAPI.update(publicationId, editingCommentId, formData);
-    toast.success("Comment updated");
-  } catch (err) {
-    toast.error("Update failed");
-  }
-
-  setEditingCommentId(null);
-  setNewComment("");
-  setDraftAudio(null);
-  setDraftAudioURL("");
-  fetchComments();
-  return;
-}
-
-
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to post comment");
+      return; // ⬅ Unlock happens in finally
     }
-  };
+
+    // Creating a new comment
+    const formData = new FormData();
+    formData.append("text", newComment);
+    if (draftAudio) formData.append("audio", draftAudio);
+
+    await CommentAPI.create(publicationId, formData);
+
+    setNewComment("");
+    setDraftAudio(null);
+    setDraftAudioURL("");
+
+    fetchComments();
+    toast.success("Comment posted!");
+
+  } catch (err) {
+    console.error(err);
+    toast.error("Failed to post comment");
+  } finally {
+    setIsSending(false);  // ⬅ UNLOCK SEND BUTTON
+  }
+};
+
 
   // ---------------------------
   // REACTIONS
@@ -286,7 +292,7 @@ if (editingCommentId) {
                       <div>
                           <p className="text-sm font-semibold text-gray-700">{cmt.text}</p>
                           {/* UPDATE + DELETE BUTTONS (Only for current user + editable within 1 hour) */}
-{isMe && isEditable(cmt.created_at) && (
+        {isMe && !cmt.audio_url && isEditable(cmt.created_at) && (
   <div className="flex justify-end gap-3 mt-2 text-xs">
     <button
       onClick={() => {
@@ -304,6 +310,7 @@ if (editingCommentId) {
       onClick={async () => {
         try {
           await CommentAPI.delete(publicationId, cmt.id);
+          setEditingCommentId(null);
           fetchComments();
           toast.success("Comment deleted");
         } catch (err) {
@@ -473,11 +480,15 @@ if (editingCommentId) {
         </div>
 
         <button
-          type="submit"
-          className="px-6 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg"
-        >
-          Send
-        </button>
+  type="submit"
+  disabled={isSending}
+  className={`px-6 py-2 rounded-lg text-white 
+    ${isSending ? "bg-gray-400 cursor-not-allowed" : "bg-indigo-500 hover:bg-indigo-600"}
+  `}
+>
+  {isSending ? "Send" : "Send"}
+</button>
+
       </form>
 
       <ToastContainer position="top-right" autoClose={3000} />

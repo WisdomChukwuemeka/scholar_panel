@@ -5,7 +5,7 @@ import { ConferenceAPI } from '@/app/services/api';
 
 const ConferencesPage = () => {
   const [conferences, setConferences] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   // Pagination state
@@ -15,16 +15,16 @@ const ConferencesPage = () => {
 
   const fetchConferences = async (currentPage = page) => {
     try {
-      setLoading(true);
+      // setLoading(true);
       const response = await ConferenceAPI.list(`?page=${currentPage}`);
       const data = response.data;
       setConferences(data.results || []);
       setNext(data.next);
       setPrevious(data.previous);
-      setLoading(false);
+      // setLoading(false);
     } catch (err) {
       setError('Failed to load conferences.');
-      setLoading(false);
+      // setLoading(false);
     }
   };
 
@@ -34,17 +34,17 @@ const ConferencesPage = () => {
 
   const past = conferences.filter(conf => conf.status === 'past');
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-gray-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-600 mb-4"></div>
-          <p className="text-gray-700 text-lg font-semibold">Loading past conferences...</p>
-          <p className="text-gray-500 text-sm mt-2">Retrieving archived events</p>
-        </div>
-      </div>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-gray-100 flex items-center justify-center">
+  //       <div className="text-center">
+  //         <div className="inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-600 mb-4"></div>
+  //         <p className="text-gray-700 text-lg font-semibold">Loading past conferences...</p>
+  //         <p className="text-gray-500 text-sm mt-2">Retrieving archived events</p>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   if (error) {
     return (
@@ -100,7 +100,7 @@ const ConferencesPage = () => {
           </span>
         </div>
         
-        <h3 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2 group-hover:text-purple-600 transition-colors leading-tight">
+        <h3 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2 group-hover:text-orange-600 transition-colors leading-tight">
           {conf.name}
         </h3>
         
@@ -111,7 +111,7 @@ const ConferencesPage = () => {
         <div className="space-y-3 mb-5 pb-5 border-b border-gray-100">
           <div className="flex items-center text-sm text-gray-700">
             <div className="w-8 h-8 bg-purple-50 rounded-lg flex items-center justify-center mr-3">
-              <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
             </div>
@@ -124,7 +124,7 @@ const ConferencesPage = () => {
           {conf.end_date && (
             <div className="flex items-center text-sm text-gray-700">
               <div className="w-8 h-8 bg-purple-50 rounded-lg flex items-center justify-center mr-3">
-                <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
               </div>
@@ -137,7 +137,7 @@ const ConferencesPage = () => {
 
           <div className="flex items-center text-sm text-gray-700">
             <div className="w-8 h-8 bg-purple-50 rounded-lg flex items-center justify-center mr-3">
-              <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>

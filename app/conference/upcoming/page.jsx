@@ -5,7 +5,7 @@ import { ConferenceAPI } from '@/app/services/api';
 
 const ConferencesPage = () => {
   const [conferences, setConferences] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   // Pagination state
@@ -15,16 +15,16 @@ const ConferencesPage = () => {
 
   const fetchConferences = async (currentPage = page) => {
     try {
-      setLoading(true);
+      // setLoading(true);
       const response = await ConferenceAPI.list(`?page=${currentPage}`);
       const data = response.data;
       setConferences(data.results || []);
       setNext(data.next);
       setPrevious(data.previous);
-      setLoading(false);
+      // setLoading(false);
     } catch (err) {
       setError('Failed to load conferences.');
-      setLoading(false);
+      // setLoading(false);
     }
   };
 
@@ -36,17 +36,17 @@ const ConferencesPage = () => {
   const upcoming = conferences.filter(conf => conf.status === 'upcoming');
   const ongoing = conferences.filter(conf => conf.status === 'ongoing');
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-600 mb-4"></div>
-          <p className="text-gray-700 text-lg font-semibold">Loading conferences...</p>
-          <p className="text-gray-500 text-sm mt-2">Please wait while we fetch the latest information</p>
-        </div>
-      </div>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
+  //       <div className="text-center">
+  //         <div className="inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-600 mb-4"></div>
+  //         <p className="text-gray-700 text-lg font-semibold">Loading conferences...</p>
+  //         <p className="text-gray-500 text-sm mt-2">Please wait while we fetch the latest information</p>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   if (error) {
     return (

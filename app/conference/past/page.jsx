@@ -205,7 +205,7 @@ const ConferencesPage = () => {
             </svg>
           </div>
           <h3 className="text-xl font-bold text-gray-900 mb-2">No Past Conferences</h3>
-          <p className="text-gray-500 text-base">There are no archived conferences available at the moment.</p>
+          {/* <p className="text-gray-500 text-base">There are no archived conferences available at the moment.</p> */}
         </div>
       )}
     </section>

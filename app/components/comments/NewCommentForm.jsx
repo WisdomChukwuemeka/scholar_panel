@@ -434,7 +434,7 @@ const handleSubmit = async (e) => {
       
 
       {/* INPUT BAR */}
-      <form onSubmit={handleSubmit} className="flex gap-3 xl:min-w-4xl xl:mx-auto relative">
+      <form onSubmit={handleSubmit} className="flex gap-3 xl:min-w-4xl xl:mx-auto relative p-6 bg-gradient-to-r from-gray-50 to-white border-t border-gray-200">
         <div className="relative flex-1">
           <input
             value={newComment}

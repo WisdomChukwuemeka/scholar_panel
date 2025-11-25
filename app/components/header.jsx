@@ -216,12 +216,17 @@ export const Header = () => {
                     transition={{ duration: 0.3 }}
                   >
                     <ul className="py-2">
-                      <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
+                      <Link href="/conference/upcoming">
+                        <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
                         Upcoming Conferences
                       </li>
+                      </Link>
+                      
+                       <Link href="/conference/past">
                       <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
                         Past Conferences
                       </li>
+                      </Link>
                     </ul>
                   </motion.div>
                 )}
@@ -342,7 +347,7 @@ export const Header = () => {
             ) : (
               <Link href="/publications/create">
                 <button className="hidden xl:flex bg-orange-600 text-white btn hover:bg-orange-800 duration-500 cursor-pointer">
-                  Submit an Article
+                  Submit Article
                 </button>
               </Link>
             )}
@@ -438,12 +443,18 @@ export const Header = () => {
                     transition={{ duration: 0.3 }}
                   >
                     <ul className="py-2">
+                      <Link href="/conference/upcoming">
                       <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
                         Upcoming Conferences
                       </li>
+                      </Link>
+
+                      
+                      <Link href="/conference/past">
                       <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
                         Past Conferences
                       </li>
+                      </Link>
                     </ul>
                   </motion.div>
                 )}
@@ -508,7 +519,7 @@ export const Header = () => {
             ) : (
               <Link href="/publications/create" className="flex justify-center">
                 <button className="bg-orange-600 text-white btn hover:bg-orange-800 duration-500 px-4 py-2 rounded-md cursor-pointer">
-                  Submit an Article
+                  Submit Article
                 </button>
               </Link>
             )}

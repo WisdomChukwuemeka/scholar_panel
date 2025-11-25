@@ -332,6 +332,11 @@ export const TaskAPI = {
     api.get('/editors/', { params: { q: query } }),
 };
 
+export const ConferenceAPI = {
+  list: () => api.get('/conferences/'),
+  detail: (id) => api.get(`/conferences/${id}/`),
+};
+
 
 // Export the axios instance if needed elsewhere
 export default api;

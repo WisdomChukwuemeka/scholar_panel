@@ -7,7 +7,7 @@ import axios from 'axios';
 //     ? `${process.env.NEXT_PUBLIC_BASE_URL}`
 //     : "http://localhost:8000/api";
 
-const BASE_URL = "/api";
+baseURL: process.env.NEXT_PUBLIC_BACKEND_URL || "https://panel-1-tlqv.onrender.com/api",
 
 const api = axios.create({
   baseURL: BASE_URL,

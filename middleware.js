@@ -25,16 +25,20 @@ const BACKEND = "https://panel-1-tlqv.onrender.com";
 export async function middleware(request) {
   const pathname = request.nextUrl.pathname;
 
-  // ✅ CRITICAL: Skip middleware for these routes
+  // ✅ CRITICAL: Skip middleware for these routes (expanded list)
   if (
     pathname.startsWith("/login") ||
     pathname.startsWith("/register") ||
-    pathname.startsWith("/api/") ||
+    pathname.startsWith("/api/") ||  // This should catch all API routes
     pathname.startsWith("/_next") ||
     pathname.startsWith("/static") ||
-    pathname === "/favicon.ico"
+    pathname === "/favicon.ico" ||
+    pathname.endsWith(".ico") ||
+    pathname.endsWith(".png") ||
+    pathname.endsWith(".jpg") ||
+    pathname.endsWith(".svg")
   ) {
-    console.log(`[Middleware] Skipping public route: ${pathname}`);
+    console.log(`[Middleware] Skipping excluded route: ${pathname}`);
     return NextResponse.next();
   }
 
@@ -62,7 +66,7 @@ export async function middleware(request) {
   try {
     // Get cookies from request
     const cookieHeader = request.headers.get("cookie") || "";
-    console.log(`[Middleware] Cookies: ${cookieHeader}`);
+    console.log(`[Middleware] Cookies present: ${!!cookieHeader}`);
 
     const response = await fetch(`${BACKEND}/api/me/`, {
       method: "GET",
@@ -108,11 +112,11 @@ export const config = {
   matcher: [
     /*
      * Match all paths except:
-     * - /api routes (handled by Next.js rewrites)
-     * - /_next (Next.js internals)
-     * - /static (static files)
-     * - /login, /register (public pages)
+     * - /api/* (API routes - handled by rewrites)
+     * - /_next/* (Next.js internals)
+     * - /static/* (static files)
+     * - /*.ico, /*.png, etc. (public files)
      */
-    "/((?!api|_next|static|login|register|favicon.ico).*)",
+    "/((?!api/|_next/|static/|.*\\..*|login|register).*)",
   ],
 };

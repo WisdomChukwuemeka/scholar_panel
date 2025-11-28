@@ -3,7 +3,7 @@ import axios from 'axios';
 
 // Your backend URL
 // const BASE_URL = 'http://localhost:8000/api'; 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL 
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://panel-1-tlqv.onrender.com/api';
 
 const api = axios.create({
   baseURL: BASE_URL,

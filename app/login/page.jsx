@@ -1,13 +1,6 @@
-// app/login/page.js
+// app/login/page.js   ← SERVER COMPONENT (no redirect check)
 import Login from "@/components/login";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 
 export default function LoginPage() {
-  // If already logged in → go home
-  if (cookies().get("access_token")) {
-    redirect("/");
-  }
-
-  return <Login />;
+  return <Login redirect="/" />;   // or whatever you want
 }

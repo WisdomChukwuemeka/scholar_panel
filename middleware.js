@@ -42,7 +42,7 @@ export async function middleware(request) {
   if (!isProtected) return NextResponse.next();
 
   try {
-    const response = await fetch(`${API_BASE_URL}/api/me/`, {
+    const response = await fetch("/api/me/", {
       method: "GET",
       credentials: "include",
       headers: {

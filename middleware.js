@@ -24,7 +24,7 @@ const PROTECTED_PATHS = [
 ];
 
 // CORRECT URL – no double /api
-const backend = process.env.BACKEND_URL || "https://panel-1-tlqv.onrender.com";
+const BACKEND = "https://panel-1-tlqv.onrender.com";
 
 
 export async function middleware(request) {
@@ -43,7 +43,7 @@ export async function middleware(request) {
   if (!isProtected) return NextResponse.next();
 
   try {
-    const response = await fetch(`${backend}/api/me/`, {
+    const response = await fetch(`${BACKEND}/api/me/`, {
       method: "GET",
       credentials: "include",
       headers: {

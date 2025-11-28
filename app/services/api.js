@@ -7,10 +7,12 @@ import axios from 'axios';
 //     ? `${process.env.NEXT_PUBLIC_BASE_URL}`
 //     : "http://localhost:8000/api";
 
-const BASE_URL =
-  process.env.NEXT_PUBLIC_BACKEND_URL ||
-  "https://panel-1-tlqv.onrender.com/api";
-  
+// const BASE_URL =
+//   process.env.NEXT_PUBLIC_BACKEND_URL ||
+//   "https://panel-1-tlqv.onrender.com/api";
+
+const BASE_URL = '/api';
+
 const api = axios.create({
   baseURL: BASE_URL,
   withCredentials: true, // This is the ONLY thing needed for cookies

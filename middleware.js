@@ -5,7 +5,10 @@ const PROTECTED_PATHS = [
   "/dashboard",
   "/profile",
   "/publications/create",
+  // "/resources",
   "/our-services",
+  // "/about",
+  // "/contact",
   "/guidelines/author",
   "/guidelines/editors",
   "/guidelines/reviewers",
@@ -20,46 +23,72 @@ const PROTECTED_PATHS = [
   "/conference/upcoming",
 ];
 
+// CORRECT URL – no double /api
+// const BACKEND = "https://panel-1-tlqv.onrender.com";
+
+
 export async function middleware(request) {
   const pathname = request.nextUrl.pathname;
 
-  // Skip Vercel build
-  if (process.env.VERCEL === "1" && !request.headers.get("user-agent")) {
-    return NextResponse.next();
-  }
+  const isVercelBuild =
+    process.env.VERCEL === "1" &&
+    process.env.NODE_ENV === "production" &&
+    !request.headers.get("x-vercel-deployment-url") &&
+    !request.headers.get("user-agent");
 
-  const isProtected = PROTECTED_PATHS.some(path => pathname.startsWith(path));
+  if (isVercelBuild) return NextResponse.next();
+
+  const isProtected = PROTECTED_PATHS.some((path) => pathname.startsWith(path));
   if (!isProtected) return NextResponse.next();
 
   try {
-    // This is SAME-SITE → cookies are always sent
-    const sessionUrl = new URL("/api/auth/session", request.url);
-    const res = await fetch(sessionUrl.toString(), {
+    // ✅ Use relative URL to leverage Next.js rewrite
+    const baseUrl = new URL(request.url).origin;
+    const response = await fetch(`${baseUrl}/api/me/`, {
+      method: "GET",
+      credentials: "include",
       headers: {
-        cookie: request.headers.get("cookie") || "",
+        Cookie: request.cookies.toString(),
+        "Content-Type": "application/json",
       },
     });
 
-    if (!res.ok || !(await res.json()).valid) {
-      throw new Error("Unauthorized");
+    console.log("Auth check status:", response.status); // Debug
+
+    if (response.status === 401) {
+      const loginUrl = new URL("/login", request.url);
+      loginUrl.searchParams.set("expired", "1");
+      loginUrl.searchParams.set("redirect", pathname);
+      return NextResponse.redirect(loginUrl);
     }
+
+    if (!response.ok) throw new Error("Unauthorized");
+
+    const user = await response.json();
+    if (!user?.role) throw new Error("No role");
 
     return NextResponse.next();
   } catch (error) {
+    console.error("Auth failed:", error.message);
     const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("expired", "1");
     loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);
   }
 }
+
 
 export const config = {
   matcher: [
     "/dashboard/:path*",
     "/profile/:path*",
     "/publications/create/:path*",
+    // "/resources/:path*",
     "/our-services/:path*",
-    "/guidelines/(author|editors|reviewers)/:path*",
+    // "/about/:path*",
+    // "/contact/:path*",
+    "/guidelines/author/:path*",
+    "/guidelines/editors/:path*",
+    "/guidelines/reviewers/:path*",
     "/publications/list/:path*",
     "/PaymentDetails/:path*",
     "/PaymentModel/:path*",
@@ -67,6 +96,7 @@ export const config = {
     "/SubscriptionGate/:path*",
     "/payment/history/:path*",
     "/authorspage/:path*",
-    "/conference/(past|upcoming)/:path*",
+    "/conference/past/:path*",
+    "/conference/upcoming/:path*",
   ],
 };

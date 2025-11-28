@@ -3,7 +3,7 @@
 import { SecureStorage } from "@/utils/secureStorage";
 import Link from "next/link";
 import { useState } from "react";
-import { useRouter } from "next/navigation";  // Removed useSearchParams since it's no longer needed
+// import { useRouter } from "next/navigation";  // Removed useSearchParams since it's no longer needed
 import { AuthAPI } from "../services/api";
 import { ToastContainer, toast } from "react-toastify";
 
@@ -13,7 +13,7 @@ export default function Login({ redirect = "/" }) {  // Accept redirect as prop 
     password: "",
   });
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
+  // const router = useRouter();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -46,7 +46,7 @@ export default function Login({ redirect = "/" }) {  // Accept redirect as prop 
       window.dispatchEvent(new Event("authChange"));
 
       toast.success("Login successful!");
-      window.location.reload();
+      window.location.href = "/"; 
     } catch (error) {
       const err = error.response?.data;
       const status = error.response?.status;

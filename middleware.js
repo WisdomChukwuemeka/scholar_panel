@@ -25,7 +25,7 @@ const PROTECTED_PATHS = [
 
 // CORRECT URL – no double /api
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ||
+  process.env.NEXT_PUBLIC_BASE_URL ||
   "http://localhost:8000"; // ← ONLY THIS, no /api here!
 
 export async function middleware(request) {

@@ -5,10 +5,10 @@ const PROTECTED_PATHS = [
   "/dashboard",
   "/profile",
   "/publications/create",
-  "/resources",
+  // "/resources",
   "/our-services",
-  "/about",
-  "/contact",
+  // "/about",
+  // "/contact",
   "/guidelines/author",
   "/guidelines/editors",
   "/guidelines/reviewers",
@@ -24,7 +24,8 @@ const PROTECTED_PATHS = [
 ];
 
 // CORRECT URL – no double /api
-const API_BASE_URL = ""
+const backend = process.env.BACKEND_URL || "https://panel-1-tlqv.onrender.com";
+
 
 export async function middleware(request) {
   const pathname = request.nextUrl.pathname;
@@ -42,7 +43,7 @@ export async function middleware(request) {
   if (!isProtected) return NextResponse.next();
 
   try {
-    const response = await fetch("/api/me/", {
+    const response = await fetch(`${backend}/api/me/`, {
       method: "GET",
       credentials: "include",
       headers: {
@@ -83,10 +84,10 @@ export const config = {
     "/dashboard/:path*",
     "/profile/:path*",
     "/publications/create/:path*",
-    "/resources/:path*",
+    // "/resources/:path*",
     "/our-services/:path*",
-    "/about/:path*",
-    "/contact/:path*",
+    // "/about/:path*",
+    // "/contact/:path*",
     "/guidelines/author/:path*",
     "/guidelines/editors/:path*",
     "/guidelines/reviewers/:path*",

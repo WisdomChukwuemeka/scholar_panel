@@ -1,7 +1,11 @@
-"use client";
-// app/login/page.js   ← SERVER COMPONENT (no redirect check)
-import Login from "@/components/login";
+import Login from "../components/login";
 
-export default function LoginPage() {
-  return <Login redirect="/" />;   // or whatever you want
+export default function LoginPage({ searchParams }) {
+  const redirect = searchParams.redirect || "/";
+
+  return (
+    <div className="max-w-lg mx-auto mt-20">
+      <Login redirect={redirect} />
+    </div>
+  );
 }

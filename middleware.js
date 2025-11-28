@@ -5,10 +5,7 @@ const PROTECTED_PATHS = [
   "/dashboard",
   "/profile",
   "/publications/create",
-  // "/resources",
   "/our-services",
-  // "/about",
-  // "/contact",
   "/guidelines/author",
   "/guidelines/editors",
   "/guidelines/reviewers",
@@ -23,57 +20,34 @@ const PROTECTED_PATHS = [
   "/conference/upcoming",
 ];
 
-// CORRECT URL – no double /api
-const BACKEND = "https://panel-1-tlqv.onrender.com";
-
-
 export async function middleware(request) {
   const pathname = request.nextUrl.pathname;
 
-  // Skip only during actual Vercel build
-  const isVercelBuild =
-    process.env.VERCEL === "1" &&
-    process.env.NODE_ENV === "production" &&
-    !request.headers.get("x-vercel-deployment-url") &&
-    !request.headers.get("user-agent");
+  // Skip Vercel build
+  if (process.env.VERCEL === "1" && !request.headers.get("user-agent")) {
+    return NextResponse.next();
+  }
 
-  if (isVercelBuild) return NextResponse.next();
-
-  const isProtected = PROTECTED_PATHS.some((path) => pathname.startsWith(path));
+  const isProtected = PROTECTED_PATHS.some(path => pathname.startsWith(path));
   if (!isProtected) return NextResponse.next();
 
   try {
-    const response = await fetch(`${BACKEND}/api/me/`, {
-      method: "GET",
-      credentials: "include",
+    // This is SAME-SITE → cookies are always sent
+    const sessionUrl = new URL("/api/auth/session", request.url);
+    const res = await fetch(sessionUrl.toString(), {
       headers: {
-        Cookie: request.cookies.toString(),
-        // Optional: help with CORS in dev
-        "Content-Type": "application/json",
+        cookie: request.headers.get("cookie") || "",
       },
     });
-    
-    // Debug: uncomment these lines temporarily to see what's happening
-    // console.log("Middleware → /api/me status:", response.status);
-    // console.log("Cookies sent:", request.headers.get("cookie"));
 
-      // ✅ AUTO-LOGOUT when token expired (access OR refresh)
-    if (response.status === 401) {
-      const loginUrl = new URL("/login", request.url);
-      loginUrl.searchParams.set("expired", "1");
-      loginUrl.searchParams.set("redirect", pathname);
-      return NextResponse.redirect(loginUrl);
+    if (!res.ok || !(await res.json()).valid) {
+      throw new Error("Unauthorized");
     }
-
-    if (!response.ok) throw new Error("Unauthorized");
-
-    const user = await response.json();
-    if (!user?.role) throw new Error("No role");
 
     return NextResponse.next();
   } catch (error) {
-    console.error("Auth failed in middleware:", error.message);
     const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("expired", "1");
     loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);
   }
@@ -84,13 +58,8 @@ export const config = {
     "/dashboard/:path*",
     "/profile/:path*",
     "/publications/create/:path*",
-    // "/resources/:path*",
     "/our-services/:path*",
-    // "/about/:path*",
-    // "/contact/:path*",
-    "/guidelines/author/:path*",
-    "/guidelines/editors/:path*",
-    "/guidelines/reviewers/:path*",
+    "/guidelines/(author|editors|reviewers)/:path*",
     "/publications/list/:path*",
     "/PaymentDetails/:path*",
     "/PaymentModel/:path*",
@@ -98,7 +67,6 @@ export const config = {
     "/SubscriptionGate/:path*",
     "/payment/history/:path*",
     "/authorspage/:path*",
-    "/conference/past/:path*",
-    "/conference/upcoming/:path*",
+    "/conference/(past|upcoming)/:path*",
   ],
 };

@@ -18,7 +18,8 @@ export default function Register({ onRegister }) {
   });
 
   const [loading, setLoading] = useState(false);
-  const [fieldErrors, setFieldErrors] = useState({}); // ✅ new state
+  const [fieldErrors, setFieldErrors] = useState({}); // Field-specific errors
+  const [generalError, setGeneralError] = useState(""); // For non-field errors
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -26,13 +27,30 @@ export default function Register({ onRegister }) {
       ...prevData,
       [name]: type === "checkbox" ? checked : value,
     }));
-    setFieldErrors((prev) => ({ ...prev, [name]: "" })); // clear error when typing
+    setFieldErrors((prev) => ({ ...prev, [name]: "" })); // Clear field error
+    setGeneralError(""); // Clear general error
+  };
+
+  const validateForm = () => {
+    let errors = {};
+    if (!formData.full_name.trim()) errors.full_name = "Full name is required.";
+    if (!formData.email.trim()) errors.email = "Email is required.";
+    if (!formData.password) errors.password = "Password is required.";
+    if (formData.password !== formData.confirm_password) {
+      errors.confirm_password = "Passwords do not match.";
+    }
+    if (!formData.role) errors.role = "Role is required.";
+    if (!formData.agreement) errors.agreement = "You must agree to the terms.";
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setGeneralError("");
+    if (!validateForm()) return; // Stop if client validation fails
+
     setLoading(true);
-    setFieldErrors({}); // clear previous
 
     try {
       const response = await AuthAPI.register(formData);
@@ -48,30 +66,33 @@ export default function Register({ onRegister }) {
       onRegister?.(response.data);
     } catch (error) {
       if (error.response) {
-        const errors = error.response.data;
+        const errors = error.response.data || {};
         let fieldErrs = {};
+        let nonFieldMsg = "";
 
-        // Capture field-based messages
+        // Handle field errors (e.g., {email: ["Invalid"]})
         for (const key in errors) {
-          if (Array.isArray(errors[key])) {
+          if (Array.isArray(errors[key]) && key !== "non_field_errors") {
             fieldErrs[key] = errors[key].join(" ");
           }
         }
 
-        // Default fallback if no specific field
-        if (Object.keys(fieldErrs).length === 0) {
-          fieldErrs.non_field = "Something went wrong. Please check your inputs.";
+        // Handle DRF non_field_errors (e.g., ["Passwords don't match"])
+        if (errors.non_field_errors && Array.isArray(errors.non_field_errors)) {
+          nonFieldMsg = errors.non_field_errors.join(" ");
+        }
+
+        // Fallback if no specific errors
+        if (Object.keys(fieldErrs).length === 0 && !nonFieldMsg) {
+          nonFieldMsg = error.response.data.detail || "Something went wrong. Please check your inputs.";
         }
 
         setFieldErrors(fieldErrs);
+        setGeneralError(nonFieldMsg);
       } else if (error.request) {
-        setFieldErrors({
-          non_field: "No response from server. Please check your connection.",
-        });
+        setGeneralError("No response from server. Please check your connection.");
       } else {
-        setFieldErrors({
-          non_field: "Something went wrong. Please try again.",
-        });
+        setGeneralError("Something went wrong. Please try again.");
       }
     } finally {
       setLoading(false);
@@ -267,9 +288,9 @@ export default function Register({ onRegister }) {
             <p className="text-red-600 text-xs mt-1">{fieldErrors.agreement}</p>
           )}
 
-          {/* NON-FIELD ERROR */}
-          {fieldErrors.non_field && (
-            <p className="text-red-600 text-sm mt-2">{fieldErrors.non_field}</p>
+          {/* GENERAL ERROR */}
+          {generalError && (
+            <p className="text-red-600 text-sm mt-2">{generalError}</p>
           )}
 
           <div>

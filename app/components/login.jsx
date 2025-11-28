@@ -46,7 +46,7 @@ export default function Login({ redirect = "/" }) {  // Accept redirect as prop 
       window.dispatchEvent(new Event("authChange"));
 
       toast.success("Login successful!");
-      router.replace(redirect);   
+      // window.location.href = redirect;  
     } catch (error) {
       const err = error.response?.data;
       const status = error.response?.status;

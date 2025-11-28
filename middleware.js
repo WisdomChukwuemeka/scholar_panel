@@ -1,4 +1,5 @@
-// middleware.js
+// middleware.js — FINAL, CLEAN, BULLETPROOF VERSION (Copy & Paste)
+
 import { NextResponse } from "next/server";
 
 const PROTECTED_PATHS = [
@@ -23,40 +24,32 @@ const PROTECTED_PATHS = [
   "/conference/upcoming",
 ];
 
-// CORRECT URL – no double /api
-const API_BASE_URL = ""
-
 export async function middleware(request) {
   const pathname = request.nextUrl.pathname;
 
-  // Skip only during actual Vercel build
-  const isVercelBuild =
+  // Skip during Vercel build
+  if (
     process.env.VERCEL === "1" &&
     process.env.NODE_ENV === "production" &&
     !request.headers.get("x-vercel-deployment-url") &&
-    !request.headers.get("user-agent");
+    !request.headers.get("user-agent")
+  ) {
+    return NextResponse.next();
+  }
 
-  if (isVercelBuild) return NextResponse.next();
-
+  // Only run on protected routes
   const isProtected = PROTECTED_PATHS.some((path) => pathname.startsWith(path));
   if (!isProtected) return NextResponse.next();
 
   try {
-    const response = await fetch("/api/me/", {
+    const response = await fetch(new URL("/api/me/", request.url), {
       method: "GET",
-      credentials: "include",
       headers: {
-        Cookie: request.headers.get("cookie") || "",
-        // Optional: help with CORS in dev
-        "Content-Type": "application/json",
+        cookie: request.headers.get("cookie") || "",
       },
     });
 
-    // Debug: uncomment these lines temporarily to see what's happening
-    // console.log("Middleware → /api/me status:", response.status);
-    // console.log("Cookies sent:", request.headers.get("cookie"));
-
-      // ✅ AUTO-LOGOUT when token expired (access OR refresh)
+    // 401 → access or refresh token expired → force login
     if (response.status === 401) {
       const loginUrl = new URL("/login", request.url);
       loginUrl.searchParams.set("expired", "1");
@@ -64,14 +57,15 @@ export async function middleware(request) {
       return NextResponse.redirect(loginUrl);
     }
 
-    if (!response.ok) throw new Error("Unauthorized");
+    if (!response.ok) throw new Error("Auth failed");
 
     const user = await response.json();
-    if (!user?.role) throw new Error("No role");
+    if (!user?.role) throw new Error("No role in response");
 
+    // All good → go to protected page
     return NextResponse.next();
   } catch (error) {
-    console.error("Auth failed in middleware:", error.message);
+    // Any error → send to login
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);

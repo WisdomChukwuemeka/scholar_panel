@@ -1,11 +1,13 @@
-import Login from "../components/login";
+// app/login/page.js
+import Login from "@/components/login";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
-export default function LoginPage({ searchParams }) {
-  const redirect = searchParams.redirect || "/";
+export default function LoginPage() {
+  // If already logged in → go home
+  if (cookies().get("access_token")) {
+    redirect("/");
+  }
 
-  return (
-    <div className="max-w-lg mx-auto mt-20">
-      <Login redirect={redirect} />
-    </div>
-  );
+  return <Login />;
 }

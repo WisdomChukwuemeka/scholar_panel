@@ -47,7 +47,7 @@ export async function middleware(request) {
       method: "GET",
       credentials: "include",
       headers: {
-        Cookie: request.headers.get("cookie") || "",
+        Cookie: request.cookies.toString(),
         // Optional: help with CORS in dev
         "Content-Type": "application/json",
       },

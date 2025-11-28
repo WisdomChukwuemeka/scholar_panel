@@ -8,18 +8,8 @@ const nextConfig = {
       },
     ];
   },
-  // Add headers for CORS
-  async headers() {
-    return [
-      {
-        source: '/api/:path*',
-        headers: [
-          { key: 'Access-Control-Allow-Credentials', value: 'true' },
-          { key: 'Access-Control-Allow-Origin', value: process.env.BACKEND_URL || 'https://panel-1-tlqv.onrender.com' },
-        ],
-      },
-    ];
-  },
+  // Prevent middleware from running on rewrites
+  skipMiddlewareUrlNormalize: true,
 };
 
 export default nextConfig;

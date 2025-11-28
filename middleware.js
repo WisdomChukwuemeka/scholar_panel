@@ -5,10 +5,7 @@ const PROTECTED_PATHS = [
   "/dashboard",
   "/profile",
   "/publications/create",
-  // "/resources",
   "/our-services",
-  // "/about",
-  // "/contact",
   "/guidelines/author",
   "/guidelines/editors",
   "/guidelines/reviewers",
@@ -23,80 +20,99 @@ const PROTECTED_PATHS = [
   "/conference/upcoming",
 ];
 
-// CORRECT URL – no double /api
-// const BACKEND = "https://panel-1-tlqv.onrender.com";
-
+const BACKEND = "https://panel-1-tlqv.onrender.com";
 
 export async function middleware(request) {
   const pathname = request.nextUrl.pathname;
 
+  // ✅ CRITICAL: Skip middleware for these routes
+  if (
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/register") ||
+    pathname.startsWith("/api/") ||
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/static") ||
+    pathname === "/favicon.ico"
+  ) {
+    console.log(`[Middleware] Skipping public route: ${pathname}`);
+    return NextResponse.next();
+  }
+
+  // Skip during Vercel build
   const isVercelBuild =
     process.env.VERCEL === "1" &&
     process.env.NODE_ENV === "production" &&
-    !request.headers.get("x-vercel-deployment-url") &&
-    !request.headers.get("user-agent");
+    !request.headers.get("x-vercel-deployment-url");
 
-  if (isVercelBuild) return NextResponse.next();
+  if (isVercelBuild) {
+    console.log("[Middleware] Skipping Vercel build");
+    return NextResponse.next();
+  }
 
+  // Check if path is protected
   const isProtected = PROTECTED_PATHS.some((path) => pathname.startsWith(path));
-  if (!isProtected) return NextResponse.next();
+  
+  if (!isProtected) {
+    console.log(`[Middleware] Not protected: ${pathname}`);
+    return NextResponse.next();
+  }
+
+  console.log(`[Middleware] Checking auth for protected path: ${pathname}`);
 
   try {
-    // ✅ Use relative URL to leverage Next.js rewrite
-    const baseUrl = new URL(request.url).origin;
-    const response = await fetch(`${baseUrl}/api/me/`, {
+    // Get cookies from request
+    const cookieHeader = request.headers.get("cookie") || "";
+    console.log(`[Middleware] Cookies: ${cookieHeader}`);
+
+    const response = await fetch(`${BACKEND}/api/me/`, {
       method: "GET",
       credentials: "include",
       headers: {
-        Cookie: request.cookies.toString(),
+        "Cookie": cookieHeader,
         "Content-Type": "application/json",
       },
     });
 
-    console.log("Auth check status:", response.status); // Debug
+    console.log(`[Middleware] /api/me/ status: ${response.status}`);
 
     if (response.status === 401) {
+      console.log("[Middleware] Unauthorized - redirecting to login");
       const loginUrl = new URL("/login", request.url);
       loginUrl.searchParams.set("expired", "1");
       loginUrl.searchParams.set("redirect", pathname);
       return NextResponse.redirect(loginUrl);
     }
 
-    if (!response.ok) throw new Error("Unauthorized");
+    if (!response.ok) {
+      throw new Error(`Auth check failed with status: ${response.status}`);
+    }
 
     const user = await response.json();
-    if (!user?.role) throw new Error("No role");
+    
+    if (!user?.role) {
+      throw new Error("No role in user response");
+    }
 
+    console.log(`[Middleware] Auth success for: ${user.email} (${user.role})`);
     return NextResponse.next();
+
   } catch (error) {
-    console.error("Auth failed:", error.message);
+    console.error("[Middleware] Auth error:", error.message);
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);
   }
 }
 
-
 export const config = {
   matcher: [
-    "/dashboard/:path*",
-    "/profile/:path*",
-    "/publications/create/:path*",
-    // "/resources/:path*",
-    "/our-services/:path*",
-    // "/about/:path*",
-    // "/contact/:path*",
-    "/guidelines/author/:path*",
-    "/guidelines/editors/:path*",
-    "/guidelines/reviewers/:path*",
-    "/publications/list/:path*",
-    "/PaymentDetails/:path*",
-    "/PaymentModel/:path*",
-    "/NotificationList/:path*",
-    "/SubscriptionGate/:path*",
-    "/payment/history/:path*",
-    "/authorspage/:path*",
-    "/conference/past/:path*",
-    "/conference/upcoming/:path*",
+    /*
+     * Match all paths except:
+     * - /api routes (handled by Next.js rewrites)
+     * - /_next (Next.js internals)
+     * - /static (static files)
+     * - /login, /register (public pages)
+     */
+    "/((?!api|_next|static|login|register|favicon.ico).*)",
   ],
 };

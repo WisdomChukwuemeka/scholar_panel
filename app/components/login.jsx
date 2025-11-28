@@ -2,18 +2,36 @@
 
 import { SecureStorage } from "@/utils/secureStorage";
 import Link from "next/link";
-import { useState } from "react";
-import { useRouter } from "next/navigation";  // Removed useSearchParams since it's no longer needed
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { AuthAPI } from "../services/api";
 import { ToastContainer, toast } from "react-toastify";
 
-export default function Login({ redirect = "/" }) {  // Accept redirect as prop with default
+export default function Login() {
   const [credentials, setCredentials] = useState({
     email: "",
     password: "",
   });
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // ✅ Get redirect from URL query params
+  const redirectPath = searchParams.get('redirect') || '/dashboard';
+
+  // ✅ Check if user is already logged in
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        await AuthAPI.me();
+        // Already logged in, redirect immediately
+        router.push(redirectPath);
+      } catch (error) {
+        // Not logged in, stay on login page
+      }
+    };
+    checkAuth();
+  }, [redirectPath, router]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -40,13 +58,19 @@ export default function Login({ redirect = "/" }) {  // Accept redirect as prop 
       if (!role) throw new Error("Role not received");
 
       // Only store role (non-sensitive)
-      localStorage.setItem("role", role); // or use cookies if you prefer
+      localStorage.setItem("role", role);
 
       // Trigger header re-render
       window.dispatchEvent(new Event("authChange"));
 
       toast.success("Login successful!");
-      router.push(redirect);
+      // Add to handleSubmit after successful login
+    console.log('Login response:', response.data);
+    console.log('Redirect path:', redirectPath);
+    console.log('Cookies:', document.cookie);
+      
+      // ✅ Use the redirect path from URL
+      router.push(redirectPath);
     } catch (error) {
       const err = error.response?.data;
       const status = error.response?.status;
@@ -69,6 +93,14 @@ export default function Login({ redirect = "/" }) {  // Accept redirect as prop 
     <>
       <div className="mb-50 max-w-2xl mx-auto mt-20 p-6 bg-white text-black rounded-lg shadow-md">
         <h2 className="text-2xl font-bold mb-6 text-center">Login to Your Account</h2>
+        
+        {/* ✅ Show redirect message if present */}
+        {searchParams.get('expired') === '1' && (
+          <div className="mb-4 p-3 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded">
+            Your session has expired. Please login again.
+          </div>
+        )}
+        
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
             <label htmlFor="email" className="text block font-medium text-gray-700">
@@ -137,6 +169,7 @@ export default function Login({ redirect = "/" }) {  // Accept redirect as prop 
                       d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
                     ></path>
                   </svg>
+                  Logging in...
                 </>
               ) : (
                 "Login"
@@ -151,7 +184,6 @@ export default function Login({ redirect = "/" }) {  // Accept redirect as prop 
           </Link>
         </p>
       </div>
-      {/* Toast container to display messages */}
       <ToastContainer position="top-center" autoClose={3000} hideProgressBar />
     </>
   );

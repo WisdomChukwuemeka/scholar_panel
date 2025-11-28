@@ -55,40 +55,54 @@ export const Header = () => {
 }, []);
 
   // ✅ Fetch notifications without flicker
-  useEffect(() => {
-    if (!isLoggin || isMarkingRead) return;
+  // Header.js — Replace the entire notification useEffect with this
 
-    const fetchNotifications = async () => {
-      try {
-        const res = await NotificationAPI.listUnread();
-        const unread = (res.data.results || []).filter(n => !n.is_read);
-        // Editors → see only task notifications
-        let filtered = unread;
-        if (role !== "editor") {
-          filtered = unread.filter((n) => n.type !== "task");
-        }
+useEffect(() => {
+  if (!isLoggin || isMarkingRead) return;
 
-        // Set final notifications
-        setNotifications(filtered);
-        setUnreadCount(filtered.length);
+  const fetchNotifications = async () => {
+    try {
+      const res = await NotificationAPI.listUnread();
+      const unread = (res.data.results || res.data || []).filter(
+        (n) => !n.is_read
+      );
 
-        console.log(res.data)
-      } catch (error) {
-        if (error.response?.status === 401 || error.response?.status === 403) {
-          // Token expired or invalid → force logout
-          localStorage.removeItem("role");
-          window.dispatchEvent(new Event("authChange"));
-          setIsLoggin(false);
-          setRole("");
-          router.push("/login");
-        }
+      const isTaskNotification = (n) => {
+    return (
+      n.type === "task" ||
+      n.related_task ||
+      n.message.toLowerCase().includes("task")
+    );
+  };
+
+      let filtered = unread;
+
+      if (role !== "editor") {
+        filtered = unread.filter((n) => !isTaskNotification(n));
       }
-    };
 
-      fetchNotifications();
-    const interval = setInterval(fetchNotifications, 10000);
-    return () => clearInterval(interval);
-  }, [isLoggin, isMarkingRead, router]);
+      setNotifications(filtered);
+      setUnreadCount(filtered.length);
+    } catch (error) {
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        localStorage.removeItem("role");
+        window.dispatchEvent(new Event("authChange"));
+        setIsLoggin(false);
+        setRole("");
+        router.push("/login");
+      }
+    }
+  };
+
+  fetchNotifications();
+  const interval = setInterval(fetchNotifications, 10000);
+  return () => clearInterval(interval);
+}, [
+  isLoggin,
+  isMarkingRead,
+  role,
+  router, // <-- this MUST always be present
+]);
 
   
   useEffect(() => {

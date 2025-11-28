@@ -19,6 +19,8 @@ const PROTECTED_PATHS = [
   "/SubscriptionGate",
   "/payment/history",
   "/authorspage",
+  "/conference/past",
+  "/conference/upcoming",
 ];
 
 // CORRECT URL – no double /api
@@ -97,5 +99,7 @@ export const config = {
     "/SubscriptionGate/:path*",
     "/payment/history/:path*",
     "/authorspage/:path*",
+    "/conference/past/:path*",
+    "/conference/upcoming/:path*",
   ],
 };

@@ -185,6 +185,20 @@ export default function PublicationDetail() {
                 <span className="font-medium text-gray-900">{publication.author}</span>
               </div>
               <div className="flex items-center gap-2">
+  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21H5a2 2 0 01-2-2V7a2 2 0 012-2h4l2-2h2l2 2h4a2 2 0 012 2v12a2 2 0 01-2 2z" />
+  </svg>
+  <span className="font-medium text-gray-900">{publication.volume || "Vol. N/A"}</span>
+</div>
+
+<div className="flex items-center gap-2 flex-wrap">
+  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.121 17.804A12.042 12.042 0 0112 15c2.608 0 5.032.835 6.879 2.223M15 10a3 3 0 11-6 0 3 3 0 016 0z" />
+  </svg>
+  <span className="font-medium text-gray-900">{publication.co_authors?.join(", ") || "No co-authors"}</span>
+</div>
+
+              <div className="flex items-center gap-2">
                 <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>

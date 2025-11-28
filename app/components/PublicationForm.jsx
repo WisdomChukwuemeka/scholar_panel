@@ -19,6 +19,9 @@ export default function PublicationForm() {
     file: null,
     video_file: null,
     status: "draft",
+    cover_image: null,
+    volume: "",
+    co_authors_input: "",  // Changed to match backend field name
   });
   
   const [errors, setErrors] = useState({});
@@ -49,13 +52,13 @@ export default function PublicationForm() {
       newErrors.abstract = "Abstract must be at least 200 characters long.";
     }
     if (formData.abstract && formData.abstract.length > 2500) {
-      newErrors.abstract = "Abstract cannot exceed 1000 characters.";
+      newErrors.abstract = "Abstract cannot exceed 2500 characters.";
     }
     if (!formData.content || formData.content.length < 500) {
       newErrors.content = "Content must be at least 500 characters long.";
     }
     if (formData.content && formData.content.length > 15000) {
-      newErrors.content = "Content cannot exceed 10000 characters.";
+      newErrors.content = "Content cannot exceed 15000 characters.";
     }
     if (!formData.category_name) {
       newErrors.category_name = "Category is required.";
@@ -84,21 +87,43 @@ export default function PublicationForm() {
     setErrors((prev) => ({ ...prev, [name]: null }));
   };
 
-  const buildFormData = () => {
-    const data = new FormData();
-    Object.keys(formData).forEach((key) => {
-      if (formData[key] !== null && formData[key] !== undefined) {
-        if (key !== "file" && key !== "video_file") {
-          data.append(key, formData[key]);
-        }
+ const buildFormData = () => {
+  const data = new FormData();
+
+  // Append all text fields
+  Object.keys(formData).forEach((key) => {
+    if (formData[key] !== null && formData[key] !== "" && formData[key] !== undefined) {
+      if (key !== "file" && key !== "video_file" && key !== "cover_image" && key !== "co_authors_input") {
+        data.append(key, formData[key]);
       }
+    }
+  });
+
+  // Append files
+  if (formData.file) data.append("file", formData.file);
+  if (formData.video_file) data.append("video_file", formData.video_file);
+// Handle cover image upload OR deletion
+  if (formData.cover_image instanceof File) {
+    data.append("cover_image", formData.cover_image);   // upload
+  } else if (formData.cover_image === null) {
+    data.append("cover_image", "null");                 // delete
+  }
+
+
+  // Handle co-authors: split and send as multiple values
+  if (formData.co_authors_input && formData.co_authors_input.trim()) {
+    const coAuthors = formData.co_authors_input
+      .split(",")
+      .map(name => name.trim())
+      .filter(name => name);
+    
+    coAuthors.forEach(name => {
+      data.append("co_authors_input", name);
     });
+  }
 
-    if (formData.file) data.append("file", formData.file);
-    if (formData.video_file) data.append("video_file", formData.video_file);
-
-    return data;
-  };
+  return data;
+};
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -192,7 +217,12 @@ export default function PublicationForm() {
 
           <form onSubmit={handleSubmit} className="p-8 space-y-8">
             {/* Section 1: Basic Information */}
-            <div className="space-y-6">
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="space-y-6"
+            >
               <div className="border-l-4 border-blue-600 pl-4">
                 <h3 className="text-xl font-semibold text-gray-900">Basic Information</h3>
                 <p className="text-sm text-gray-500 mt-1">Provide the fundamental details of your publication</p>
@@ -267,10 +297,15 @@ export default function PublicationForm() {
                 />
                 <p className="text-xs text-gray-500">Separate keywords with commas (maximum 20)</p>
               </div>
-            </div>
+            </motion.div>
 
             {/* Section 2: Content */}
-            <div className="space-y-6 pt-6 border-t border-gray-200">
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="space-y-6 pt-6 border-t border-gray-200"
+            >
               <div className="border-l-4 border-indigo-600 pl-4">
                 <h3 className="text-xl font-semibold text-gray-900">Content Details</h3>
                 <p className="text-sm text-gray-500 mt-1">Provide the abstract and full content of your work</p>
@@ -335,10 +370,51 @@ export default function PublicationForm() {
                   </p>
                 )}
               </div>
-            </div>
+
+                            {/* Co-Authors Input */}
+ <div className="space-y-2 mt-6">
+  <label className="block text-sm font-semibold text-gray-700">
+    Co-Authors (Optional)
+  </label>
+  <input
+    type="text"
+    name="co_authors_input"
+    value={formData.co_authors_input}
+    onChange={handleChange}
+    className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500"
+    placeholder="e.g. John Doe, Jane Smith (comma-separated names)"
+  />
+  <p className="text-xs text-gray-500">
+    Enter co-author names separated by commas.
+  </p>
+</div>
+
+{/* Volume Input */}
+<div className="space-y-2">
+  <label className="block text-sm font-semibold text-gray-700">
+    Volume (Optional)
+  </label>
+  <input
+    type="text"
+    name="volume"
+    value={formData.volume}
+    onChange={handleChange}
+    className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm 
+    focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 text-gray-900"
+    placeholder="e.g., Volume 1, Vol. 2"
+  />
+  <p className="text-xs text-gray-500">Enter the book or journal volume.</p>
+</div>
+
+            </motion.div>
 
             {/* Section 3: File Uploads */}
-            <div className="space-y-6 pt-6 border-t border-gray-200">
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="space-y-6 pt-6 border-t border-gray-200"
+            >
               <div className="border-l-4 border-purple-600 pl-4">
                 <h3 className="text-xl font-semibold text-gray-900">Supporting Materials</h3>
                 <p className="text-sm text-gray-500 mt-1">Upload relevant documents and media files</p>
@@ -393,7 +469,28 @@ export default function PublicationForm() {
                   </p>
                 )}
               </div>
-            </div>
+
+
+
+        {/* INSERTED: COVER IMAGE UPLOAD */}
+        <div className="space-y-2 mt-6">
+          <label className="block text-sm font-semibold text-gray-700">
+            Cover Image
+          </label>
+          <input
+            type="file"
+            name="cover_image"
+            accept="image/*"
+            onChange={handleChange}
+            className="w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-600 
+            file:mr-4 file:py-2 file:px-6 file:rounded-full file:border-0 file:text-sm file:font-semibold 
+            file:bg-green-50 file:text-green-700 hover:file:bg-green-100 cursor-pointer"
+          />
+          <p className="text-xs text-gray-500">Upload a cover image (JPG, PNG, etc.)</p>
+        </div>
+
+
+            </motion.div>
 
             {/* Submit Button */}
             <div className="pt-6 border-t border-gray-200">
@@ -451,4 +548,4 @@ export default function PublicationForm() {
       )}
     </div>
   );
-}
+}    

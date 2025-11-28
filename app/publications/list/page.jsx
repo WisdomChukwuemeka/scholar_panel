@@ -6,6 +6,14 @@ import { PublicationAPI } from "@/app/services/api";
 import { toast } from "react-toastify";
 import { motion } from 'framer-motion'
 
+const placeholderTexts = [
+  "author name",
+  "keywords",
+  "DOI",
+  "title"
+];
+
+
 export default function PublicationListPage() {
   const [publications, setPublications] = useState([]);
   const [error, setError] = useState("");
@@ -17,6 +25,9 @@ export default function PublicationListPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [placeholder, setPlaceholder] = useState(placeholderTexts[0]);
+  const [placeholderIndex, setPlaceholderIndex] = useState(0);
+  const [charIndex, setCharIndex] = useState(0);
 
   const router = useRouter();
   const pageSize = 10;
@@ -61,6 +72,31 @@ export default function PublicationListPage() {
     };
     fetchUserAndData();
   }, []);
+
+  useEffect(() => {
+  const typingSpeed = 100; // ms per character
+  const pauseTime = 1500; // pause before next text
+  let timeout;
+
+  const type = () => {
+    const currentText = placeholderTexts[placeholderIndex];
+    if (charIndex < currentText.length) {
+      setPlaceholder(currentText.slice(0, charIndex + 1));
+      setCharIndex(charIndex + 1);
+      timeout = setTimeout(type, typingSpeed);
+    } else {
+      // pause before next text
+      timeout = setTimeout(() => {
+        setCharIndex(0);
+        setPlaceholderIndex((placeholderIndex + 1) % placeholderTexts.length);
+      }, pauseTime);
+    }
+  };
+
+  timeout = setTimeout(type, typingSpeed);
+
+  return () => clearTimeout(timeout);
+}, [charIndex, placeholderIndex]);
 
   const canEdit = (pub) => {
     if (!currentUser) return false;
@@ -162,7 +198,7 @@ export default function PublicationListPage() {
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search publications..."
+                placeholder={`Search by ${placeholder}`}
                 className="px-3 py-2 border border-gray-300 rounded-l-md focus:ring-2 focus:ring-indigo-500 focus:outline-none w-full sm:w-64"
               />
               <button

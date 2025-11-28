@@ -7,6 +7,7 @@ import { PublicationAPI, PaymentAPI } from "../services/api";
 import PaymentModal from "./PaymentModel";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { motion } from 'framer-motion'
 
 const CATEGORY_CHOICES = [
   { value: "journal", label: "Journal Article" },
@@ -37,6 +38,9 @@ export default function PublicationResubmitForm({
     keywords: initialData?.keywords || "",
     file: null,
     video_file: null,
+    cover_image: null,
+    volume: initialData?.volume || "",
+     co_authors_input: initialData?.co_authors || "",  // Changed to match backend
   });
 
   const [errors, setErrors] = useState({});
@@ -68,6 +72,8 @@ export default function PublicationResubmitForm({
             keywords: pub.keywords || "",
             file: null,
             video_file: null,
+            cover_image: null,
+            co_authors_input: pub.co_authors,
           });
         })
         .catch(() => toast.error("Failed to load publication."))
@@ -107,6 +113,15 @@ export default function PublicationResubmitForm({
       formData.keywords.split(",").filter((k) => k.trim()).length > 20
     )
       newErrors.keywords = "Maximum 20 keywords.";
+
+    if (formData.cover_image && !/\.(jpg|jpeg|png|webp)$/i.test(formData.cover_image.name))
+      newErrors.cover_image = "Only JPG, JPEG, PNG, WEBP allowed.";
+
+    if (formData.co_authors_input && formData.co_authors_input.length > 300)
+      newErrors.co_authors_input = "Co-author list cannot exceed 300 characters.";
+    if (formData.volume && formData.volume.length > 20)
+      newErrors.volume = "Volume text is too long.";
+
     return newErrors;
   };
 
@@ -134,7 +149,8 @@ const handleSaveDraft = async () => {
   setIsSavingDraft(true);
   try {
     const payload = new FormData();
-    const allowed = ['title', 'abstract', 'content', 'category_name', 'keywords', 'file', 'video_file'];
+    const allowed = ['title', 'abstract', 'content', 'category_name', 'keywords', 'file', 'video_file', "cover_image",
+  "co_authors_input", "volume"];
     allowed.forEach(key => {
       const value = formData[key];
       if (value !== null && value !== undefined) {
@@ -157,7 +173,8 @@ const handleSaveDraft = async () => {
 -------------------------------------------------------------- */
 const saveDraftBeforeSubmit = async () => {
   const draftPayload = new FormData();
-  const allowed = ['title', 'abstract', 'content', 'category_name', 'keywords', 'file', 'video_file'];
+  const allowed = ['title', 'abstract', 'content', 'category_name', 'keywords', 'file', 'video_file', "cover_image",
+  "co_authors_input", "volume"];
   allowed.forEach(key => {
     const value = formData[key];
     if (value !== null && value !== undefined) {
@@ -316,7 +333,12 @@ const handleSubmit = async (e) => {
             <form onSubmit={handleSubmit}>
               <div className="space-y-8">
                 {/* Section 1: Core Information */}
-                <div className="space-y-6">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                  className="space-y-6"
+                >
                   <div className="border-l-4 border-red-600 pl-4">
                     <h3 className="text-xl font-semibold text-gray-900">Core Information</h3>
                     <p className="text-sm text-gray-500 mt-1">Update the essential details of your publication</p>
@@ -396,10 +418,15 @@ const handleSubmit = async (e) => {
                       </p>
                     )}
                   </div>
-                </div>
+                </motion.div>
 
                 {/* Section 2: Content Details */}
-                <div className="space-y-6 pt-6 border-t border-gray-200">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.1 }}
+                  className="space-y-6 pt-6 border-t border-gray-200"
+                >
                   <div className="border-l-4 border-orange-600 pl-4">
                     <h3 className="text-xl font-semibold text-gray-900">Content Revisions</h3>
                     <p className="text-sm text-gray-500 mt-1">Revise your abstract and content based on feedback</p>
@@ -464,10 +491,61 @@ const handleSubmit = async (e) => {
                       </p>
                     )}
                   </div>
-                </div>
+
+                  {/* Co-author */}
+<div className="space-y-2">
+  <label className="block text-sm font-semibold text-gray-700">
+    Co-Authors (comma-separated)
+  </label>
+
+  <input
+    type="text"
+    name="co_authors_input"
+    value={formData.co_authors_input}
+    onChange={handleChange}
+    placeholder="e.g., John Doe, Jane Smith"
+    className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm 
+    focus:ring-2 focus:ring-red-500 focus:border-transparent transition duration-200 text-gray-900"
+  />
+
+  {errors.co_authors_input && (
+    <p className="text-red-600 text-sm flex items-center gap-1">
+      <span>⚠</span> {errors.co_authors_input}
+    </p>
+  )}
+</div>
+
+
+{/* Volume */}
+<div className="space-y-2">
+  <label className="block text-sm font-semibold text-gray-700">
+    Volume / Version
+  </label>
+  <input
+    type="text"
+    name="volume"
+    value={formData.volume}
+    onChange={handleChange}
+    placeholder="e.g., Volume 1, Vol. 2, Edition 3"
+    className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm 
+    focus:ring-2 focus:ring-red-500 focus:border-transparent transition duration-200 text-gray-900"
+  />
+  {errors.volume && (
+    <p className="text-red-600 text-sm flex items-center gap-1">
+      <span>⚠</span> {errors.volume}
+    </p>
+  )}
+</div>
+
+                </motion.div>
 
                 {/* Section 3: File Updates */}
-                <div className="space-y-6 pt-6 border-t border-gray-200">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                  className="space-y-6 pt-6 border-t border-gray-200"
+                >
                   <div className="border-l-4 border-purple-600 pl-4">
                     <h3 className="text-xl font-semibold text-gray-900">Updated Files</h3>
                     <p className="text-sm text-gray-500 mt-1">Upload revised documents and media files</p>
@@ -538,10 +616,50 @@ const handleSubmit = async (e) => {
                       </p>
                     )}
                   </div>
-                </div>
+
+
+                  {/* Cover Image Upload */}
+<div className="space-y-2">
+  <label className="block text-sm font-semibold text-gray-700">
+    Cover Image (JPG/PNG/WEBP)
+  </label>
+
+  <input
+    type="file"
+    name="cover_image"
+    accept=".jpg,.jpeg,.png,.webp"
+    onChange={handleChange}
+    className="w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-600 
+    file:mr-4 file:py-2 file:px-6 file:rounded-full file:border-0 file:text-sm file:font-semibold 
+    file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 file:cursor-pointer cursor-pointer
+    hover:border-blue-400 transition duration-200"
+  />
+
+  {formData.cover_image && (
+    <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 px-3 py-2 rounded-lg">
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+      </svg>
+      Selected: {formData.cover_image.name}
+    </div>
+  )}
+
+  {errors.cover_image && (
+    <p className="text-red-600 text-sm flex items-center gap-1">
+      <span>⚠</span> {errors.cover_image}
+    </p>
+  )}
+</div>
+
+                </motion.div>
 
                 {/* Action Buttons */}
-                <div className="pt-6 border-t border-gray-200">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.3 }}
+                  className="pt-6 border-t border-gray-200"
+                >
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <button
                       type="button"
@@ -601,7 +719,7 @@ const handleSubmit = async (e) => {
                   <p className="text-xs text-center text-gray-500 mt-4">
                     Your publication will be reviewed again once resubmitted
                   </p>
-                </div>
+                </motion.div>
               </div>
             </form>
           </div>

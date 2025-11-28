@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { NotificationAPI } from "../services/api";
 import { ProfileAPI } from "../services/api";
-
+import { AuthAPI } from "../services/api";
 // const notificationRoutes = {
 //   publication: (n) => `/publications/${n.related_id}`,
 //   task: (n) => `/tasks/${n.related_id}`,
@@ -151,10 +151,7 @@ useEffect(() => {
 
   // ✅ Logout
   const handleLogout = async () => {
-  await fetch('http://localhost:8000/api/logout/', {
-    method: 'POST',
-    credentials: 'include',
-  });
+  await AuthAPI.logout();
   localStorage.removeItem('role');
   window.dispatchEvent(new Event('authChange'));
   router.push('/login');

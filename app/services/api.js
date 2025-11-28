@@ -3,9 +3,11 @@ import axios from 'axios';
 
 // Your backend URL
 // const BASE_URL = 'http://localhost:8000/api'; 
-const BASE_URL =  process.env.NEXT_PUBLIC_BASE_URL
-    ? `${process.env.NEXT_PUBLIC_BASE_URL}`
-    : "http://localhost:8000/api";
+// const BASE_URL =  process.env.NEXT_PUBLIC_BASE_URL
+//     ? `${process.env.NEXT_PUBLIC_BASE_URL}`
+//     : "http://localhost:8000/api";
+
+const BASE_URL = "/api";
 
 const api = axios.create({
   baseURL: BASE_URL,

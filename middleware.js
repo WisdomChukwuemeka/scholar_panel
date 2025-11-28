@@ -24,9 +24,7 @@ const PROTECTED_PATHS = [
 ];
 
 // CORRECT URL – no double /api
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_BASE_URL ||
-  "http://localhost:8000"; // ← ONLY THIS, no /api here!
+const API_BASE_URL = ""
 
 export async function middleware(request) {
   const pathname = request.nextUrl.pathname;
@@ -44,7 +42,7 @@ export async function middleware(request) {
   if (!isProtected) return NextResponse.next();
 
   try {
-    const response = await fetch(`${API_BASE_URL}/me/`, {
+    const response = await fetch(`${API_BASE_URL}/api/me/`, {
       method: "GET",
       credentials: "include",
       headers: {

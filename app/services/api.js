@@ -7,8 +7,10 @@ import axios from 'axios';
 //     ? `${process.env.NEXT_PUBLIC_BASE_URL}`
 //     : "http://localhost:8000/api";
 
-baseURL: process.env.NEXT_PUBLIC_BACKEND_URL || "https://panel-1-tlqv.onrender.com/api",
-
+const BASE_URL =
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  "https://panel-1-tlqv.onrender.com/api";
+  
 const api = axios.create({
   baseURL: BASE_URL,
   withCredentials: true, // This is the ONLY thing needed for cookies
@@ -85,7 +87,7 @@ export const AuthAPI = {
   register: (formData) => api.post('/register/', formData),
   login: (credentials) => api.post('/login/', credentials),
   logout: () => api.post('/logout/'),
-  // me: () => api.get('/me/'),
+  me: () => api.get('/me/'),
   // requestPasswordReset: (data) => api.post('/password-reset/request/', data),
   // confirmPasswordReset: (data) => api.post('/password-reset/confirm/', data),
 };

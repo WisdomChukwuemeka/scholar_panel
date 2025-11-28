@@ -23,10 +23,13 @@ export default function Login() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        console.log('[Login] Checking if already authenticated...');
         await AuthAPI.me();
+        console.log('[Login] Already authenticated, redirecting to:', redirectPath);
         // Already logged in, redirect immediately
         router.push(redirectPath);
       } catch (error) {
+        console.log('[Login] Not authenticated, showing login form');
         // Not logged in, stay on login page
       }
     };
@@ -43,6 +46,10 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    console.log('[Login] Form submitted');
+    console.log('[Login] Credentials:', { email: credentials.email, password: '***' });
+    
     if (!credentials.email.trim() || !credentials.password.trim()) {
       toast.error("Email and password are required.");
       return;
@@ -50,7 +57,9 @@ export default function Login() {
 
     setLoading(true);
     try {
+      console.log('[Login] Calling AuthAPI.login...');
       const response = await AuthAPI.login(credentials);
+      console.log('[Login] Login response:', response.data);
 
       // Backend sets HttpOnly cookies → we just read role from response
       const role = response.data.user?.role;
@@ -64,14 +73,17 @@ export default function Login() {
       window.dispatchEvent(new Event("authChange"));
 
       toast.success("Login successful!");
-      // Add to handleSubmit after successful login
-    console.log('Login response:', response.data);
-    console.log('Redirect path:', redirectPath);
-    console.log('Current Cookies:', document.cookie);
+      
+      console.log('[Login] Redirect path:', redirectPath);
+      console.log('[Login] Current Cookies:', document.cookie);
       
       // ✅ Use the redirect path from URL
       router.push(redirectPath);
     } catch (error) {
+      console.error('[Login] Error:', error);
+      console.error('[Login] Error response:', error.response?.data);
+      console.error('[Login] Error status:', error.response?.status);
+      
       const err = error.response?.data;
       const status = error.response?.status;
 

@@ -1,32 +1,25 @@
 // services/api.js
 import axios from 'axios';
 
-// Your backend URL
-// const BASE_URL = 'http://localhost:8000/api'; 
-// const BASE_URL =  process.env.NEXT_PUBLIC_BASE_URL
-//     ? `${process.env.NEXT_PUBLIC_BASE_URL}`
-//     : "http://localhost:8000/api";
-
-// const BASE_URL =
-//   process.env.NEXT_PUBLIC_BACKEND_URL ||
-//   "https://panel-1-tlqv.onrender.com/api";
-
 const BASE_URL = '/api';
 
 const api = axios.create({
   baseURL: BASE_URL,
-  withCredentials: true, // This is the ONLY thing needed for cookies
+  withCredentials: true,
 });
 
-// Optional: Log for debugging (remove in production)
+// Enhanced request interceptor with logging
 api.interceptors.request.use((config) => {
-  // console.log('Request →', config.method.toUpperCase(), config.url);
+  console.log('[API Request]', {
+    method: config.method?.toUpperCase(),
+    url: config.url,
+    baseURL: config.baseURL,
+    fullURL: `${config.baseURL}${config.url}`,
+  });
   return config;
 });
 
-// ————————————————————————
 // Token Refresh Logic (Cookie-Based)
-// ————————————————————————
 let isRefreshing = false;
 let failedQueue = [];
 
@@ -38,9 +31,37 @@ const processQueue = (error, token = null) => {
 };
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log('[API Response]', {
+      status: response.status,
+      url: response.config.url,
+      method: response.config.method?.toUpperCase(),
+    });
+    return response;
+  },
   async (error) => {
+    console.error('[API Error]', {
+      status: error.response?.status,
+      url: error.config?.url,
+      method: error.config?.method?.toUpperCase(),
+      message: error.message,
+      data: error.response?.data,
+    });
+
     const originalRequest = error.config;
+
+    // ✅ Handle 301 redirects (likely trailing slash issue)
+    if (error.response?.status === 301) {
+      console.warn('[API] 301 Redirect detected:', {
+        originalURL: error.config?.url,
+        location: error.response?.headers?.location,
+      });
+      
+      // If it's trying to redirect, reject with helpful error
+      return Promise.reject(
+        new Error(`301 Redirect: Backend expects different URL format. Check trailing slashes.`)
+      );
+    }
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
@@ -55,10 +76,13 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
+        console.log('[API] Attempting token refresh...');
         await api.post('/token/refresh/');
+        console.log('[API] Token refresh successful');
         processQueue(null);
         return api(originalRequest);
       } catch (refreshError) {
+        console.error('[API] Token refresh failed:', refreshError);
         processQueue(refreshError);
 
         if (typeof window !== "undefined") {
@@ -70,28 +94,26 @@ api.interceptors.response.use(
 
         return Promise.reject(refreshError);
       } finally {
-        isRefreshing = false; // Don't forget finally
+        isRefreshing = false;
       }
     }
 
-    // This is critical: return Promise.reject for other errors
     return Promise.reject(error);
   }
 );
 
-// ————————————————————————
-// All API Endpoints (No token handling needed!)
-// ————————————————————————
-
-
-// ---  API Endpoints ---
+// API Endpoints
 export const AuthAPI = {
   register: (formData) => api.post('/register/', formData),
-  login: (credentials) => api.post('/login/', credentials),
+  login: (credentials) => {
+    console.log('[AuthAPI.login] Calling POST /login/');
+    return api.post('/login/', credentials);
+  },
   logout: () => api.post('/logout/'),
-  me: () => api.get('/me/'),
-  // requestPasswordReset: (data) => api.post('/password-reset/request/', data),
-  // confirmPasswordReset: (data) => api.post('/password-reset/confirm/', data),
+  me: () => {
+    console.log('[AuthAPI.me] Calling GET /me/');
+    return api.get('/me/');
+  },
 };
 
 export const PasscodeAPI = {
@@ -103,35 +125,16 @@ export const PublicationAPI = {
   listitem: (options = {}) => api.get("/publications/", options),
   create: (data) => api.post('/publications/', data),
   detail: (id) => api.get(`/publications/${id}/`),
-patch: (id, data) => {
+  patch: (id, data) => {
     const isForm = data instanceof FormData;
     return api.patch(`/publications/${id}/update/`, data, {
-      // Let axios set multipart/form-data automatically
       headers: isForm ? {} : { "Content-Type": "application/json" },
     });
-  },    // console.log(`PATCH URL: ${api.defaults.baseURL}/publications/${publicationId}/update/`);
-    // return await api.patch(`/publications/${publicationId}/update/`, data, {
-    //   headers: { 'Content-Type': 'multipart/form-data' }  // Explicit for FormData
-    // });},
-  review: (id, data) => {
-      return api.post(`/publications/${id}/review/`, data);
-    },
-    delete: (id) => api.delete(`/publications/${id}/`),
-    getPublication: (publicationId) => api.get(`/publications/${publicationId}/`),
-  get: (id) => api.get(`/publications/${id}/`),
-  // ✅ Pagination-safe custom fetch
-  customGet: async (url) => {
-    const token = getToken();
-    try {
-      const response = await axios.get(url, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      return response;
-    } catch (error) {
-      console.error("Pagination fetch error:", error);
-      throw error;
-    }
   },
+  review: (id, data) => api.post(`/publications/${id}/review/`, data),
+  delete: (id) => api.delete(`/publications/${id}/`),
+  getPublication: (publicationId) => api.get(`/publications/${publicationId}/`),
+  get: (id) => api.get(`/publications/${id}/`),
   annotate: (id, data) => api.patch(`/publications/${id}/annotate/`, data),
 };
 
@@ -165,14 +168,9 @@ export const MessageAPI = {
   delete: (id) => api.delete(`/messages/${id}/`),
 };
 
-
-// --- 💸 Payment Endpoints ---
 export const PaymentAPI = {
   initializePayment: async ({ publication_id, payment_type }) => {
-    const payload = {
-      publication_id,
-      payment_type,
-    };
+    const payload = { publication_id, payment_type };
     console.log("Initializing payment payload:", payload);
     try {
       const response = await api.post('/payments/initialize/', payload);
@@ -184,12 +182,8 @@ export const PaymentAPI = {
     }
   },
   initializePaymentWithOverride: async ({ publication_id, payment_type, amount }) => {
-    const convertedAmount = amount / 100; // Convert kobo to NGN
-    const payload = {
-      publication_id,
-      payment_type,
-      amount: convertedAmount,
-    };
+    const convertedAmount = amount / 100;
+    const payload = { publication_id, payment_type, amount: convertedAmount };
     console.log("Initializing payment with override payload:", payload);
     try {
       const response = await api.post('/payments/initialize-override/', payload);
@@ -200,148 +194,64 @@ export const PaymentAPI = {
       throw error;
     }
   },
-  verifyPayment: async (reference) => {
-    return await api.post('/payments/verify/', { reference });
-  },
-  getSubscriptionDetails: async () => {
-    return await api.get('/subscriptions/'); // Added to match SubscriptionView
-  },
-  getSubscription: async () => {
-    return await api.get('/free-review-status/'); // Matches FreeReviewStatusView
-  },
-  getPaymentHistory: async () => {
-    return await api.get('/payments/history/'); // Added to match PaymentHistoryView
-  },
-  getPaymentDetails: async (reference) => {
-    return await api.get(`/payments/details/${reference}/`); // Added to match PaymentDetailsView
-  },
-  requestRefund: async (data) => {
-    return await api.post('/payments/refund/', data); // Added to match RequestRefundView
-  },
-  getFreeReviewStatus: async () => {
-  return await api.get('/free-review-status/');
-},
+  verifyPayment: async (reference) => api.post('/payments/verify/', { reference }),
+  getSubscriptionDetails: async () => api.get('/subscriptions/'),
+  getSubscription: async () => api.get('/free-review-status/'),
+  getPaymentHistory: async () => api.get('/payments/history/'),
+  getPaymentDetails: async (reference) => api.get(`/payments/details/${reference}/`),
+  requestRefund: async (data) => api.post('/payments/refund/', data),
+  getFreeReviewStatus: async () => api.get('/free-review-status/'),
 };
 
-// export const CommentAPI = {
-//   list: (publicationId, params = "") =>
-//     api.get(`/publications/${publicationId}/comments/${params}`),
-//   create: (publicationId, data) =>
-//     api.post(`/publications/${publicationId}/comments/`, data),
-//   detail: (publicationId, commentId) =>
-//     api.get(`/publications/${publicationId}/comments/${commentId}/`),
-//   update: (publicationId, commentId, data) =>
-//     api.patch(`/publications/${publicationId}/comments/${commentId}/`, data),
-//   delete: (publicationId, commentId) =>
-//     api.delete(`/publications/${publicationId}/comments/${commentId}/`),
-// };
-
 export const CommentAPI = {
-  list: (publicationId) =>
-    api.get(`/publications/${publicationId}/comments/`),
-
-create: (publicationId, data) => {
-    // This is the fix – let axios handle FormData automatically
-    return api.post(`/publications/${publicationId}/comments/`, data, {
-    });
-  },  // … other methods unchanged
-    detail: (publicationId, commentId) =>
-    api.get(`/publications/${publicationId}/comments/${commentId}/`),
-    update: (publicationId, commentId, data) =>
-    api.patch(`/publications/${publicationId}/comments/${commentId}/`, data),
-  delete: (publicationId, commentId) =>
-    api.delete(`/publications/${publicationId}/comments/${commentId}/`),
-
+  list: (publicationId) => api.get(`/publications/${publicationId}/comments/`),
+  create: (publicationId, data) => api.post(`/publications/${publicationId}/comments/`, data),
+  detail: (publicationId, commentId) => api.get(`/publications/${publicationId}/comments/${commentId}/`),
+  update: (publicationId, commentId, data) => api.patch(`/publications/${publicationId}/comments/${commentId}/`, data),
+  delete: (publicationId, commentId) => api.delete(`/publications/${publicationId}/comments/${commentId}/`),
 };
 
 export const CommentReactionAPI = {
-  react: (commentId, data) =>
-    api.post(`/comment/react/`, { comment_id: commentId, emoji: data.emoji }),
+  react: (commentId, data) => api.post(`/comment/react/`, { comment_id: commentId, emoji: data.emoji }),
   list: (commentId) => api.get(`/comments/${commentId}/reactions/`),
 };
-
 
 export const ProfileAPI = {
   list: () => api.get('/profiles/'),
   name: () => api.get('/me/'),
-
-  create: (data) =>
-    api.post('/profiles/', data, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    }),
-  update: (id, data) =>
-    api.patch(`/profiles/${id}/`, data, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    }),
+  create: (data) => api.post('/profiles/', data, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }),
+  update: (id, data) => api.patch(`/profiles/${id}/`, data, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }),
 };
 
 export const PointRewardAPI = {
-  //  Get all point rewards for a publication
-  list: (publicationId) =>
-    api.get(`/publications/${publicationId}/pointrewards/`),
-
-  //  Get details of a specific point reward
-  detail: (publicationId, pointId) =>
-    api.get(`/publications/${publicationId}/pointrewards/${pointId}/`),
-
-  //  Optional (if you ever allow manual creation)
-  create: (publicationId, data) =>
-    api.post(`/publications/${publicationId}/pointrewards/`, data),
-
-  //  Optional update or delete if you ever expose admin functions
-  update: (publicationId, pointId, data) =>
-    api.patch(`/publications/${publicationId}/pointrewards/${pointId}/`, data),
-  delete: (publicationId, pointId) =>
-    api.delete(`/publications/${publicationId}/pointrewards/${pointId}/`),
+  list: (publicationId) => api.get(`/publications/${publicationId}/pointrewards/`),
+  detail: (publicationId, pointId) => api.get(`/publications/${publicationId}/pointrewards/${pointId}/`),
+  create: (publicationId, data) => api.post(`/publications/${publicationId}/pointrewards/`, data),
+  update: (publicationId, pointId, data) => api.patch(`/publications/${publicationId}/pointrewards/${pointId}/`, data),
+  delete: (publicationId, pointId) => api.delete(`/publications/${publicationId}/pointrewards/${pointId}/`),
 };
 
-// export const RewardCodeAPI = {
-//   // Allow passing publicationId so we can send it as query param for backend filtering
-//   list: (publicationId = "") =>
-//     api.get(publicationId ? `/rewardcodes/?publication_id=${publicationId}` : "/rewardcodes/"),
-//   // create(publicationId) -> POST /rewardcodes/ with optional body
-//   create: (publicationId = "") =>
-//     api.post("/rewardcodes/", publicationId ? { publication_id: publicationId } : {}),
-//   // redeem if you want to use this endpoint
-//   redeem: (data) => api.post("/rewardcodes/redeem/", data),
-// };
-
-// ---- RewardCodeAPI ---------------------------------------------
-// In @/app/services/api.js
 export const RewardCodeAPI = {
-  list: (publicationId) =>
-    api.get("/rewardcodes/", { params: { publication_id: publicationId } }),
-
-  create: (publicationId) =>
-    api.post("/rewardcodes/", {}, { params: { publication_id: publicationId } }),
-
-  redeem: (codeId) =>
-    api.post("/rewardcodes/redeem/", { reward_code_id: codeId }),
+  list: (publicationId) => api.get("/rewardcodes/", { params: { publication_id: publicationId } }),
+  create: (publicationId) => api.post("/rewardcodes/", {}, { params: { publication_id: publicationId } }),
+  redeem: (codeId) => api.post("/rewardcodes/redeem/", { reward_code_id: codeId }),
 };
 
-// --- Reward redemption helper (for the frontend to call)
 export const RewardRedemptionAPI = {
-  // data: { code: "<uuid-string>", publication_id: <id> }
   redeem: (data) => api.post("/rewardcodes/redeem/", data),
 };
 
-
 export const TaskAPI = {
-  // Admin: Get ALL tasks (including completed/replied ones)
-  listAll: ({ page = 1 } = {}) => api.get(`/tasks/?page=${page}`),                     // Admin sees all
+  listAll: ({ page = 1 } = {}) => api.get(`/tasks/?page=${page}`),
   listMyTasks: ({ page = 1 } = {}) => api.get(`/tasks/?page=${page}`),
-                  // Editor sees only assigned
-
-  // Get single task detail
   detail: (id) => api.get(`/tasks/${id}/`),
-
-  // Editor replies to task (PATCH)
   reply: (id, data) => api.patch(`/tasks/${id}/reply/`, data),
   markInProgress: (id) => api.patch(`/tasks/${id}/in-progress/`),
-
-  // Search editors (for dropdown)
-  searchEditors: (query = '') => 
-    api.get('/editors/', { params: { q: query } }),
+  searchEditors: (query = '') => api.get('/editors/', { params: { q: query } }),
 };
 
 export const ConferenceAPI = {
@@ -349,6 +259,4 @@ export const ConferenceAPI = {
   detail: (id) => api.get(`/conferences/${id}/`),
 };
 
-
-// Export the axios instance if needed elsewhere
 export default api;

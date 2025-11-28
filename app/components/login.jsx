@@ -67,7 +67,7 @@ export default function Login() {
       // Add to handleSubmit after successful login
     console.log('Login response:', response.data);
     console.log('Redirect path:', redirectPath);
-    console.log('Cookies:', document.cookie);
+    console.log('Current Cookies:', document.cookie);
       
       // ✅ Use the redirect path from URL
       router.push(redirectPath);

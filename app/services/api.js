@@ -82,24 +82,16 @@ api.interceptors.response.use(
         processQueue(null);
         return api(originalRequest);
       } catch (refreshError) {
-        console.error('[API] Token refresh failed:', refreshError);
-        processQueue(refreshError);
+  console.error('[API] Token refresh failed:', refreshError);
+  processQueue(refreshError);
 
-        if (typeof window !== "undefined") {
-          document.cookie = "access_token=; Max-Age=0";
-          document.cookie = "refresh_token=; Max-Age=0";
-
-          window.location.href = "/login?expired=1";
-        }
-
-        return Promise.reject(refreshError);
-      } finally {
-        isRefreshing = false;
-      }
-    }
-
-    return Promise.reject(error);
+  if (typeof window !== "undefined") {
+    document.cookie = "access_token=; Max-Age=0";
+    document.cookie = "refresh_token=; Max-Age=0";
   }
+
+  return Promise.reject(refreshError);  // Let the component handle navigation
+}
 );
 
 // API Endpoints

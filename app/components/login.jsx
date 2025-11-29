@@ -14,10 +14,10 @@ export default function Login() {
   });
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  // const searchParams = useSearchParams();
+  const searchParams = useSearchParams();
 
   // ✅ Get redirect from URL query params
-  // const redirectPath = searchParams.get('redirect') || '/dashboard';
+  const redirectPath = searchParams.get('redirect') || '/dashboard';
 
   // ✅ Check if user is already logged in
   useEffect(() => {
@@ -25,16 +25,16 @@ export default function Login() {
       try {
         console.log('[Login] Checking if already authenticated...');
         await AuthAPI.me();
-        console.log('[Login] Already authenticated, redirecting to /');
+        console.log('[Login] Already authenticated, redirecting to:', redirectPath);
         // Already logged in, redirect immediately
-        router.push('/');
+        router.push(redirectPath);
       } catch (error) {
         console.log('[Login] Not authenticated, showing login form');
         // Not logged in, stay on login page
       }
     };
     checkAuth();
-  }, [router]);
+  }, [redirectPath, router]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -78,7 +78,7 @@ export default function Login() {
       console.log('[Login] Current Cookies:', document.cookie);
       
       // ✅ Use the redirect path from URL
-      router.push("/");
+      router.push(redirectPath);
     } catch (error) {
       console.error('[Login] Error:', error);
       console.error('[Login] Error response:', error.response?.data);

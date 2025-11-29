@@ -1,6 +1,6 @@
 export const config = {
   api: {
-    bodyParser: false,
+    bodyParser: false, // for file uploads or streaming
   },
 };
 
@@ -30,15 +30,12 @@ async function proxyRequest(req, params) {
   try {
     const endpointArray = params.endpoint || [];
     const query = req.url.includes("?") ? "?" + req.url.split("?")[1] : "";
-
     const targetURL = `${BACKEND_URL}/${endpointArray.join("/")}${query}`;
 
     const headers = { ...Object.fromEntries(req.headers) };
     delete headers.host;
 
-    // Stream body if not GET
-    const body =
-      req.method === "GET" ? undefined : Buffer.from(await req.arrayBuffer());
+    const body = req.method === "GET" ? undefined : Buffer.from(await req.arrayBuffer());
 
     const response = await fetch(targetURL, {
       method: req.method,
@@ -57,9 +54,8 @@ async function proxyRequest(req, params) {
     });
   } catch (err) {
     console.error("Proxy Error:", err);
-    return new Response(
-      JSON.stringify({ error: "Proxy request failed" }),
-      { status: 500 }
-    );
+    return new Response(JSON.stringify({ error: "Proxy request failed" }), {
+      status: 500,
+    });
   }
 }

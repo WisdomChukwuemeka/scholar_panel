@@ -50,19 +50,14 @@ api.interceptors.response.use(
 
     const originalRequest = error.config;
 
-    // ✅ Handle 301 redirects (likely trailing slash issue)
+    // Handle 301
     if (error.response?.status === 301) {
-      console.warn('[API] 301 Redirect detected:', {
-        originalURL: error.config?.url,
-        location: error.response?.headers?.location,
-      });
-      
-      // If it's trying to redirect, reject with helpful error
       return Promise.reject(
         new Error(`301 Redirect: Backend expects different URL format. Check trailing slashes.`)
       );
     }
 
+    // Handle 401 refresh
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
@@ -79,19 +74,26 @@ api.interceptors.response.use(
         console.log('[API] Attempting token refresh...');
         await api.post('/token/refresh/');
         console.log('[API] Token refresh successful');
+
         processQueue(null);
         return api(originalRequest);
       } catch (refreshError) {
-  console.error('[API] Token refresh failed:', refreshError);
-  processQueue(refreshError);
+        console.error('[API] Token refresh failed:', refreshError);
+        processQueue(refreshError);
 
-  if (typeof window !== "undefined") {
-    document.cookie = "access_token=; Max-Age=0";
-    document.cookie = "refresh_token=; Max-Age=0";
+        if (typeof window !== "undefined") {
+          document.cookie = "access_token=; Max-Age=0";
+          document.cookie = "refresh_token=; Max-Age=0";
+        }
+
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
+      }
+    }
+
+    return Promise.reject(error);
   }
-
-  return Promise.reject(refreshError);  // Let the component handle navigation
-}
 );
 
 // API Endpoints

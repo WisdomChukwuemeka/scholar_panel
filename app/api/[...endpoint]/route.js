@@ -1,8 +1,4 @@
-export const config = {
-  api: {
-    bodyParser: false, // for file uploads or streaming
-  },
-};
+import { NextResponse } from "next/server";
 
 const BACKEND_URL = "https://panel-1-tlqv.onrender.com/api";
 
@@ -41,6 +37,7 @@ async function proxyRequest(req, params) {
       method: req.method,
       headers,
       body,
+      credentials: "include",
     });
 
     const resHeaders = {};
@@ -54,8 +51,6 @@ async function proxyRequest(req, params) {
     });
   } catch (err) {
     console.error("Proxy Error:", err);
-    return new Response(JSON.stringify({ error: "Proxy request failed" }), {
-      status: 500,
-    });
+    return new Response(JSON.stringify({ error: "Proxy request failed" }), { status: 500 });
   }
 }

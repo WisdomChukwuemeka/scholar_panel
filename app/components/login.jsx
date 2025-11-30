@@ -66,8 +66,14 @@ export default function Login({ redirect }) {
       // Backend sets HttpOnly cookies → we just read role from response
       // localStorage.setItem("access_token", response.data.access);
       // localStorage.setItem("refresh_token", response.data.refresh);
-      localStorage.setItem("role", response.data.user.role);
-      const role = response.data.user?.role;
+      const user = response.data?.user;
+
+if (!user || !user.role) {
+  console.error("User or role missing in response:", response.data);
+  throw new Error("Invalid backend response: user.role missing");
+}
+
+localStorage.setItem("role", user.role);
 
       if (!role) throw new Error("Role not received");
 

@@ -89,6 +89,7 @@ export const AuthAPI = {
         ? localStorage.getItem("refresh_token")
         : null
     }),
+    me: () => api.get('/me/'),
 };
 
 export const PasscodeAPI = {

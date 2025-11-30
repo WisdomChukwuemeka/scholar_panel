@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { PublicationAPI } from "@/app/services/api";
 import { toast } from "react-toastify";
 import { motion } from 'framer-motion'
-import ProtectedRoute from "@/app/components/protectedRoute";
 
 const placeholderTexts = [
   "author name",
@@ -170,7 +169,7 @@ export default function PublicationListPage() {
   const colors = ["bg-blue-500", "bg-red-500", "bg-green-500", "bg-yellow-500"];
 
   return (
-    <ProtectedRoute>
+  
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 bg-gray-50 min-h-screen">
       {loading ? (
         <div className="flex items-center justify-center h-screen space-x-4">
@@ -275,6 +274,6 @@ export default function PublicationListPage() {
         </div>
       )}
     </div>
-    </ProtectedRoute>
+
   );
 }

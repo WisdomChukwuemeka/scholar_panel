@@ -77,10 +77,12 @@ export default function Login({ redirect }) {
       window.dispatchEvent(new Event("authChange"));
 
       toast.success("Login successful!");
-      
+
+// Critical fix: Use full redirect instead of router.push
+        setTimeout(() => {
+      window.location.href = redirectPath || "/dashboard";
+    }, 100);
     
-      // ✅ Use the redirect path from URL
-      router.push(redirectPath);
     } catch (error) {
       console.error('[Login] Error:', error);
       console.error('[Login] Error response:', error.response?.data);

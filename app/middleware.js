@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 export function middleware(req) {
-  const token = req.cookies.get("access_token"); // Django HttpOnly cookie
+  const token = req.Cookies.get("access_token"); // Django HttpOnly cookie
 
   // List all protected paths
   const protectedPaths = [

@@ -4,7 +4,7 @@ import axios from 'axios';
 // Your backend URL
 // Backend base URL
 // const BASE_URL = 'http://localhost:8000/api'; 
-const BASE_URL = process.env.BACKEND || process.env.NEXT_PUBLIC_BASE_URL_LOCAL
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BASE_URL_LOCAL
 
 // Axios instance without cookies
 const api = axios.create({

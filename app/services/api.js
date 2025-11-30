@@ -4,7 +4,8 @@ import axios from 'axios';
 // Your backend URL
 // Backend base URL
 // const BASE_URL = 'http://localhost:8000/api'; 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL
+const BASE_URL = 'https://panel-1-tlqv.onrender.com/api';
+// const BASE_URL = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BASE_URL_LOCAL
 // Axios instance without cookies
 console.log('🔍 API Debug - BASE_URL:', BASE_URL);
 const api = axios.create({

@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { AuthAPI } from "../services/api";
 import { ToastContainer, toast } from "react-toastify";
 
-export default function Login() {
+export default function Login({ redirect }) {
   const [credentials, setCredentials] = useState({
     email: "",
     password: "",
@@ -17,7 +17,9 @@ export default function Login() {
   const searchParams = useSearchParams();
 
   // ✅ Get redirect from URL query params
-  const redirectPath = searchParams.get('redirect') || '/dashboard';
+  // const redirectPath = searchParams.get('redirect') || "/";
+  const redirectPath = redirect || "/";
+
 
   // ✅ Check if user is already logged in
   useEffect(() => {
@@ -62,21 +64,21 @@ export default function Login() {
       console.log('[Login] Login response:', response.data);
 
       // Backend sets HttpOnly cookies → we just read role from response
+      // localStorage.setItem("access_token", response.data.access);
+      // localStorage.setItem("refresh_token", response.data.refresh);
+      localStorage.setItem("role", response.data.user.role);
       const role = response.data.user?.role;
 
       if (!role) throw new Error("Role not received");
 
       // Only store role (non-sensitive)
-      localStorage.setItem("role", role);
 
       // Trigger header re-render
       window.dispatchEvent(new Event("authChange"));
 
       toast.success("Login successful!");
       
-      console.log('[Login] Redirect path:', redirectPath);
-      console.log('[Login] Current Cookies:', document.cookie);
-      
+    
       // ✅ Use the redirect path from URL
       router.push(redirectPath);
     } catch (error) {

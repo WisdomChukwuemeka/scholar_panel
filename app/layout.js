@@ -3,6 +3,7 @@ import "./globals.css";
 import { Header } from "./components/header";
 import { Footer } from "./components/footer";
 import Providers from "./providers";
+// import ProtectedRoute from "./components/protectedRoute";
 // import ProtectedRoute from "./components/protectedRoute"; // Keep commented if not using client-side fallback
 
 const geistSans = Geist({
@@ -84,9 +85,11 @@ export default function RootLayout({ children }) {
           {/* Header */}
           <Header />
           {/* Main fills space between header and footer */}
+          {/* <ProtectedRoute> */}
           <main className="flex-grow container mx-auto ">
             {children}
           </main>
+          {/* </ProtectedRoute> */}
           {/* Footer stays at bottom */}
           <Footer />
         </Providers>

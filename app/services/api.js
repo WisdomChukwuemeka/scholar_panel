@@ -1,94 +1,47 @@
 // services/api.js
 import axios from 'axios';
 
-const BASE_URL = '/api';
+// Your backend URL
+// Backend base URL
+// const BASE_URL = 'http://localhost:8000/api'; 
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BASE_URL_LOCAL
 
+// Axios instance without cookies
 const api = axios.create({
   baseURL: BASE_URL,
   withCredentials: true,
 });
 
-// Enhanced request interceptor with logging
-api.interceptors.request.use((config) => {
-  console.log('[API Request]', {
-    method: config.method?.toUpperCase(),
-    url: config.url,
-    baseURL: config.baseURL,
-    fullURL: `${config.baseURL}${config.url}`,
-  });
-  return config;
-});
 
-// Token Refresh Logic (Cookie-Based)
-let isRefreshing = false;
-let failedQueue = [];
+async function refreshSession() {
+  try {
+    // NOTE: backend refresh path: /api/token/refresh/
+    const resp = await axios.post(`${BASE_URL}/token/refresh/`, {}, {
+      withCredentials: true,
+    });
+    return resp.status === 200;
+  } catch (err) {
+    return false;
+  }
+}
 
-const processQueue = (error, token = null) => {
-  failedQueue.forEach((prom) => {
-    error ? prom.reject(error) : prom.resolve(token);
-  });
-  failedQueue = [];
-};
-
+// Response interceptor: try one refresh then retry the original request
 api.interceptors.response.use(
-  (response) => {
-    console.log('[API Response]', {
-      status: response.status,
-      url: response.config.url,
-      method: response.config.method?.toUpperCase(),
-    });
-    return response;
-  },
+  (res) => res,
   async (error) => {
-    console.error('[API Error]', {
-      status: error.response?.status,
-      url: error.config?.url,
-      method: error.config?.method?.toUpperCase(),
-      message: error.message,
-      data: error.response?.data,
-    });
-
     const originalRequest = error.config;
+    const status = error.response?.status;
 
-    // Handle 301
-    if (error.response?.status === 301) {
-      return Promise.reject(
-        new Error(`301 Redirect: Backend expects different URL format. Check trailing slashes.`)
-      );
-    }
-
-    // Handle 401 refresh
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      if (isRefreshing) {
-        return new Promise((resolve, reject) => {
-          failedQueue.push({ resolve, reject });
-        })
-          .then(() => api(originalRequest))
-          .catch((err) => Promise.reject(err));
-      }
-
+    // If 401 and we haven't retried yet, try refresh
+    if (status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
-      isRefreshing = true;
-
-      try {
-        console.log('[API] Attempting token refresh...');
-        await api.post('/token/refresh/');
-        console.log('[API] Token refresh successful');
-
-        processQueue(null);
+      const refreshed = await refreshSession();
+      if (refreshed) {
+        // Retry original request — cookies contain new access_token now
         return api(originalRequest);
-      } catch (refreshError) {
-        console.error('[API] Token refresh failed:', refreshError);
-        processQueue(refreshError);
-
-        if (typeof window !== "undefined") {
-          document.cookie = "access_token=; Max-Age=0";
-          document.cookie = "refresh_token=; Max-Age=0";
-        }
-
-        return Promise.reject(refreshError);
-      } finally {
-        isRefreshing = false;
+      } else {
+        // Refresh failed — propagate original error
+        return Promise.reject(error);
       }
     }
 
@@ -96,18 +49,46 @@ api.interceptors.response.use(
   }
 );
 
-// API Endpoints
+
+// Request interceptor to automatically attach token from localStorage
+// api.interceptors.request.use((config) => {
+//   const token = localStorage.getItem('access_token');
+//   if (token) {
+//     config.headers.Authorization = `Bearer ${token}`;
+//   }
+//   return config;
+// }, (error) => Promise.reject(error));
+
+// // Response interceptor to handle 401 (optional: you can remove this if not needed)
+// api.interceptors.response.use(
+//   (response) => response,
+//   (error) => {
+//     if (error.response?.status === 401) {
+//       // Optionally redirect to login or remove token
+//       localStorage.removeItem('access_token');
+//       localStorage.removeItem('refresh_token');
+//       if (typeof window !== 'undefined') {
+//         window.location.href = '/login';
+//       }
+//     }
+//     return Promise.reject(error);
+//   }
+// );
+
+// ————————————————————————
+// All API Endpoints (No token handling needed!)
+// ————————————————————————
+
+
+// ---  API Endpoints ---
 export const AuthAPI = {
   register: (formData) => api.post('/register/', formData),
-  login: (credentials) => {
-    console.log('[AuthAPI.login] Calling POST /login/');
-    return api.post('/login/', credentials);
-  },
-  logout: () => api.post('/logout/'),
-  me: () => {
-    console.log('[AuthAPI.me] Calling GET /me/');
-    return api.get('/me/');
-  },
+  login: (credentials) => api.post('/login/', credentials),
+  logout: () => api.post("/logout/", {
+      refresh: typeof window !== "undefined"
+        ? localStorage.getItem("refresh_token")
+        : null
+    }),
 };
 
 export const PasscodeAPI = {
@@ -119,16 +100,35 @@ export const PublicationAPI = {
   listitem: (options = {}) => api.get("/publications/", options),
   create: (data) => api.post('/publications/', data),
   detail: (id) => api.get(`/publications/${id}/`),
-  patch: (id, data) => {
+patch: (id, data) => {
     const isForm = data instanceof FormData;
     return api.patch(`/publications/${id}/update/`, data, {
+      // Let axios set multipart/form-data automatically
       headers: isForm ? {} : { "Content-Type": "application/json" },
     });
-  },
-  review: (id, data) => api.post(`/publications/${id}/review/`, data),
-  delete: (id) => api.delete(`/publications/${id}/`),
-  getPublication: (publicationId) => api.get(`/publications/${publicationId}/`),
+  },    // console.log(`PATCH URL: ${api.defaults.baseURL}/publications/${publicationId}/update/`);
+    // return await api.patch(`/publications/${publicationId}/update/`, data, {
+    //   headers: { 'Content-Type': 'multipart/form-data' }  // Explicit for FormData
+    // });},
+  review: (id, data) => {
+      return api.post(`/publications/${id}/review/`, data);
+    },
+    delete: (id) => api.delete(`/publications/${id}/`),
+    getPublication: (publicationId) => api.get(`/publications/${publicationId}/`),
   get: (id) => api.get(`/publications/${id}/`),
+  // ✅ Pagination-safe custom fetch
+  customGet: async (url) => {
+    const token = getToken();
+    try {
+      const response = await axios.get(url, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      return response;
+    } catch (error) {
+      console.error("Pagination fetch error:", error);
+      throw error;
+    }
+  },
   annotate: (id, data) => api.patch(`/publications/${id}/annotate/`, data),
 };
 
@@ -162,9 +162,14 @@ export const MessageAPI = {
   delete: (id) => api.delete(`/messages/${id}/`),
 };
 
+
+// --- 💸 Payment Endpoints ---
 export const PaymentAPI = {
   initializePayment: async ({ publication_id, payment_type }) => {
-    const payload = { publication_id, payment_type };
+    const payload = {
+      publication_id,
+      payment_type,
+    };
     console.log("Initializing payment payload:", payload);
     try {
       const response = await api.post('/payments/initialize/', payload);
@@ -176,8 +181,12 @@ export const PaymentAPI = {
     }
   },
   initializePaymentWithOverride: async ({ publication_id, payment_type, amount }) => {
-    const convertedAmount = amount / 100;
-    const payload = { publication_id, payment_type, amount: convertedAmount };
+    const convertedAmount = amount / 100; // Convert kobo to NGN
+    const payload = {
+      publication_id,
+      payment_type,
+      amount: convertedAmount,
+    };
     console.log("Initializing payment with override payload:", payload);
     try {
       const response = await api.post('/payments/initialize-override/', payload);
@@ -188,64 +197,148 @@ export const PaymentAPI = {
       throw error;
     }
   },
-  verifyPayment: async (reference) => api.post('/payments/verify/', { reference }),
-  getSubscriptionDetails: async () => api.get('/subscriptions/'),
-  getSubscription: async () => api.get('/free-review-status/'),
-  getPaymentHistory: async () => api.get('/payments/history/'),
-  getPaymentDetails: async (reference) => api.get(`/payments/details/${reference}/`),
-  requestRefund: async (data) => api.post('/payments/refund/', data),
-  getFreeReviewStatus: async () => api.get('/free-review-status/'),
+  verifyPayment: async (reference) => {
+    return await api.post('/payments/verify/', { reference });
+  },
+  getSubscriptionDetails: async () => {
+    return await api.get('/subscriptions/'); // Added to match SubscriptionView
+  },
+  getSubscription: async () => {
+    return await api.get('/free-review-status/'); // Matches FreeReviewStatusView
+  },
+  getPaymentHistory: async () => {
+    return await api.get('/payments/history/'); // Added to match PaymentHistoryView
+  },
+  getPaymentDetails: async (reference) => {
+    return await api.get(`/payments/details/${reference}/`); // Added to match PaymentDetailsView
+  },
+  requestRefund: async (data) => {
+    return await api.post('/payments/refund/', data); // Added to match RequestRefundView
+  },
+  getFreeReviewStatus: async () => {
+  return await api.get('/free-review-status/');
+},
 };
 
+// export const CommentAPI = {
+//   list: (publicationId, params = "") =>
+//     api.get(`/publications/${publicationId}/comments/${params}`),
+//   create: (publicationId, data) =>
+//     api.post(`/publications/${publicationId}/comments/`, data),
+//   detail: (publicationId, commentId) =>
+//     api.get(`/publications/${publicationId}/comments/${commentId}/`),
+//   update: (publicationId, commentId, data) =>
+//     api.patch(`/publications/${publicationId}/comments/${commentId}/`, data),
+//   delete: (publicationId, commentId) =>
+//     api.delete(`/publications/${publicationId}/comments/${commentId}/`),
+// };
+
 export const CommentAPI = {
-  list: (publicationId) => api.get(`/publications/${publicationId}/comments/`),
-  create: (publicationId, data) => api.post(`/publications/${publicationId}/comments/`, data),
-  detail: (publicationId, commentId) => api.get(`/publications/${publicationId}/comments/${commentId}/`),
-  update: (publicationId, commentId, data) => api.patch(`/publications/${publicationId}/comments/${commentId}/`, data),
-  delete: (publicationId, commentId) => api.delete(`/publications/${publicationId}/comments/${commentId}/`),
+  list: (publicationId) =>
+    api.get(`/publications/${publicationId}/comments/`),
+
+create: (publicationId, data) => {
+    // This is the fix – let axios handle FormData automatically
+    return api.post(`/publications/${publicationId}/comments/`, data, {
+    });
+  },  // … other methods unchanged
+    detail: (publicationId, commentId) =>
+    api.get(`/publications/${publicationId}/comments/${commentId}/`),
+    update: (publicationId, commentId, data) =>
+    api.patch(`/publications/${publicationId}/comments/${commentId}/`, data),
+  delete: (publicationId, commentId) =>
+    api.delete(`/publications/${publicationId}/comments/${commentId}/`),
+
 };
 
 export const CommentReactionAPI = {
-  react: (commentId, data) => api.post(`/comment/react/`, { comment_id: commentId, emoji: data.emoji }),
+  react: (commentId, data) =>
+    api.post(`/comment/react/`, { comment_id: commentId, emoji: data.emoji }),
   list: (commentId) => api.get(`/comments/${commentId}/reactions/`),
 };
+
 
 export const ProfileAPI = {
   list: () => api.get('/profiles/'),
   name: () => api.get('/me/'),
-  create: (data) => api.post('/profiles/', data, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  }),
-  update: (id, data) => api.patch(`/profiles/${id}/`, data, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  }),
+
+  create: (data) =>
+    api.post('/profiles/', data, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
+  update: (id, data) =>
+    api.patch(`/profiles/${id}/`, data, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
 };
 
 export const PointRewardAPI = {
-  list: (publicationId) => api.get(`/publications/${publicationId}/pointrewards/`),
-  detail: (publicationId, pointId) => api.get(`/publications/${publicationId}/pointrewards/${pointId}/`),
-  create: (publicationId, data) => api.post(`/publications/${publicationId}/pointrewards/`, data),
-  update: (publicationId, pointId, data) => api.patch(`/publications/${publicationId}/pointrewards/${pointId}/`, data),
-  delete: (publicationId, pointId) => api.delete(`/publications/${publicationId}/pointrewards/${pointId}/`),
+  //  Get all point rewards for a publication
+  list: (publicationId) =>
+    api.get(`/publications/${publicationId}/pointrewards/`),
+
+  //  Get details of a specific point reward
+  detail: (publicationId, pointId) =>
+    api.get(`/publications/${publicationId}/pointrewards/${pointId}/`),
+
+  //  Optional (if you ever allow manual creation)
+  create: (publicationId, data) =>
+    api.post(`/publications/${publicationId}/pointrewards/`, data),
+
+  //  Optional update or delete if you ever expose admin functions
+  update: (publicationId, pointId, data) =>
+    api.patch(`/publications/${publicationId}/pointrewards/${pointId}/`, data),
+  delete: (publicationId, pointId) =>
+    api.delete(`/publications/${publicationId}/pointrewards/${pointId}/`),
 };
 
+// export const RewardCodeAPI = {
+//   // Allow passing publicationId so we can send it as query param for backend filtering
+//   list: (publicationId = "") =>
+//     api.get(publicationId ? `/rewardcodes/?publication_id=${publicationId}` : "/rewardcodes/"),
+//   // create(publicationId) -> POST /rewardcodes/ with optional body
+//   create: (publicationId = "") =>
+//     api.post("/rewardcodes/", publicationId ? { publication_id: publicationId } : {}),
+//   // redeem if you want to use this endpoint
+//   redeem: (data) => api.post("/rewardcodes/redeem/", data),
+// };
+
+// ---- RewardCodeAPI ---------------------------------------------
+// In @/app/services/api.js
 export const RewardCodeAPI = {
-  list: (publicationId) => api.get("/rewardcodes/", { params: { publication_id: publicationId } }),
-  create: (publicationId) => api.post("/rewardcodes/", {}, { params: { publication_id: publicationId } }),
-  redeem: (codeId) => api.post("/rewardcodes/redeem/", { reward_code_id: codeId }),
+  list: (publicationId) =>
+    api.get("/rewardcodes/", { params: { publication_id: publicationId } }),
+
+  create: (publicationId) =>
+    api.post("/rewardcodes/", {}, { params: { publication_id: publicationId } }),
+
+  redeem: (codeId) =>
+    api.post("/rewardcodes/redeem/", { reward_code_id: codeId }),
 };
 
+// --- Reward redemption helper (for the frontend to call)
 export const RewardRedemptionAPI = {
+  // data: { code: "<uuid-string>", publication_id: <id> }
   redeem: (data) => api.post("/rewardcodes/redeem/", data),
 };
 
+
 export const TaskAPI = {
-  listAll: ({ page = 1 } = {}) => api.get(`/tasks/?page=${page}`),
+  // Admin: Get ALL tasks (including completed/replied ones)
+  listAll: ({ page = 1 } = {}) => api.get(`/tasks/?page=${page}`),                     // Admin sees all
   listMyTasks: ({ page = 1 } = {}) => api.get(`/tasks/?page=${page}`),
+                  // Editor sees only assigned
+
+  // Get single task detail
   detail: (id) => api.get(`/tasks/${id}/`),
+
+  // Editor replies to task (PATCH)
   reply: (id, data) => api.patch(`/tasks/${id}/reply/`, data),
   markInProgress: (id) => api.patch(`/tasks/${id}/in-progress/`),
-  searchEditors: (query = '') => api.get('/editors/', { params: { q: query } }),
+
+  // Search editors (for dropdown)
+  searchEditors: (query = '') => 
+    api.get('/editors/', { params: { q: query } }),
 };
 
 export const ConferenceAPI = {
@@ -253,4 +346,6 @@ export const ConferenceAPI = {
   detail: (id) => api.get(`/conferences/${id}/`),
 };
 
+
+// Export the axios instance if needed elsewhere
 export default api;

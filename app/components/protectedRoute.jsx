@@ -1,63 +1,27 @@
-// components/ProtectedRoute.jsx
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, usePathname } from "next/navigation";
-
-const PUBLIC_PATHS = [
-  "/", "/login", "/register", "/terms", "/verification", "/about", "/our-services",
-];
+import { useRouter } from "next/navigation";
 
 export default function ProtectedRoute({ children }) {
   const router = useRouter();
-  const pathname = usePathname();
-  const [isChecking, setIsChecking] = useState(true);
+  const [allowed, setAllowed] = useState(false);
 
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const res = await fetch("http://localhost:8000/api/me/", {
-          credentials: "include",
-        });
+    const token = localStorage.getItem("access_token");
 
-        if (res.ok) {
-          const data = await res.json();
-          localStorage.setItem("role", data.role || "");
+    if (!token) {
+      router.replace("/login");
+    } else {
+      setAllowed(true);
+    }
+  }, []);
 
-          // If logged in but on login/register → redirect home
-          if (pathname === "/login" || pathname === "/register") {
-            router.replace("/");
-            return;
-          }
-
-          setIsChecking(false); // allow page
-        } else {
-          throw new Error("Not authenticated");
-        }
-      } catch {
-        localStorage.removeItem("role");
-
-        // User is NOT authenticated
-        if (!PUBLIC_PATHS.includes(pathname)) {
-          // Instantly redirect with NO loader time
-          router.replace("/login");
-          return;
-        }
-
-        setIsChecking(false); // public page → allow render
-      }
-    };
-
-    checkAuth();
-  }, [pathname, router]);
-
-  if (isChecking) {
+  if (!allowed) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        Loading...
-      </div>
-    );
+      <div className="w-full h-screen bg-white"></div> 
+    ); // solid blank screen
   }
 
-  return <>{children}</>;
+  return children;
 }

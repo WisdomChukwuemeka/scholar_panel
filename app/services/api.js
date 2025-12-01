@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 // ✅ Use environment variables (will work for both local and production)
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BASE_URL_LOCAL || 'http://localhost:8000/api';
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL 
 
 // Debug: Log the BASE_URL being used
 console.log('=================================');

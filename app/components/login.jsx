@@ -67,15 +67,15 @@ export default function Login({ redirect }) {
       // localStorage.setItem("access_token", response.data.access);
       // localStorage.setItem("refresh_token", response.data.refresh);
       const user = response.data?.user;
+      const userRole = response.data?.role;
 
-if (!user || !user.role) {
+if (!user || !userRole) {
   console.error("User or role missing in response:", response.data);
   throw new Error("Invalid backend response: user.role missing");
 }
 
-localStorage.setItem("role", user.role);
+localStorage.setItem("role", userRole);
 
-      if (!role) throw new Error("Role not received");
 
       // Only store role (non-sensitive)
 

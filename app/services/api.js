@@ -10,44 +10,80 @@ console.log('=================================');
 console.log('=================================');
 
 // Axios instance with cookies
+
 const api = axios.create({
   baseURL: BASE_URL,
   withCredentials: true,
-  timeout: 40000, // 10 second timeout
+  timeout: 40000,
 });
 
+// ——————————————————————————————
+// REFRESH CONTROL FLAGS
+// ——————————————————————————————
+
+
+// ——————————————————————————————
+// REFRESH FUNCTION (Single-instance)
+// ——————————————————————————————
 async function refreshSession() {
   try {
-    const resp = await api.post(`/token/refresh/`, {});
-    return resp.status === 200;  // true on success
+    const resp = await api.post("/token/refresh/");
+    return resp.status === 200;
   } catch (err) {
-    console.error("Refresh error:", err);
     return false;
   }
 }
 
-// Response interceptor: try one refresh then retry the original request
+// ——————————————————————————————
+// RESPONSE INTERCEPTOR
+// ——————————————————————————————
 api.interceptors.response.use(
   (res) => res,
+
   async (error) => {
     const originalRequest = error.config;
-    const status = error.response?.status;
 
-    // Log network errors
-    if (!error.response) {
-      console.error('[API] Network Error:', error.message);
-      console.error('[API] Attempted URL:', originalRequest?.url);
+    // Ignore refresh-URL failure → prevent recursive loop
+    if (originalRequest.url.includes("/token/refresh/")) {
+      return Promise.reject(error);
     }
 
-    // If 401 and we haven't retried yet, try refresh
+    const status = error.response?.status;
+
+    // Try refresh only ONCE
     if (status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
-      const refreshed = await refreshSession();
-      if (refreshed) {
-        return api(originalRequest);
-      } else {
-        return Promise.reject(error);
+
+      // If no refresh in progress → start one
+      if (!isRefreshing) {
+        isRefreshing = true;
+
+        refreshPromise = refreshSession()
+          .then((success) => {
+            isRefreshing = false;
+            return success;
+          })
+          .catch(() => {
+            isRefreshing = false;
+            return false;
+          });
       }
+
+      // Wait for refresh result
+      const success = await refreshPromise;
+
+      if (success) {
+        return api(originalRequest); // retry original
+      }
+
+      // ————————————————————————————
+      // Refresh failed → Force logout
+      // ————————————————————————————
+      if (typeof window !== "undefined") {
+        window.location.href = "/login";
+      }
+
+      return Promise.reject(error);
     }
 
     return Promise.reject(error);
@@ -61,7 +97,7 @@ api.interceptors.response.use(
 export const AuthAPI = {
   register: (formData) => api.post('/register/', formData),
   login: (credentials) => api.post('/login/', credentials),
-  logout: () => api.post("/logout/"),  // Empty body; withCredentials handles cookies
+  logout: () => api.post("/logout/", {}, { withCredentials: true }), // Empty body; withCredentials handles cookies
   me: () => api.get('/me/'),
 };
 

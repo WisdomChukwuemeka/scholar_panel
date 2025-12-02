@@ -150,12 +150,18 @@ useEffect(() => {
   };
 
   // ✅ Logout
-  const handleLogout = async () => {
+ const handleLogout = async () => {
   await AuthAPI.logout();
+
+  // ⚠️ Cancel pending axios requests
+  // api.defaults.headers.common['Authorization'] = null;
+  
   localStorage.removeItem('role');
   window.dispatchEvent(new Event('authChange'));
+
   router.push('/login');
 };
+
 
   // ✅ Menu toggles
   const toggleMenu = () => {

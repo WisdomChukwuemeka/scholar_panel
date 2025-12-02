@@ -61,7 +61,7 @@ api.interceptors.response.use(
 export const AuthAPI = {
   register: (formData) => api.post('/register/', formData),
   login: (credentials) => api.post('/login/', credentials),
-  logout: () => api.post("/logout/"),  // No body needed  // Empty body; withCredentials handles cookies
+  logout: () => api.post("/logout/"),  // Empty body; withCredentials handles cookies
   me: () => api.get('/me/'),
 };
 

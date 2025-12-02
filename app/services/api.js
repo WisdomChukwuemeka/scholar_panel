@@ -1,6 +1,7 @@
 // services/api.js
 import axios from 'axios';
 
+// const BASE_URL = "http://localhost:8000/api"
 // ✅ Use environment variables (will work for both local and production)
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL 
 // || process.env.NEXT_PUBLIC_BASE_URL_LOCAL || 'http://localhost:8000/api';
@@ -19,7 +20,7 @@ const api = axios.create({
 
 async function refreshSession() {
   try {
-    const resp = await axios.post(`${BASE_URL}/token/refresh/`, {}, {
+    const resp = await api.post(`${BASE_URL}/token/refresh/`, {}, {
       withCredentials: true,
     });
     return resp.status === 200;  // true on success
@@ -91,7 +92,7 @@ export const PublicationAPI = {
   // ✅ Fixed: Pagination-safe custom fetch (removed undefined getToken)
   customGet: async (url) => {
     try {
-      const response = await axios.get(url, {
+      const response = await api.get(url, {
         withCredentials: true, // Use cookies instead of token
       });
       return response;

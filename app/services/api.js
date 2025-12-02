@@ -3,9 +3,7 @@ import axios from 'axios';
 
 // const BASE_URL = "http://localhost:8000/api"
 // ✅ Use environment variables (will work for both local and production)
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL 
-// || process.env.NEXT_PUBLIC_BASE_URL_LOCAL || 'http://localhost:8000/api';
-
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL 
 // Debug: Log the BASE_URL being used
 console.log('=================================');
 console.log('API BASE_URL:', BASE_URL);
@@ -20,9 +18,7 @@ const api = axios.create({
 
 async function refreshSession() {
   try {
-    const resp = await api.post(`${BASE_URL}/token/refresh/`, {}, {
-      withCredentials: true,
-    });
+    const resp = await api.post(`/token/refresh/`, {});
     return resp.status === 200;  // true on success
   } catch (err) {
     console.error("Refresh error:", err);

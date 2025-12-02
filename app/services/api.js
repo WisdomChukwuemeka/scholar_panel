@@ -6,7 +6,7 @@ import axios from 'axios';
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL 
 // Debug: Log the BASE_URL being used
 console.log('=================================');
-console.log('API BASE_URL:', BASE_URL);
+// console.log('API BASE_URL:', BASE_URL);
 console.log('=================================');
 
 // Axios instance with cookies

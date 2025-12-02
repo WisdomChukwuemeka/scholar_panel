@@ -13,7 +13,7 @@ console.log('=================================');
 const api = axios.create({
   baseURL: BASE_URL,
   withCredentials: true,
-  timeout: 10000, // 10 second timeout
+  timeout: 40000, // 10 second timeout
 });
 
 async function refreshSession() {

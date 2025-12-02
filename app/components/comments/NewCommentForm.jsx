@@ -8,7 +8,7 @@ import { CommentAPI, PointRewardAPI, CommentReactionAPI } from "@/app/services/a
 import { formatDistanceToNow } from "date-fns";
 import {
   Plus, ThumbsUp, Heart, Laugh, Zap, Frown, Angry,
-  HelpingHand, Meh, PartyPopper, Mic, Square 
+  HelpingHand, Meh, PartyPopper, Mic, Square
 } from "lucide-react";
 
 
@@ -334,7 +334,7 @@ const handleSubmit = async (e) => {
                       )}
 
                       {/* REACTIONS */}
-                      <div className="mt-3 flex items-center justify-between">
+                      <div className=" flex items-center justify-between mt-7">
                         <div className="flex items-center gap-1.5 flex-wrap">
                           {Object.entries(cmt.reactions || {})
                             .filter(([, count]) => count > 0)

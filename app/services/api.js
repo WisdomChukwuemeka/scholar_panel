@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 // ✅ Use environment variables (will work for both local and production)
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL 
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BASE_URL_LOCAL || 'http://localhost:8000/api';
 
 // Debug: Log the BASE_URL being used
 console.log('=================================');
@@ -21,9 +21,9 @@ async function refreshSession() {
     const resp = await axios.post(`${BASE_URL}/token/refresh/`, {}, {
       withCredentials: true,
     });
-    return resp.status === 200;
+    return resp.status === 200;  // true on success
   } catch (err) {
-    console.error('[refreshSession] Failed:', err.message);
+    console.error("Refresh error:", err);
     return false;
   }
 }
@@ -63,11 +63,7 @@ api.interceptors.response.use(
 export const AuthAPI = {
   register: (formData) => api.post('/register/', formData),
   login: (credentials) => api.post('/login/', credentials),
-  logout: () => api.post("/logout/", {
-    refresh: typeof window !== "undefined"
-      ? localStorage.getItem("refresh_token")
-      : null
-  }),
+  logout: () => api.post("/logout/", {}),  // Empty body; withCredentials handles cookies
   me: () => api.get('/me/'),
 };
 

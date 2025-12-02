@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { AuthAPI } from "../services/api";
 import { ToastContainer, toast } from "react-toastify";
 
-export default function Login({ redirect }) {
+export default function Login () {
   const [credentials, setCredentials] = useState({
     email: "",
     password: "",
@@ -18,25 +18,8 @@ export default function Login({ redirect }) {
 
   // ✅ Get redirect from URL query params
   // const redirectPath = searchParams.get('redirect') || "/";
-  const redirectPath = redirect || "/";
+// ✅ Check if user is already logged in
 
-
-  // ✅ Check if user is already logged in
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        console.log('[Login] Checking if already authenticated...');
-        await AuthAPI.me();
-        console.log('[Login] Already authenticated, redirecting to:', redirectPath);
-        // Already logged in, redirect immediately
-        router.push(redirectPath);
-      } catch (error) {
-        console.log('[Login] Not authenticated, showing login form');
-        // Not logged in, stay on login page
-      }
-    };
-    checkAuth();
-  }, [redirectPath, router]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -58,54 +41,51 @@ export default function Login({ redirect }) {
     }
 
     setLoading(true);
-    try {
-      console.log('[Login] Calling AuthAPI.login...');
-      const response = await AuthAPI.login(credentials);
-      console.log('[Login] Login response:', response.data);
+try {
+  console.log('[Login] Calling AuthAPI.login...');
+  const response = await AuthAPI.login(credentials);
+  console.log('[Login] Login response:', response.data);
 
-      // Backend sets HttpOnly cookies → we just read role from response
-      // localStorage.setItem("access_token", response.data.access);
-      // localStorage.setItem("refresh_token", response.data.refresh);
-      const user = response.data?.user;
-      const userRole = response.data?.role;
+  // Get role safely
+  const userRole = response.data?.role || response.data?.user?.role;
 
-if (!user || !userRole) {
-  console.error("User or role missing in response:", response.data);
-  throw new Error("Invalid backend response: user.role missing");
-}
+  if (!userRole) {
+    throw new Error("Role missing from server response");
+  }
 
-localStorage.setItem("role", userRole);
+  // Save role
+  localStorage.setItem("role", userRole);
 
+  // Update header instantly
+  window.dispatchEvent(new Event("authChange"));
 
-      // Only store role (non-sensitive)
+  toast.success("Login successful!");
 
-      // Trigger header re-render
-      window.dispatchEvent(new Event("authChange"));
+  // SIMPLE REDIRECT — NO redirectPath ANYMORE!
+  setTimeout(() => {
+    window.location.href = "/";   // Everyone goes to homepage after login
+    // Or use this if you want editors to go to dashboard:
+    // window.location.href = userRole === "editor" ? "/dashboard" : "/";
+  }, 100);
 
-      toast.success("Login successful!");
+} catch (error) {
+  // Your existing error handling (keep exactly as is)
+  console.error('[Login] Error:', error);
+  console.error('[Login] Error response:', error.response?.data);
+  console.error('[Login] Error status:', error.response?.status);
+  
+  const err = error.response?.data;
+  const status = error.response?.status;
 
-// Critical fix: Use full redirect instead of router.push
-        setTimeout(() => {
-      window.location.href = redirectPath || "/dashboard";
-    }, 100);
-    
-    } catch (error) {
-      console.error('[Login] Error:', error);
-      console.error('[Login] Error response:', error.response?.data);
-      console.error('[Login] Error status:', error.response?.status);
-      
-      const err = error.response?.data;
-      const status = error.response?.status;
-
-      if (status === 401) {
-        toast.error("Invalid email or password");
-      } else if (status === 403) {
-        toast.error(err?.error || "Account blocked or not verified");
-      } else if (status === 429) {
-        toast.error("Too many attempts. Try again later.");
-      } else {
-        toast.error(err?.detail || "Login failed. Try again.");
-      }
+  if (status === 401) {
+    toast.error("Invalid email or password");
+  } else if (status === 403) {
+    toast.error(err?.error || "Account blocked or not verified");
+  } else if (status === 429) {
+    toast.error("Too many attempts. Try again later.");
+  } else {
+    toast.error(err?.detail || "Login failed. Try again.");
+  }
     } finally {
       setLoading(false);
     }

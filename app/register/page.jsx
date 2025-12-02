@@ -56,12 +56,14 @@ export default function Register({ onRegister }) {
       const response = await AuthAPI.register(formData);
 
       setTimeout(() => {
-        if (response.data.role === "editor") {
-          router.push("/verification");
-        } else {
-          router.push("/login");
-        }
-      }, 1500);
+  // User is already logged in after registration!
+    const role = response.data.role;
+    if (role === "editor") {
+      router.push("/verification");
+    } else if (role === "publisher" || role === "reader") {
+      router.push("/login");  // or "/publications" or "/"
+    }
+  }, 1500);
 
       onRegister?.(response.data);
     } catch (error) {

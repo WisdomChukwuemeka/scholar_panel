@@ -1,9 +1,15 @@
 import { NextResponse } from "next/server";
 
 export function middleware(req) {
-  const token = req.Cookies.get("access_token"); // Django HttpOnly cookie
+  // Correct cookie access
+  const access = req.cookies.get("access_token")?.value;
+  const refresh = req.cookies.get("refresh_token")?.value;
 
-  // List all protected paths
+  const isAuthenticated = !!access || !!refresh;
+
+  const path = req.nextUrl.pathname;
+
+  // Protected pages
   const protectedPaths = [
     "/dashboard",
     "/publication/list",
@@ -13,12 +19,19 @@ export function middleware(req) {
     "/tasks",
   ];
 
-  // Check if current path starts with any protected path
-  const path = req.nextUrl.pathname;
   const requiresAuth = protectedPaths.some((p) => path.startsWith(p));
 
-  if (requiresAuth && !token) {
+  // Redirect unauthenticated users trying to access protected pages
+  if (requiresAuth && !isAuthenticated) {
     return NextResponse.redirect(new URL("/login", req.url));
+  }
+
+  // Redirect authenticated users away from login/register
+  const authPages = ["/login", "/register"];
+  const isAuthPage = authPages.includes(path);
+
+  if (isAuthenticated && isAuthPage) {
+    return NextResponse.redirect(new URL("/", req.url));
   }
 
   return NextResponse.next();
@@ -32,5 +45,7 @@ export const config = {
     "/publications/create/:path*",
     "/notifications/:path*",
     "/tasks/:path*",
+    "/login",
+    "/register",
   ],
 };

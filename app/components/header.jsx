@@ -427,18 +427,17 @@ useEffect(() => {
       {/* 📱 Mobile Menu */}
       <AnimatePresence>
         {isMenuOpen && (
-<motion.div
-  className="text-md md:text-[1.5rem] xl:hidden fixed top-0 left-0 w-full h-full p-5 bg-white z-50 overflow-y-auto"
+          <motion.div
+            className="text-md md:text-[1.5rem] xl:hidden absolute right-0 p-3 w-fit bg-white shadow-lg z-10 overflow-hidden"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.4, ease: "easeInOut" }}
           >
-            <ul className=" text-one flex flex-col gap-5 justify-center items-center max-w-3xl
-            " >
-            <Link href="/" onClick={() => setIsMenuOpen(false)}><li className="px-4 py-2 hover:bg-gray-100 cursor-pointer rounded-md font-medium text-gray-800">Home</li></Link>
-            <Link href="/about" onClick={() => setIsMenuOpen(false)}><li className="px-4 py-2 hover:bg-gray-100 cursor-pointer rounded-md font-medium text-gray-800">About</li></Link>
-            <Link href="/publications/list" onClick={() => setIsMenuOpen(false)}><li className="px-4 py-2 hover:bg-gray-100 cursor-pointer rounded-md font-medium text-gray-800">Publications</li></Link>
+            <ul className=" text-one flex flex-col gap-5 justify-center items-center max-w-3xl">
+            <Link href="/"><li className="px-4 py-2 hover:bg-gray-100 cursor-pointer rounded-md font-medium text-gray-800">Home</li></Link>
+            <Link href="/about"><li className="px-4 py-2 hover:bg-gray-100 cursor-pointer rounded-md font-medium text-gray-800">About</li></Link>
+            <Link href="/publications/list"><li className="px-4 py-2 hover:bg-gray-100 cursor-pointer rounded-md font-medium text-gray-800">Publications</li></Link>
 
             {/* Conferences Dropdown */}
             <div className="relative col-span-1">
@@ -461,14 +460,14 @@ useEffect(() => {
                     transition={{ duration: 0.3 }}
                   >
                     <ul className="py-2">
-                      <Link href="/conference/upcoming" onClick={() => setIsMenuOpen(false)}>
+                      <Link href="/conference/upcoming">
                       <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
                         Upcoming Conferences
                       </li>
                       </Link>
 
                       
-                      <Link href="/conference/past" onClick={() => setIsMenuOpen(false)}>
+                      <Link href="/conference/past">
                       <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
                         Past Conferences
                       </li>
@@ -479,7 +478,7 @@ useEffect(() => {
               </AnimatePresence>
             </div>
 
-            <Link href="/contact" onClick={() => setIsMenuOpen(false)}><li className="px-4 py-2 hover:bg-gray-100 cursor-pointer rounded-md font-medium text-gray-800">Contact</li></Link>
+            <Link href="/contact"><li className="px-4 py-2 hover:bg-gray-100 cursor-pointer rounded-md font-medium text-gray-800">Contact</li></Link>
 
             {/* Guidelines Dropdown */}
             <div className="relative col-span-1">
@@ -502,13 +501,13 @@ useEffect(() => {
                     transition={{ duration: 0.3 }}
                   >
                     <ul className="py-2">
-                      <Link href="/guidelines/author" onClick={() => setIsMenuOpen(false)}>
+                      <Link href="/guidelines/author">
                         <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">Authors</li>
                       </Link>
-                      <Link href="/guidelines/reviewers" onClick={() => setIsMenuOpen(false)}>
+                      <Link href="/guidelines/reviewers">
                         <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">Reviewers</li>
                       </Link>
-                      <Link href="/guidelines/editors" onClick={() => setIsMenuOpen(false)}>
+                      <Link href="/guidelines/editors">
                         <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">Editors</li>
                       </Link>
                     </ul>
@@ -517,25 +516,25 @@ useEffect(() => {
               </AnimatePresence>
             </div>
 
-            <Link href="/our-services" onClick={() => setIsMenuOpen(false)}><li className="px-4 py-2 hover:bg-gray-100 cursor-pointer rounded-md font-medium text-gray-800">Services</li></Link>
-            <Link href={"/resources"} onClick={() => setIsMenuOpen(false)}><li className="px-4 py-2 hover:bg-gray-100 cursor-pointer rounded-md font-medium text-gray-800">Resources</li></Link>
+            <Link href="/our-services"><li className="px-4 py-2 hover:bg-gray-100 cursor-pointer rounded-md font-medium text-gray-800">Services</li></Link>
+            <Link href={"/resources"}><li className="px-4 py-2 hover:bg-gray-100 cursor-pointer rounded-md font-medium text-gray-800">Resources</li></Link>
             {isLoggin && (
-                <Link href="/payment/history" onClick={() => setIsMenuOpen(false)}><li className="px-4 py-2 hover:bg-gray-100 cursor-pointer rounded-md font-medium text-gray-800">Payment History</li></Link>
+                <Link href="/payment/history"><li className="px-4 py-2 hover:bg-gray-100 cursor-pointer rounded-md font-medium text-gray-800">Payment History</li></Link>
             )}
             {isLoggin && role === "editor" && (
-                <Link href="/tasks" onClick={() => setIsMenuOpen(false)}><li className="px-4 py-2 hover:bg-gray-100 cursor-pointer rounded-md font-medium text-gray-800">Tasks</li></Link>
+                <Link href="/tasks"><li className="px-4 py-2 hover:bg-gray-100 cursor-pointer rounded-md font-medium text-gray-800">Tasks</li></Link>
             )}
 
             {/* Role-specific Buttons */}
             <div className="col-span-3 flex justify-center">
             {role === "editor" ? (
-              <Link href="/dashboard" className="flex justify-center" onClick={() => setIsMenuOpen(false)}>
+              <Link href="/dashboard" className="flex justify-center">
                 <button className="bg-blue-600 text-white btn hover:bg-blue-800 duration-500 px-4 py-2 rounded-md cursor-pointer">
                   Dashboard
                 </button>
               </Link>
             ) : (
-              <Link href="/publications/create" className="flex justify-center" onClick={() => setIsMenuOpen(false)}>
+              <Link href="/publications/create" className="flex justify-center">
                 <button className="bg-orange-600 text-white btn hover:bg-orange-800 duration-500 px-4 py-2 rounded-md cursor-pointer">
                   Submit Article
                 </button>

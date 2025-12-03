@@ -2,9 +2,9 @@
 import axios from 'axios';
 import { toast } from "react-toastify";
 
-const BASE_URL = "http://localhost:8000/api"
+// const BASE_URL = "http://localhost:8000/api"
 // ✅ Use environment variables (will work for both local and production)
-// const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL 
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL 
 // Debug: Log the BASE_URL being used
 console.log('=================================');
 // console.log('API BASE_URL:', BASE_URL);

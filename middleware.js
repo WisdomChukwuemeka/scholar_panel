@@ -11,12 +11,16 @@ export function middleware(req) {
 
   // Protected pages
   const protectedPaths = [
+    "/guidelines/author",
+    "/guidelines/reviewers",
+    "/guidelines/editors",
     "/dashboard",
-    "/publication/list",
-    "/messages",
+    "/publications/list",
     "/publications/create",
-    "/notifications",
     "/tasks",
+    "/contact",
+    "/conference/past",
+    "/conference/upcoming",
   ];
 
   const requiresAuth = protectedPaths.some((p) => path.startsWith(p));
@@ -40,12 +44,11 @@ export function middleware(req) {
 export const config = {
   matcher: [
     "/dashboard/:path*",
-    "/publication/list/:path*",
-    "/messages/:path*",
-    "/publications/create/:path*",
-    "/notifications/:path*",
+    "/publications/:path*",  // covers /publication and /publication/list
     "/tasks/:path*",
-    "/login",
-    "/register",
+    "/guidelines/:path*",
+    "/contact/:path*",
+    "/conference/:path*",
   ],
 };
+

@@ -427,8 +427,8 @@ useEffect(() => {
       {/* 📱 Mobile Menu */}
       <AnimatePresence>
         {isMenuOpen && (
-          <motion.div
-            className="text-md md:text-[1.5rem] xl:hidden absolute right-0 p-3 w-fit bg-white shadow-lg z-10 overflow-hidden"
+<motion.div
+  className="text-md md:text-[1.5rem] xl:hidden fixed top-0 left-0 w-full h-full p-5 bg-white z-50 overflow-y-auto"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}

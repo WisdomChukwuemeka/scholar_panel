@@ -28,6 +28,8 @@ export default function NewCommentForm({ publicationId }) {
   const [editingCommentId, setEditingCommentId] = useState(null);
   const [isSending, setIsSending] = useState(false);
   const prevCommentsLength = useRef(0);
+  const [deletingIds, setDeletingIds] = useState(new Set());
+
 
 
 
@@ -252,7 +254,7 @@ const handleSubmit = async (e) => {
         <h3 className="font-semibold text-indigo-800">Discussion</h3>
       </div>
 
-      <div className="h-150 xl:min-w-4xl xl:mx-auto overflow-y-auto p-3 bg-white/70 rounded-xl border border-gray-200 shadow-inner">
+      <div className="h-150 md:min-h-screen xl:min-w-4xl xl:mx-auto overflow-y-auto p-3 bg-white/70 rounded-xl border border-gray-200 shadow-inner">
         <div className="space-y-4">
           <AnimatePresence>
             {comments.map((cmt) => {
@@ -307,27 +309,46 @@ const handleSubmit = async (e) => {
     </button>
 
     <button
-      onClick={async () => {
-        try {
-          await CommentAPI.delete(publicationId, cmt.id);
-          setEditingCommentId(null);
-          fetchComments();
-          toast.success("Comment deleted");
-        } catch (err) {
-          toast.error("Delete failed");
-        }
-      }}
-      className="text-red-600 hover:underline"
-    >
-      Delete
-    </button>
+  disabled={deletingIds.has(cmt.id)}
+  onClick={async () => {
+    if (deletingIds.has(cmt.id)) return; // double-protection
+
+    // Mark as deleting
+    setDeletingIds(prev => new Set(prev).add(cmt.id));
+
+    // Optimistically remove from list
+    const oldComments = comments;
+    setComments(prev => prev.filter(x => x.id !== cmt.id));
+
+    try {
+      await CommentAPI.delete(publicationId, cmt.id);
+      toast.success("Comment deleted");
+    } catch (err) {
+      // Restore UI if deletion failed
+      setComments(oldComments);
+    } finally {
+      // Remove from deleting list
+      setDeletingIds(prev => {
+        const copy = new Set(prev);
+        copy.delete(cmt.id);
+        return copy;
+      });
+    }
+  }}
+  className={`text-red-600 hover:underline ${
+    deletingIds.has(cmt.id) ? "opacity-50 cursor-not-allowed" : ""
+  }`}
+>
+  Delete
+</button>
+
   </div>
 )}
 
 
                       </div>
                       {cmt.audio_url && (
-                        <audio controls>
+                        <audio controls className="mt-2 w-full">
                         <source src={cmt.audio_url + "?f=webm&resource_type=video"} type="audio/webm" />
                       </audio>
 
@@ -405,8 +426,8 @@ const handleSubmit = async (e) => {
         
         {/* AUDIO DRAFT INDICATOR + CANCEL BUTTON */}
 {draftAudio && (
-  <div className="flex items-center gap-2 justify-end mt-3">
-    <div className="flex items-center gap-4">
+  <div className="flex items-center gap-1 justify-end mt-3">
+    <div className="flex items-center gap-1 ">
       {/* Audio Preview */}
       {draftAudioURL && (
         <audio controls className="h-10">
@@ -420,11 +441,11 @@ const handleSubmit = async (e) => {
       onClick={() => {
         setDraftAudio(null);
         setDraftAudioURL("");
-        toast.info("Audio draft removed");
+        // toast.info("Audio draft removed");
       }}
-      className="px-4 py-1.5 rounded-lg bg-red-500 text-white hover:bg-red-600 transition"
+      className="px-2 py-1.5 rounded-lg bg-red-500 text-white hover:bg-red-600 transition"
     >
-      Cancel
+      <i className="bi bi-x-lg"></i>
     </button>
   </div>
 )}
@@ -434,7 +455,7 @@ const handleSubmit = async (e) => {
       
 
       {/* INPUT BAR */}
-      <form onSubmit={handleSubmit} className="flex gap-3 xl:min-w-4xl xl:mx-auto relative p-6 bg-gradient-to-r from-gray-50 to-white border-t border-gray-200">
+      <form onSubmit={handleSubmit} className="flex gap-3 xl:min-w-4xl xl:mx-auto relative p-6 bg-linear-to-r from-gray-50 to-white border-t border-gray-200">
         <div className="relative flex-1">
           <input
             value={newComment}

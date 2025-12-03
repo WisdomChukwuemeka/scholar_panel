@@ -48,7 +48,7 @@ const ConferencesPage = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-gray-100 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-linear-to-br from-slate-50 via-purple-50 to-gray-100 flex items-center justify-center p-4">
         <div className="bg-white border border-red-200 rounded-2xl shadow-xl max-w-md p-8">
           <div className="flex flex-col items-center text-center">
             <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
@@ -73,13 +73,13 @@ const ConferencesPage = () => {
   const ConferenceCard = ({ conf }) => (
     <li className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-200 hover:border-purple-300 transform hover:-translate-y-2">
       {conf.banner && (
-        <div className="relative h-52 w-full overflow-hidden bg-gradient-to-br from-gray-100 to-purple-100">
+        <div className="relative h-52 w-full overflow-hidden bg-linear-to-br from-gray-100 to-purple-100">
           <img 
             src={conf.banner} 
             alt={conf.name}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-90"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+          <div className="absolute inset-0 bg-linear-to-t from-black/40 to-transparent"></div>
           <div className="absolute top-4 right-4">
             <span className="bg-white/95 backdrop-blur-sm px-4 py-1.5 rounded-full text-xs font-bold text-gray-800 shadow-lg border border-gray-200">
               {conf.mode}
@@ -95,7 +95,7 @@ const ConferencesPage = () => {
       
       <div className="p-7">
         <div className="mb-4">
-          <span className="inline-block bg-gradient-to-r from-orange-500 to-orange-700 text-white text-xs font-bold px-4 py-1.5 rounded-full border border-purple-200">
+          <span className="inline-block bg-linear-to-r from-orange-500 to-orange-700 text-white text-xs font-bold px-4 py-1.5 rounded-full border border-purple-200">
             {conf.type}
           </span>
         </div>
@@ -154,7 +154,7 @@ const ConferencesPage = () => {
             href={conf.website} 
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center justify-center w-full bg-gradient-to-r from-orange-500 to-orange-700 hover:from-orange-800 hover:to-orange-800 text-white font-semibold text-sm py-3 px-4 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg group/btn"
+            className="inline-flex items-center justify-center w-full bg-linear-to-r from-orange-500 to-orange-700 hover:from-orange-800 hover:to-orange-800 text-white font-semibold text-sm py-3 px-4 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg group/btn"
           >
             <span>View Conference Details</span>
             <svg className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -172,7 +172,7 @@ const ConferencesPage = () => {
         <div className="flex items-center">
           <div className={`w-1.5 h-12 ${color} rounded-full mr-5 shadow-md`}></div>
           <div>
-            <h2 className="text-4xl font-bold text-gray-900 flex items-center">
+            <h2 className="text-md font-bold text-gray-900 flex items-center">
               <span className="mr-3">
                 <span className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center">
                   <svg className="w-6 h-6 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
@@ -212,17 +212,17 @@ const ConferencesPage = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-gray-100 py-16 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-purple-50 to-gray-100 py-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-16">
           <div className="inline-block mb-4">
-            <span className="bg-gradient-to-r from-orange-100 to-orange-300 text-orange-800 px-6 py-2 rounded-full text-sm font-bold border border-orange-200">
+            <span className="bg-linear-to-r from-orange-100 to-orange-300 text-orange-800 px-6 py-2 rounded-full text-sm font-bold border border-orange-200">
       Academic Events Archive
     </span>
           </div>
-          <h1 className="text-6xl font-extrabold text-gray-900 mb-5 leading-tight">
-            <span className="bg-gradient-to-r from-orange-500 via-orange-600 to-orange-700 bg-clip-text text-transparent">
+          <h1 className="text-2xl font-extrabold text-gray-900 mb-5 leading-tight">
+            <span className="bg-linear-to-r from-orange-500 via-orange-600 to-orange-700 bg-clip-text text-transparent">
       Past Academic Conferences
     </span>
           </h1>
@@ -235,19 +235,18 @@ const ConferencesPage = () => {
         <Section title="Past Conferences" conferences={past} color="bg-gradient-to-b from-gray-400 to-gray-600" />
 
         {/* Pagination Controls */}
-        <div className="flex justify-center items-center gap-6 mt-20">
+        <div className="flex justify-center items-center gap-6 mt-20 text-center">
           <button
             disabled={!previous}
             onClick={() => setPage(prev => prev - 1)}
             className={`flex items-center gap-2 px-8 py-4 rounded-xl font-bold shadow-lg transition-all duration-200 transform hover:scale-105 
               ${previous 
-                ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 hover:shadow-xl' 
+                ? 'bg-linear-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 hover:shadow-xl' 
                 : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
             </svg>
-            Previous
           </button>
 
           <div className="bg-white px-8 py-4 rounded-xl shadow-lg border border-gray-200">
@@ -260,10 +259,9 @@ const ConferencesPage = () => {
             onClick={() => setPage(prev => prev + 1)}
             className={`flex items-center gap-2 px-8 py-4 rounded-xl font-bold shadow-lg transition-all duration-200 transform hover:scale-105 
               ${next 
-                ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 hover:shadow-xl' 
+                ? 'bg-linear-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 hover:shadow-xl' 
                 : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
           >
-            Next
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
             </svg>

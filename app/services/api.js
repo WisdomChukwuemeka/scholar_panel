@@ -1,9 +1,10 @@
 // services/api.js
 import axios from 'axios';
+import { toast } from "react-toastify";
 
-// const BASE_URL = "http://localhost:8000/api"
+const BASE_URL = "http://localhost:8000/api"
 // ✅ Use environment variables (will work for both local and production)
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL 
+// const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL 
 // Debug: Log the BASE_URL being used
 console.log('=================================');
 // console.log('API BASE_URL:', BASE_URL);
@@ -24,7 +25,11 @@ const api = axios.create({
 
 // ——————————————————————————————
 // REFRESH FUNCTION (Single-instance)
+let isRefreshing = false;
+let refreshPromise = null;
 // ——————————————————————————————
+
+
 async function refreshSession() {
   try {
     const resp = await api.post("/token/refresh/");
@@ -80,6 +85,7 @@ api.interceptors.response.use(
       // Refresh failed → Force logout
       // ————————————————————————————
       if (typeof window !== "undefined") {
+        toast.error("Your session expired. Please log in again.");
         window.location.href = "/login";
       }
 

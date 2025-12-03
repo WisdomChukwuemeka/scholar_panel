@@ -229,7 +229,7 @@ export default function PublicationDetail() {
             </div>
 
             {/* Engagement Bar */}
-            <div className="flex flex-wrap items-center justify-between gap-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-6 border border-gray-200">
+            <div className="flex flex-col items-center justify-between md:items-center md:justify-between md:flex-row gap-4 bg-linear-to-r from-gray-50 to-gray-100 rounded-xl p-3 border border-gray-200">
               <div className="flex items-center gap-6">
                 <button
                   onClick={handleLike}
@@ -256,9 +256,9 @@ export default function PublicationDetail() {
                 </button>
               </div>
 
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
                 <Link href={`/comments/${publication.id}`}>
-                  <button className="group flex items-center gap-2 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-white px-5 py-2.5 rounded-lg font-semibold shadow-md hover:shadow-lg transition-all duration-200">
+                  <button className="group flex items-center gap-2 bg-linear-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-white px-5 py-2.5 rounded-lg font-semibold shadow-md hover:shadow-lg transition-all duration-200">
                     <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                     </svg>
@@ -269,7 +269,6 @@ export default function PublicationDetail() {
                 <div className="flex items-center gap-2 bg-white px-4 py-2.5 rounded-lg text-gray-600 shadow-sm">
                   <Eye size={20} />
                   <span className="font-semibold">{publication.views}</span>
-                  <span className="text-sm text-gray-500">views</span>
                 </div>
               </div>
             </div>
@@ -344,7 +343,7 @@ export default function PublicationDetail() {
               {publication.file && (
                 <div className="flex flex-wrap gap-4">
                   {/* Download Button */}
-                  <a
+                  {/* <a
                     href={publication.file}
                     download
                     target="_blank"
@@ -355,7 +354,7 @@ export default function PublicationDetail() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                     </svg>
                     Download PDF
-                  </a>
+                  </a> */}
 
                   {/* Preview Button */}
                   <a

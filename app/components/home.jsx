@@ -227,13 +227,13 @@ export default function HomePage () {
                        hover:scale-105 hover:shadow-lg pl-2"
           >
             <i
-              className={`${section.icon} text-3xl text-gray-600 mb-4 flex-shrink-0`}
+              className={`${section.icon} text-3xl text-gray-600 mb-4 shrink-0`}
               style={{ fontSize: "2rem" }}
             ></i>
             <h3 className="text-lg font-bold text-gray-900 mb-2 leading-tight">
               {section.title}
             </h3>
-            <p className="text-gray-600 text-sm leading-relaxed flex-grow">
+            <p className="text-gray-600 text-sm leading-relaxed grow">
               {section.description}
             </p>
           </div>
@@ -283,6 +283,7 @@ export default function HomePage () {
     </section>
 
     {/* Floating Customer Care Icon */}
+  <section>
 <Link
   href="/contact" 
   className={`fixed bottom-10 right-8 z-50 bg-blue-600 text-white p-4 rounded-full shadow-lg transition-all duration-300 hover:bg-blue-700 ${
@@ -294,7 +295,7 @@ export default function HomePage () {
 >
   <i className="bi bi-headset text-2xl"></i>
 </Link>
-
+</section>
 
     </>
   );

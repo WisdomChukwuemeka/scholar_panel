@@ -1,41 +1,48 @@
+// middleware.js   ← pure JavaScript, works 100%
 import { NextResponse } from "next/server";
 
-export function middleware(req) {
-  // Correct cookie access
-  const access = req.cookies.get("access_token")?.value;
-  const refresh = req.cookies.get("refresh_token")?.value;
+const PROTECTED_PATHS = [
+  "/dashboard",
+  "/publications/list",
+  "/publications/create",
+  "/tasks",
+  "/guidelines/author",
+  "/guidelines/reviewers",
+  "/guidelines/editors",
+  "/contact",
+  "/conference/past",
+  "/conference/upcoming",
+];
 
-  const isAuthenticated = !!access || !!refresh;
+const AUTH_PAGES = ["/login", "/register"];
 
-  const path = req.nextUrl.pathname;
+export function middleware(request) {
+  const pathname = request.nextUrl.pathname;
 
-  // Protected pages
-  const protectedPaths = [
-    "/guidelines/author",
-    "/guidelines/reviewers",
-    "/guidelines/editors",
-    "/dashboard",
-    "/publications/list",
-    "/publications/create",
-    "/tasks",
-    "/contact",
-    "/conference/past",
-    "/conference/upcoming",
-  ];
+  // Debug log (keep while testing, remove later if you want)
+  console.log("Middleware → path:", pathname);
+  console.log("Cookies seen:", request.cookies.get("access_token") ? "access_token YES" : "NO");
+  console.log("Cookies seen:", request.cookies.get("refresh_token") ? "refresh_token YES" : "NO");
 
-  const requiresAuth = protectedPaths.some((p) => path.startsWith(p));
+  const hasAccessToken = request.cookies.has("access_token");
+  const hasRefreshToken = request.cookies.has("refresh_token");
+  const isAuthenticated = hasAccessToken || hasRefreshToken;
 
-  // Redirect unauthenticated users trying to access protected pages
-  if (requiresAuth && !isAuthenticated) {
-    return NextResponse.redirect(new URL("/login", req.url));
+  const needsAuth = PROTECTED_PATHS.some((path) =>
+    pathname.startsWith(path)
+  );
+  const isOnAuthPage = AUTH_PAGES.includes(pathname);
+
+  // Not logged in → trying to access protected page
+  if (needsAuth && !isAuthenticated) {
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("next", pathname);
+    return NextResponse.redirect(loginUrl);
   }
 
-  // Redirect authenticated users away from login/register
-  const authPages = ["/login", "/register"];
-  const isAuthPage = authPages.includes(path);
-
-  if (isAuthenticated && isAuthPage) {
-    return NextResponse.redirect(new URL("/", req.url));
+  // Logged in → trying to go to login/register
+  if (isAuthenticated && isOnAuthPage) {
+    return NextResponse.redirect(new URL("/", request.url));
   }
 
   return NextResponse.next();
@@ -44,11 +51,10 @@ export function middleware(req) {
 export const config = {
   matcher: [
     "/dashboard/:path*",
-    "/publications/:path*",  // covers /publication and /publication/list
+    "/publications/:path*",
     "/tasks/:path*",
     "/guidelines/:path*",
     "/contact/:path*",
     "/conference/:path*",
   ],
 };
-

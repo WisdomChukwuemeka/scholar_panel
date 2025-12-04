@@ -354,20 +354,24 @@ useEffect(() => {
               </Link>
             )}
 
-            {/* Role-specific Buttons */}
-            {role === "editor" ? (
-              <Link href="/dashboard">
-                <button className="hidden xl:flex bg-blue-600 text-white btn hover:bg-blue-800 duration-500 px-4 py-2 rounded-md cursor-pointer">
-                  Dashboard
-                </button>
-              </Link>
-            ) : (
-              <Link href="/publications/create">
-                <button className="hidden xl:flex bg-orange-600 text-white btn hover:bg-orange-800 duration-500 cursor-pointer">
-                  Submit Article
-                </button>
-              </Link>
-            )}
+          {/* Submit Article — only for logged in non-editors */}
+{isLoggin && role !== "editor" && (
+  <Link href="/publications/create">
+    <button className="hidden xl:flex bg-orange-600 text-white btn hover:bg-orange-800 duration-500 cursor-pointer">
+      Submit Article
+    </button>
+  </Link>
+)}
+
+{/* Dashboard — only for editors */}
+{isLoggin && role === "editor" && (
+  <Link href="/dashboard">
+    <button className="hidden xl:flex bg-blue-600 text-white btn hover:bg-blue-800 duration-500 px-4 py-2 rounded-md cursor-pointer">
+      Dashboard
+    </button>
+  </Link>
+)}
+
 
             {/* Mobile Menu Toggle */}
             <div className="cursor-pointer text-black" onClick={toggleMenu}>
@@ -527,13 +531,15 @@ useEffect(() => {
 
             {/* Role-specific Buttons */}
             <div className="col-span-3 flex justify-center">
-            {role === "editor" ? (
+            {isLoggin && role === "editor" && (
               <Link href="/dashboard" className="flex justify-center">
                 <button className="bg-blue-600 text-white btn hover:bg-blue-800 duration-500 px-4 py-2 rounded-md cursor-pointer">
                   Dashboard
                 </button>
               </Link>
-            ) : (
+            )} 
+            
+            {isLoggin && role !== "editor" && (
               <Link href="/publications/create" className="flex justify-center">
                 <button className="bg-orange-600 text-white btn hover:bg-orange-800 duration-500 px-4 py-2 rounded-md cursor-pointer">
                   Submit Article

@@ -29,6 +29,26 @@ const slideVariants = {
 
 export default function HomePage () {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isLoggin, setIsLoggin] = useState(false);
+  const [role, setRole] = useState("");
+
+
+   useEffect(() => {
+      const updateAuthState = () => {
+        const storedRole = localStorage.getItem("role");
+        setIsLoggin(!!storedRole);           // ← Now correct
+        setRole(storedRole?.trim().toLowerCase() || "");
+      };
+  
+      updateAuthState();
+      window.addEventListener("authChange", updateAuthState);
+  
+      return () => {
+        window.removeEventListener("authChange", updateAuthState);
+      };
+    }, []);
+
+
 
   // Auto change highlight every 10 seconds
   useEffect(() => {
@@ -133,11 +153,13 @@ export default function HomePage () {
 
             {/* Buttons */}
           <div className="absolute bottom-0 flex gap-4 pt-4">
-            <Link href="/publications/create">
+            {isLoggin && (
+                          <Link href="/publications/create">
               <button className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-2 rounded-md transition cursor-pointer">
               Submit Article
             </button>
             </Link>
+            )}
         
             <Link href="/publications/list">
             <button className="border border-orange-500 text-orange-600 hover:bg-orange-500 hover:text-white px-2 py-2 rounded-md transition cursor-pointer">

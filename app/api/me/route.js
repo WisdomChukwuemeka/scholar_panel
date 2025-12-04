@@ -1,34 +1,32 @@
-// app/api/me/route.js  ← FINAL WORKING VERSION
+// app/api/me/route.js ← FINAL 100% WORKING VERSION
 
 export const GET = async (request) => {
-  const backendUrl = process.env.NEXT_PUBLIC_BASE_URL;
+  const backendUrl = process.env.NEXT_PUBLIC_BASE_URL?.replace(/\/$/, "");
 
   if (!backendUrl) {
     return new Response("Backend URL missing", { status: 500 });
   }
 
-  // Get the incoming cookie header
   const cookieHeader = request.headers.get("cookie");
 
   try {
-    const response = await fetch(`${backendUrl.replace(/\/$/, "")}/me/`, {
+    const response = await fetch(`${backendUrl}/me/`, {
       method: "GET",
-      credentials: "include", // Critical
+      credentials: "include",
       headers: {
-        // This is the magic line that actually works on Vercel
-        ...(cookieHeader ? { Cookie: cookieHeader } : {}),
+        "Cookie": cookieHeader || "",           // ← THIS LINE WAS WRONG BEFORE
         "Content-Type": "application/json",
+        "Accept": "application/json",
       },
     });
 
-    const text = await response.text(); // Get raw text first
+    const text = await response.text();
+    let data = {};
 
-    let data;
     try {
       data = text ? JSON.parse(text) : {};
     } catch (e) {
-      console.error("Failed to parse JSON:", text);
-      data = {};
+      console.error("JSON parse failed:", text);
     }
 
     if (response.ok) {
@@ -36,22 +34,14 @@ export const GET = async (request) => {
         status: 200,
         headers: { "Content-Type": "application/json" },
       });
-    } else {
-      // Log exactly what Django returned
-      console.log("Django /me/ returned:", response.status, data);
-      return new Response(JSON.stringify({ error: "Unauthorized", details: data }), {
-        status: 401,
-      });
     }
+
+    console.log("Django /me/ failed:", response.status, data);
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+    });
   } catch (error) {
-    console.error("Proxy error:", error);
+    console.error("Proxy /me/ error:", error);
     return new Response("Server error", { status: 500 });
   }
-};
-
-// Important: Allow cookies to be sent
-export const config = {
-  api: {
-    bodyParser: false,
-  },
 };

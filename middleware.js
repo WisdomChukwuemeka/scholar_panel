@@ -27,7 +27,7 @@ export async function middleware(request) {
   }
 
   // Call your own proxy endpoint to check auth
-  const meUrl = new URL("/api/me", request.url);
+  const meUrl = new URL("/me", request.url);
   const meResponse = await fetch(meUrl, {
     method: "GET",
     headers: {

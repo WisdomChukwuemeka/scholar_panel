@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { PublicationAPI } from "../services/api";
+import { PublicationAPI } from "@/app/services/api";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";

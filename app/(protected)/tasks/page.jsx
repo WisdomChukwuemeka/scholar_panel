@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { TaskAPI } from '../services/api';
+import { TaskAPI } from '@/app/services/api';
 import { Book, UserRound, Clock, User, Calendar, CheckCircle2, Circle, PlayCircle, FileText } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 

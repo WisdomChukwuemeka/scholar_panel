@@ -10,7 +10,7 @@ export function middleware(req) {
   );
 
   // Read Django cookie
-  const access = cookies().get("access_token")?.value;
+  const access = req.cookies.get("access_token")?.value;
 
   // Not logged in → redirect to login
   if (isProtected && !access) {

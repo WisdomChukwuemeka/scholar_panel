@@ -7,9 +7,12 @@ import PaymentModal from "./PaymentModel";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { motion } from 'framer-motion'
+import {AuthAPI} from '../services/api'
 
 export default function PublicationForm() {
   const router = useRouter();
+  const [isAuth, setIsAuth] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     abstract: "",
@@ -42,6 +45,24 @@ export default function PublicationForm() {
     { value: "news", label: "News/Blog" },
     { value: "other", label: "Other" },
   ];
+
+useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        await AuthAPI.me(); // or any endpoint to verify JWT cookie
+        setIsAuth(true);
+      } catch (err) {
+        router.push("/login");
+      } finally {
+        setHydrated(true);
+      }
+    };
+    checkAuth();
+  }, [router]);
+
+  if (!hydrated) return <p>Loading...</p>;
+if (!isAuth) return null; // Redirect already handled in useEffect
+
 
   const validateForm = () => {
     const newErrors = {};

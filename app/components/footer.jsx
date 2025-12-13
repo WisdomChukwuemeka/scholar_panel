@@ -1,18 +1,26 @@
 "use client";
 
+
 import Image from "next/image";
 export const Footer = () => {
   return (
     <>
       <footer className="relative bg-blue-900 text-gray-300 pt-4 pb-4">
-        <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
           {/* Column 1: Logo + Mission */}
           <div>
-            <div className="flex items-center space-x-2 mb-2">
-              <h2 className="text-lg font-bold text-white">Journivor</h2>
+            <div>
+              <Image
+                            src="/logo/logo2.png"
+                            alt="Logo"
+                            width={150}
+                            height={100}
+                            priority
+                            className="max-w-4xl"
+                          />
             </div>
             <p className="text-xs leading-relaxed">
-              Breaking barriers in academic publishing. Journivor is dedicated to
+              Breaking barriers in academic publishing. Scippra is dedicated to
               making research accessible, afforadable, transparent, and globally impactful.
             </p>
           </div>
@@ -34,7 +42,7 @@ export const Footer = () => {
           <div>
             <h3 className="text-md font-semibold text-white mb-2">Get in Touch</h3>
             <p className="text-xs">📍 Port Harcourt, Rivers State, Nigeria</p>
-            <p className="text-xs">✉️ contact@journivor.org</p>
+            <p className="text-xs">✉️ contact@Scippra.org</p>
             <p className="text-xs mb-2">📞 +234 800 123 4567</p>
 
             <div className="flex space-x-3 mt-1">
@@ -48,7 +56,7 @@ export const Footer = () => {
 
         {/* Bottom Bar */}
         <div className="mt-6 border-t border-white/20 py-3 text-center text-xs text-gray-400">
-          © {new Date().getFullYear()} Journivor. All Rights Reserved.
+          © {new Date().getFullYear()} Scippra. All Rights Reserved.
         </div>
       </footer>
     </>

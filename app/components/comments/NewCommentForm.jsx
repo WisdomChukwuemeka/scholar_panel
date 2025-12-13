@@ -355,7 +355,7 @@ const handleSubmit = async (e) => {
                       )}
 
                       {/* REACTIONS */}
-                      <div className=" flex items-center justify-between mt-7">
+                      <div className=" flex items-center justify-between mt-20">
                         <div className="flex items-center gap-1.5 flex-wrap">
                           {Object.entries(cmt.reactions || {})
                             .filter(([, count]) => count > 0)

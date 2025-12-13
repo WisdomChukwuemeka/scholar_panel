@@ -43,7 +43,7 @@ export default function PublishingGuidelines() {
         transition={{ duration: 0.6 }}
         className="text-4xl font-bold mb-6 text-center"
       >
-        Journivo Author Publishing Guidelines
+        Scippra Author Publishing Guidelines
       </motion.h1>
 
       <motion.p
@@ -52,7 +52,7 @@ export default function PublishingGuidelines() {
         transition={{ delay: 0.3, duration: 0.6 }}
         className="text-lg text-gray-700 mb-8 text-center"
       >
-        Welcome to Journivo. Before submitting your manuscript, please review
+        Welcome to Scippra. Before submitting your manuscript, please review
         our publishing standards carefully to ensure your work meets our
         requirements.
       </motion.p>
@@ -62,7 +62,7 @@ export default function PublishingGuidelines() {
         <section>
           <h2 className="text-2xl font-semibold mb-4">1. Scope of Publication</h2>
           <p className="text-gray-700 leading-relaxed">
-            Journivo publishes original research, reviews, case studies, and
+            Scippra publishes original research, reviews, case studies, and
             commentaries across disciplines. We encourage interdisciplinary
             works that provide new insights and foster academic conversations.
           </p>
@@ -94,10 +94,10 @@ export default function PublishingGuidelines() {
         <section>
           <h2 className="text-2xl font-semibold mb-4">4. Submission Process</h2>
           <ol className="list-decimal list-inside space-y-2 text-gray-700">
-            <li>Create an author account on Journivo.</li>
+            <li>Create an author account on Scippra.</li>
             <li>Upload your manuscript via the submission portal.</li>
             <li>Attach cover letter stating title, author details, and declaration of originality.</li>
-            <li>Confirm agreement with Journivo’s publishing policies.</li>
+            <li>Confirm agreement with Scippra’s publishing policies.</li>
           </ol>
         </section>
 
@@ -115,7 +115,7 @@ export default function PublishingGuidelines() {
         <section>
           <h2 className="text-2xl font-semibold mb-4">6. Open Access & Licensing</h2>
           <p className="text-gray-700 leading-relaxed">
-            Journivo is committed to open access. Accepted works are published
+            Scippra is committed to open access. Accepted works are published
             under a Creative Commons license, allowing free distribution with
             proper attribution.
           </p>
@@ -137,10 +137,10 @@ export default function PublishingGuidelines() {
           <p className="text-gray-700 leading-relaxed">
             For questions or assistance, please email{" "}
             <a
-              href="mailto:support@journivo.org"
+              href="mailto:support@Scippra.org"
               className="text-blue-600 underline"
             >
-              support@journivo.org
+              support@Scippra.org
             </a>
             .
           </p>

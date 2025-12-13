@@ -11,7 +11,7 @@ import {AuthAPI} from '../services/api'
 
 export default function PublicationForm() {
   const router = useRouter();
-  const [isAuth, setIsAuth] = useState(false);
+  // const [isAuth, setIsAuth] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
@@ -33,6 +33,8 @@ export default function PublicationForm() {
   const [pendingFormData, setPendingFormData] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // if (!hydrated) return null; // or a loader
+
   const CATEGORY_CHOICES = [
     { value: "journal", label: "Journal Article" },
     { value: "conference", label: "Conference Paper" },
@@ -46,58 +48,76 @@ export default function PublicationForm() {
     { value: "other", label: "Other" },
   ];
 
-useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        await AuthAPI.me(); // or any endpoint to verify JWT cookie
-        setIsAuth(true);
-      } catch (err) {
-        router.push("/login");
-      } finally {
-        setHydrated(true);
-      }
-    };
-    checkAuth();
-  }, [router]);
-
-  if (!hydrated) return <p>Loading...</p>;
-if (!isAuth) return null; // Redirect already handled in useEffect
+// useEffect(() => {
+//     const checkAuth = async () => {
+//       try {
+//         await AuthAPI.me(); // or any endpoint to verify JWT cookie
+//         setIsAuth(true);
+//       } catch (err) {
+//         router.push("/login");
+//       } finally {
+//         setHydrated(true);
+//       }
+//     };
+//     checkAuth();
+//   }, [router]);
 
 
-  const validateForm = () => {
-    const newErrors = {};
-    if (!formData.title || formData.title.length < 10) {
-      newErrors.title = "Title must be at least 10 characters long.";
-    }
-    if (!formData.abstract || formData.abstract.length < 200) {
-      newErrors.abstract = "Abstract must be at least 200 characters long.";
-    }
-    if (formData.abstract && formData.abstract.length > 2500) {
-      newErrors.abstract = "Abstract cannot exceed 2500 characters.";
-    }
-    if (!formData.content || formData.content.length < 500) {
-      newErrors.content = "Content must be at least 500 characters long.";
-    }
-    if (formData.content && formData.content.length > 15000) {
-      newErrors.content = "Content cannot exceed 15000 characters.";
-    }
-    if (!formData.category_name) {
-      newErrors.category_name = "Category is required.";
-    }
-    if (formData.file && !formData.file.name.match(/\.(pdf|doc|docx)$/i)) {
-      newErrors.file = "Only PDF and Word documents are allowed.";
-    }
-    if (
-      formData.video_file &&
-      !formData.video_file.name.match(/\.(mp4|avi|mov)$/i)
-    ) {
-      newErrors.video_file = "Only MP4, AVI, or MOV video files are allowed.";
-    }
-    if (formData.keywords && formData.keywords.split(",").length > 20) {
-      newErrors.keywords = "Cannot have more than 20 keywords.";
-    }
-    return newErrors;
-  };
+// const countWords = (text) => {
+//   return text.trim().split(/\s+/).filter(Boolean).length;
+// };
+const countWords = (text) => text.trim().split(/\s+/).filter(Boolean).length;
+
+
+const validateForm = () => {
+  const newErrors = {};
+
+  // TITLE
+  if (!formData.title || formData.title.length < 10) {
+    newErrors.title = "Title must be at least 10 characters long.";
+  }
+
+  // ABSTRACT — WORD COUNT (200–250 words)
+  const abstractWords = countWords(formData.abstract);
+  if (!formData.abstract || abstractWords < 200) {
+    newErrors.abstract = "Abstract must be at least 200 words.";
+  }
+  if (abstractWords > 250) {
+    newErrors.abstract = "Abstract cannot exceed 250 words.";
+  }
+
+  // CONTENT — WORD COUNT (min 500 words)
+  const contentWords = countWords(formData.content);
+  if (!formData.content || contentWords < 1000) {
+    newErrors.content = "Content must be at least 1000 words.";
+  }
+
+  // CATEGORY
+  if (!formData.category_name) {
+    newErrors.category_name = "Category is required.";
+  }
+
+  // FILE VALIDATION
+  if (formData.file && !formData.file.name.match(/\.(pdf|doc|docx)$/i)) {
+    newErrors.file = "Only PDF and Word documents are allowed.";
+  }
+
+  if (
+    formData.video_file &&
+    !formData.video_file.name.match(/\.(mp4|avi|mov)$/i)
+  ) {
+    newErrors.video_file = "Only MP4, AVI, or MOV video files are allowed.";
+  }
+
+  // KEYWORD VALIDATION 
+  if (formData.keywords && formData.keywords.split(",").length > 10) {
+    newErrors.keywords = "Cannot have more than 10 keywords.";
+  }
+
+  return newErrors;
+};
+
+
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
@@ -214,7 +234,7 @@ if (!isAuth) return null; // Redirect already handled in useEffect
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-blue-50 to-indigo-50 py-12 px-4 sm:px-6 lg:px-8">
       <ToastContainer position="top-right" autoClose={5000} theme="colored" />
       
       <div className="max-w-5xl mx-auto">
@@ -226,12 +246,12 @@ if (!isAuth) return null; // Redirect already handled in useEffect
           <p className="text-lg text-gray-600">
             Complete the form below to submit your research for review
           </p>
-          <div className="mt-4 h-1 w-24 bg-gradient-to-r from-blue-600 to-indigo-600 mx-auto rounded-full"></div>
+          <div className="mt-4 h-1 w-24 bg-linear-to-r from-blue-600 to-indigo-600 mx-auto rounded-full"></div>
         </div>
 
         {/* Form Container */}
         <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-6">
+          <div className="bg-linear-to-r from-blue-600 to-indigo-600 px-8 py-6">
             <h2 className="text-2xl font-semibold text-white">Publication Details</h2>
             <p className="text-blue-100 mt-1">All fields marked with * are required</p>
           </div>
@@ -267,7 +287,7 @@ if (!isAuth) return null; // Redirect already handled in useEffect
                   <p className={`text-xs font-medium ${
                     formData.title.length < 10 ? 'text-red-600' : 'text-green-600'
                   }`}>
-                    {formData.title.length}/10 minimum characters
+                    {formData.title.length}/10 
                   </p>
                 </div>
                 {errors.title && (
@@ -316,7 +336,7 @@ if (!isAuth) return null; // Redirect already handled in useEffect
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 text-gray-900"
                   placeholder="e.g., machine learning, neural networks, AI (comma-separated)"
                 />
-                <p className="text-xs text-gray-500">Separate keywords with commas (maximum 20)</p>
+                <p className="text-xs text-gray-500">Separate keywords with commas (maximum 10)</p>
               </div>
             </motion.div>
 
@@ -343,17 +363,17 @@ if (!isAuth) return null; // Redirect already handled in useEffect
                   onChange={handleChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 text-gray-900 resize-none"
                   rows="5"
-                  placeholder="Provide a concise summary of your publication (200-2500 characters)"
+                  placeholder="Provide a concise summary of your publication"
                   required
                 />
                 <div className="flex justify-between items-center">
                   <p className={`text-xs font-medium ${
-                    formData.abstract.length < 200 ? 'text-red-600' :
-                    formData.abstract.length > 2500 ? 'text-red-600' : 'text-green-600'
+                    countWords(formData.abstract) < 200 || countWords(formData.abstract) > 250
+                      ? "text-red-600"
+                      : "text-green-600"
                   }`}>
-                    {formData.abstract.length}/2500 characters
+                    {countWords(formData.abstract)} words (200–250 required)
                   </p>
-                  <p className="text-xs text-gray-500">Minimum 200 characters required</p>
                 </div>
                 {errors.abstract && (
                   <p className="text-red-600 text-sm flex items-center gap-1">
@@ -373,17 +393,17 @@ if (!isAuth) return null; // Redirect already handled in useEffect
                   onChange={handleChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 text-gray-900 resize-none"
                   rows="10"
-                  placeholder="Enter the complete content of your publication (500-15000 characters)"
+                  placeholder="Enter the complete content of your publication"
                   required
                 />
                 <div className="flex justify-between items-center">
-                  <p className={`text-xs font-medium ${
-                    formData.content.length < 500 ? 'text-red-600' :
-                    formData.content.length > 15000 ? 'text-red-600' : 'text-green-600'
+                <p className={`text-xs font-medium ${
+                    countWords(formData.content) < 1000 || countWords(formData.content) > 10000
+                      ? "text-red-600"
+                      : "text-green-600"
                   }`}>
-                    {formData.content.length}/15000 characters
-                  </p>
-                  <p className="text-xs text-gray-500">Minimum 500 characters required</p>
+                  {countWords(formData.content)} words (1000–10000 required)
+                </p>
                 </div>
                 {errors.content && (
                   <p className="text-red-600 text-sm flex items-center gap-1">
@@ -518,7 +538,7 @@ if (!isAuth) return null; // Redirect already handled in useEffect
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold py-4 px-6 rounded-lg 
+                className="w-full bg-linear-to-r from-blue-600 to-indigo-600 text-white font-semibold py-4 px-6 rounded-lg 
                 shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-indigo-700 
                 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed 
                 transform transition duration-200 hover:scale-[1.02] active:scale-[0.98]
@@ -551,7 +571,7 @@ if (!isAuth) return null; // Redirect already handled in useEffect
         {/* Footer Note */}
         <div className="mt-8 text-center">
           <p className="text-sm text-gray-600">
-            Need help? Contact our support team at <span className="text-blue-600 font-medium">support@journivor.com</span>
+            Need help? Contact our support team at <span className="text-blue-600 font-medium">support@Scippra.com</span>
           </p>
         </div>
       </div>

@@ -44,7 +44,7 @@ export default function ServicesPage() {
           Our Services
         </h2>
         <p className="text-center text-lg text-gray-600 mb-12">
-          At Journivo, we are committed to advancing knowledge through high-quality publishing,
+          At Scippra, we are committed to advancing knowledge through high-quality publishing,
           professional editorial services, and global research dissemination.
         </p>
 
@@ -73,7 +73,7 @@ export default function ServicesPage() {
               Indexing & Archiving
             </h3>
             <p className="text-gray-600">
-              Journivo ensures your research is indexed, discoverable, and preserved in leading databases and repositories for long-term academic visibility.
+              Scippra ensures your research is indexed, discoverable, and preserved in leading databases and repositories for long-term academic visibility.
             </p>
           </div>
 
@@ -91,7 +91,7 @@ export default function ServicesPage() {
               Research Promotion
             </h3>
             <p className="text-gray-600">
-              With digital marketing, open-access strategies, and collaborations, Journivo amplifies your research impact globally.
+              With digital marketing, open-access strategies, and collaborations, Scippra amplifies your research impact globally.
             </p>
           </div>
 
@@ -115,7 +115,7 @@ export default function ServicesPage() {
           </p>
 
           {/* Static Pricing Plans */}
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 max-w-4xl mx-auto">
+          <div className="grid gap-6 md:grid-cols-2 max-w-4xl mx-auto">
             <div className="bg-white shadow-lg rounded-2xl p-6 text-center">
               <h3 className="text-xl font-semibold text-gray-900 mb-2">Publication Fee</h3>
               <p className="text-2xl font-bold text-blue-600 mb-4">₦25,000</p>
@@ -126,13 +126,13 @@ export default function ServicesPage() {
               <p className="text-2xl font-bold text-blue-600 mb-4">₦3,000</p>
               <p className="text-gray-600">Per review after two free reviews are used.</p>
             </div>
-            <div className="bg-white shadow-lg rounded-2xl p-6 text-center">
+            {/* <div className="bg-white shadow-lg rounded-2xl p-6 text-center">
               <Link href="/publications/create" className="inline-block w-full">
                 <button className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition">
                   Submit Publication
                 </button>
               </Link>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>

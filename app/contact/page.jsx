@@ -85,12 +85,12 @@ export default function ContactPage() {
         </h2>
         <p className="text-center text-lg text-gray-600 mb-12">
           We’d love to hear from you. Whether you’re an author, reviewer,
-          editor, or partner, Journivo is here to connect with you.
+          editor, or partner, Scippra is here to connect with you.
         </p>
 
         {/* CEO Info */}
         <div className="bg-white shadow-lg rounded-2xl p-8 flex flex-col md:flex-row items-center gap-8">
-          <div className="flex-shrink-0">
+          <div className="shrink-0">
             <Image
               src="/ceo/ceo1.png"
               alt="CEO - Chukwuemeka Wisdom Chinagorom"
@@ -104,7 +104,7 @@ export default function ContactPage() {
             <h3 className="text-2xl font-semibold text-gray-900">
               Editor in Chief
             </h3>
-            <p className="text-gray-500 mb-4">Founder & CEO, Journivo</p>
+            <p className="text-gray-500 mb-4">Founder & CEO, Scippra</p>
             <ul className="space-y-3">
               <li>
                 <strong>Email:</strong>{" "}

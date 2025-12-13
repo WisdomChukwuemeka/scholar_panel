@@ -2,42 +2,42 @@ export const highlights = [
   {
     title: "Championing Global Knowledge Sharing",
     description:
-      "Journivo is committed to creating a world where knowledge flows freely. By removing barriers to research access, it empowers scholars globally to share discoveries, exchange ideas, and inspire innovation across diverse academic communities.",
+      "Scippra is committed to creating a world where knowledge flows freely. By removing barriers to research access, it empowers scholars globally to share discoveries, exchange ideas, and inspire innovation across diverse academic communities.",
   },
   {
     title: "Advancing Research Through Open Access",
     description:
-      "Journivo strengthens academic excellence through its open access platform. By making groundbreaking research freely available, it supports the advancement of science, innovation, and education while ensuring equal opportunities for learning, growth, and discovery worldwide.",
+      "Scippra strengthens academic excellence through its open access platform. By making groundbreaking research freely available, it supports the advancement of science, innovation, and education while ensuring equal opportunities for learning, growth, and discovery worldwide.",
   },
   {
     title: "Where Scholarship Meets Accessibility",
     description:
-      "Journivo closes the gap between scholarship and society by promoting accessibility. Through open access publishing, it guarantees that knowledge transcends financial barriers, making academic research available to students, educators, and researchers everywhere in the world.",
+      "Scippra closes the gap between scholarship and society by promoting accessibility. Through open access publishing, it guarantees that knowledge transcends financial barriers, making academic research available to students, educators, and researchers everywhere in the world.",
   },
   {
     title: "Empowering Voices in Academia",
     description:
-      "Journivo amplifies academic voices by valuing inclusivity and diversity. It provides equal opportunities for emerging and established researchers, enabling meaningful contributions, fostering equity, and promoting collaborative growth within the global academic and scholarly publishing community.",
+      "Scippra amplifies academic voices by valuing inclusivity and diversity. It provides equal opportunities for emerging and established researchers, enabling meaningful contributions, fostering equity, and promoting collaborative growth within the global academic and scholarly publishing community.",
   },
   {
     title: "Innovating the Future of Academic Publishing",
     description:
-      "Journivo leads innovation in academic publishing by embracing digital platforms. Its mission is to maximize impact, extend reach, and ensure that research flows across borders, disciplines, and communities without restrictions, obstacles, or unnecessary academic limitations.",
+      "Scippra leads innovation in academic publishing by embracing digital platforms. Its mission is to maximize impact, extend reach, and ensure that research flows across borders, disciplines, and communities without restrictions, obstacles, or unnecessary academic limitations.",
   },
   {
     title: "Breaking Barriers, Building Knowledge",
     description:
-      "Journivo challenges outdated restrictions by promoting open access publishing. Through this approach, it transforms how knowledge is shared, enabling unrestricted academic engagement, supporting intellectual equity, and contributing toward the advancement of education and humanity everywhere.",
+      "Scippra challenges outdated restrictions by promoting open access publishing. Through this approach, it transforms how knowledge is shared, enabling unrestricted academic engagement, supporting intellectual equity, and contributing toward the advancement of education and humanity everywhere.",
   },
   {
     title: "A Trusted Hub for Scholarly Excellence",
     description:
-      "Journivo upholds credibility, transparency, and integrity in research publishing. By maintaining strong editorial standards and ethical practices, it ensures that every published work enriches the global knowledge base, fostering scholarly trust, excellence, and academic advancement.",
+      "Scippra upholds credibility, transparency, and integrity in research publishing. By maintaining strong editorial standards and ethical practices, it ensures that every published work enriches the global knowledge base, fostering scholarly trust, excellence, and academic advancement.",
   },
   {
     title: "Making Research Universally Accessible",
     description:
-      "Journivo’s mission is universal accessibility. By eliminating copyright and cost barriers, it ensures that academic contributions reach wider audiences, empowering students, educators, policymakers, and researchers worldwide with meaningful opportunities for shared learning and intellectual growth.",
+      "Scippra’s mission is universal accessibility. By eliminating copyright and cost barriers, it ensures that academic contributions reach wider audiences, empowering students, educators, policymakers, and researchers worldwide with meaningful opportunities for shared learning and intellectual growth.",
   },
 ];
 

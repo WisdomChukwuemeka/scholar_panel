@@ -43,7 +43,7 @@ export default function About() {
         transition={{ duration: 0.6 }}
         className="text-4xl font-bold mb-8 text-center"
       >
-        About Journivo
+        About   Scippra
       </motion.h1>
 
       {/* Intro */}
@@ -53,7 +53,7 @@ export default function About() {
         transition={{ delay: 0.3, duration: 0.6 }}
         className="text-lg text-gray-700 leading-relaxed mb-10 text-center"
       >
-        Journivo is a digital-first academic publishing platform dedicated to
+          Scippra is an academic publishing platform dedicated to
         empowering researchers, educators, and professionals by providing a
         transparent, accessible, and impactful way to share knowledge with the
         world.
@@ -71,7 +71,7 @@ export default function About() {
           <p className="text-gray-700 leading-relaxed">
             To advance global scholarship by providing authors, reviewers, and
             editors with a fair, fast, and inclusive publishing experience.
-            Journivo bridges the gap between research and real-world impact
+              Scippra bridges the gap between research and real-world impact
             through open access and academic excellence.
           </p>
         </motion.div>
@@ -134,7 +134,7 @@ export default function About() {
         className="mt-16 text-center"
       >
         <p className="text-gray-700 text-lg leading-relaxed">
-          At Journivo, we are not just a platform—we are a community committed
+          At  Scippra, we are not just a platform—we are a community committed
           to advancing scholarship and shaping the future of academic
           publishing.
         </p>

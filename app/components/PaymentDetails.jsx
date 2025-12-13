@@ -129,7 +129,7 @@ export default function PublicationDetail() {
             <span>/</span>
             <Link href="/publications/list" className="hover:text-blue-600 transition-colors">Publications</Link>
             <span>/</span>
-            <span className="text-gray-700 font-medium">Article Detail</span>
+            <span className="text-gray-700 font-medium">{publication.category_labels}</span>
           </nav>
         </motion.div>
 

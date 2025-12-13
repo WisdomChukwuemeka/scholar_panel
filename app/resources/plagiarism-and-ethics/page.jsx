@@ -60,7 +60,7 @@ export default function PlagiarismAndEthicsPolicyPage() {
         </h1>
 
         <p className="mt-5 text-gray-700 text-lg leading-relaxed max-w-3xl mx-auto">
-          This policy outlines <em>Journivo</em>&rsquo;s expectations for originality,
+          This policy outlines <em>Scippra</em>&rsquo;s expectations for originality,
           attribution, transparency, and research ethics. All authors must comply
           with these standards before submitting work for review.
         </p>
@@ -102,7 +102,7 @@ export default function PlagiarismAndEthicsPolicyPage() {
         {/* 1 */}
         <Section id="scope" title="1) Scope & Purpose">
           <p>
-            This policy governs all submissions to Journivo, including original
+            This policy governs all submissions to Scippra, including original
             articles, reviews, case studies, data papers, and supplementary
             materials such as figures, videos, datasets, and appendices.
           </p>
@@ -229,8 +229,8 @@ export default function PlagiarismAndEthicsPolicyPage() {
         <Section id="contact" title="13) Contact">
           <p>
             Questions about this policy may be directed to the editorial office at{" "}
-            <a href="mailto:editorial@journivo.example" className="underline text-[#d4a64a]">
-              editorial@journivo.example
+            <a href="mailto:editorial@Scippra.example" className="underline text-[#d4a64a]">
+              editorial@Scippra.example
             </a>.
           </p>
         </Section>

@@ -10,7 +10,7 @@ const Check = (props) => (
 );
 
 const Pill = ({ children }) => (
-  <span className="inline-flex items-center gap-2 bg-[#d4a64a] text-white font-medium px-4 py-1.5 rounded-full shadow-md">
+  <span className="inline-flex items-center gap-2 bg-blue-700 text-white font-medium px-4 py-1.5 rounded-full shadow-md">
     <Check className="w-4 h-4" />
     {children}
   </span>
@@ -19,7 +19,7 @@ const Pill = ({ children }) => (
 const Section = ({ id, title, children }) => (
   <section
     id={id}
-    className="bg-white rounded-3xl shadow-lg border border-[#e7d9b9] p-10 scroll-mt-24"
+    className="bg-white rounded-3xl shadow-lg border border-[#3a37ce] p-10 scroll-mt-24"
   >
     <h2 className="text-3xl font-bold mb-5 text-[#1a1a1a] tracking-wide">{title}</h2>
     <div className="text-gray-700 leading-relaxed space-y-4">{children}</div>
@@ -46,7 +46,7 @@ export default function OpenAccessPolicyPage() {
     <main className="max-w-6xl mx-auto px-6 py-16 bg-[#f5f0e6]">
 
       {/* HEADER */}
-      <header className="mb-16 text-center bg-white shadow-2xl rounded-3xl py-14 px-10 border-t-8 border-[#d4a64a]">
+      <header className="mb-16 text-center bg-white shadow-2xl rounded-3xl py-14 px-10 border-t-8 border-[#3a37ce]">
         <p className="text-sm text-gray-500">Resources</p>
 
         <h1 className="text-5xl font-bold tracking-wide text-[#1a1a1a] mt-1">
@@ -54,12 +54,12 @@ export default function OpenAccessPolicyPage() {
         </h1>
 
         <p className="mt-5 text-gray-700 text-lg leading-relaxed max-w-3xl mx-auto">
-          Journivo is committed to providing unrestricted and equitable access to scholarly research. 
+          Scippra is committed to providing unrestricted and equitable access to scholarly research. 
           Our Open Access Policy ensures global dissemination, transparency, and the free exchange of knowledge.
         </p>
 
-        <div className="mt-6 flex items-center justify-center gap-3">
-          <Pill>Accessibility</Pill>
+        <div className="mt-6 flex items-center justify-center gap-3 ">
+          <Pill >Accessibility</Pill>
           <Pill>Freedom</Pill>
           <Pill>Knowledge</Pill>
         </div>
@@ -77,7 +77,7 @@ export default function OpenAccessPolicyPage() {
               <li key={item.id}>
                 <a
                   href={`#${item.id}`}
-                  className="block rounded-xl border border-[#d4a64a] px-4 py-3 font-medium text-[#1a1a1a] hover:bg-[#d4a64a] hover:text-white transition shadow-sm"
+                  className="block rounded-xl border border-[#3a37ce] px-4 py-3 font-medium text-[#1a1a1a] hover:bg-blue-700 hover:text-white transition shadow-sm"
                 >
                   {item.label}
                 </a>
@@ -92,7 +92,7 @@ export default function OpenAccessPolicyPage() {
 
         <Section id="about" title="1) About This Policy">
           <p>
-            Journivo supports full Open Access publishing, meaning all articles are freely 
+            Scippra supports full Open Access publishing, meaning all articles are freely 
             available without subscription or paywall barriers. Our mission is to promote global 
             access to academic knowledge, enabling researchers, policymakers, educators, and 
             the public to benefit without limitation.
@@ -110,7 +110,7 @@ export default function OpenAccessPolicyPage() {
 
         <Section id="licensing" title="3) Licensing & Copyright">
           <p>
-            Journivo publishes under Creative Commons licenses, typically 
+            Scippra publishes under Creative Commons licenses, typically 
             <strong> CC BY 4.0</strong>, unless otherwise stated.
           </p>
           <ul className="space-y-3 pl-6 list-disc">
@@ -130,7 +130,7 @@ export default function OpenAccessPolicyPage() {
         </Section>
 
         <Section id="repository" title="5) Repository & Archiving">
-          <p>Journivo supports long-term digital preservation and repository storage.</p>
+          <p>Scippra supports long-term digital preservation and repository storage.</p>
           <ul className="space-y-3 pl-6 list-disc">
             <li>Authors may deposit preprints and postprints anywhere.</li>
             <li>Published versions are archived permanently.</li>
@@ -140,7 +140,7 @@ export default function OpenAccessPolicyPage() {
 
         <Section id="fees" title="6) Publication Fees">
           <p>
-            Journivo may charge Article Processing Charges (APCs) depending on 
+            Scippra may charge Article Processing Charges (APCs) depending on 
             article type and editorial requirements. Fee waivers are available for:
           </p>
           <ul className="space-y-3 pl-6 list-disc">
@@ -174,7 +174,7 @@ export default function OpenAccessPolicyPage() {
 
         <Section id="compliance" title="9) Funders & Compliance">
           <p>
-            Journivo’s Open Access Policy complies with major global funder 
+            Scippra’s Open Access Policy complies with major global funder 
             requirements, including:
           </p>
           <ul className="space-y-3 pl-6 list-disc">
@@ -188,8 +188,8 @@ export default function OpenAccessPolicyPage() {
         <Section id="contact" title="10) Contact">
           <p>
             Questions about Open Access? Contact us at{" "}
-            <a href="mailto:openaccess@journivo.example" className="underline text-[#d4a64a]">
-              openaccess@journivo.example
+            <a href="mailto:openaccess@Scippra.example" className="underline text-[#d4a64a]">
+              openaccess@Scippra.example
             </a>.
           </p>
         </Section>

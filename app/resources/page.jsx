@@ -15,7 +15,7 @@ export default function ResourcesPage() {
         </h2>
         <p className="text-center text-lg text-gray-600 mb-12">
           Explore essential tools, templates, and guidelines to support authors, reviewers, and editors 
-          throughout the publishing process at Journivo.
+          throughout the publishing process at Scippra.
         </p>
 
         {/* Resource Categories */}

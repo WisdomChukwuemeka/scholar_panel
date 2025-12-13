@@ -74,6 +74,7 @@ export default function PublicationResubmitForm({
             video_file: null,
             cover_image: null,
             co_authors_input: pub.co_authors,
+            volume: pub.volume || "",
           });
         })
         .catch(() => toast.error("Failed to load publication."))
@@ -84,6 +85,9 @@ export default function PublicationResubmitForm({
     }
   }, [publicationId, initialData, router]);
 
+
+  const countWords = (text) => text.trim().split(/\s+/).filter(Boolean).length;
+
   /* --------------------------------------------------------------
      Validation
   -------------------------------------------------------------- */
@@ -91,14 +95,17 @@ export default function PublicationResubmitForm({
     const newErrors = {};
     if (!formData.title?.trim() || formData.title.length < 10)
       newErrors.title = "Title must be at least 10 characters.";
-    if (!formData.abstract?.trim() || formData.abstract.length < 200)
-      newErrors.abstract = "Abstract must be at least 200 characters.";
-    if (formData.abstract.length > 2500)
-      newErrors.abstract = "Abstract cannot exceed 2500 characters.";
-    if (!formData.content?.trim() || formData.content.length < 500)
-      newErrors.content = "Content must be at least 500 characters.";
-    if (formData.content.length > 15000)
-      newErrors.content = "Content cannot exceed 15000 characters.";
+    const abstractWords = countWords(formData.abstract);
+    if (!formData.abstract || abstractWords < 200) {
+        newErrors.abstract = "Abstract must be at least 200 words.";
+    }
+    if (abstractWords > 250) {
+        newErrors.abstract = "Abstract cannot exceed 250 words.";
+    }    
+    const contentWords = countWords(formData.content);
+    if (!formData.content || contentWords < 1000) {
+        newErrors.content = "Content must be at least 1000 words.";
+    }    
     if (!formData.category_name)
       newErrors.category_name = "Category is required.";
     if (formData.file && !/\.(pdf|doc|docx)$/i.test(formData.file.name))
@@ -108,11 +115,10 @@ export default function PublicationResubmitForm({
       !/\.(mp4|avi|mov)$/i.test(formData.video_file.name)
     )
       newErrors.video_file = "Only MP4, AVI, MOV allowed.";
-    if (
-      formData.keywords &&
-      formData.keywords.split(",").filter((k) => k.trim()).length > 20
-    )
-      newErrors.keywords = "Maximum 20 keywords.";
+   
+    if (formData.keywords && formData.keywords.split(",").length > 10) {
+    newErrors.keywords = "Cannot have more than 10 keywords.";
+  }
 
     if (formData.cover_image && !/\.(jpg|jpeg|png|webp)$/i.test(formData.cover_image.name))
       newErrors.cover_image = "Only JPG, JPEG, PNG, WEBP allowed.";
@@ -411,7 +417,7 @@ const handleSubmit = async (e) => {
                       placeholder="e.g., AI, Machine Learning, NLP (comma-separated)"
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-red-500 focus:border-transparent transition duration-200 text-gray-900"
                     />
-                    <p className="text-xs text-gray-500">Separate keywords with commas (maximum 20)</p>
+                    <p className="text-xs text-gray-500">Separate keywords with commas (maximum 10)</p>
                     {errors.keywords && (
                       <p className="text-red-600 text-sm flex items-center gap-1">
                         <span>⚠</span> {errors.keywords}
@@ -447,18 +453,18 @@ const handleSubmit = async (e) => {
                       required
                     />
                     <div className="flex justify-between items-center">
-                      <p className={`text-xs font-medium ${
-                        formData.abstract.length < 200 ? 'text-red-600' :
-                        formData.abstract.length > 2500 ? 'text-red-600' : 'text-green-600'
-                      }`}>
-                        {formData.abstract.length}/2500 characters
-                      </p>
-                      <p className="text-xs text-gray-500">Minimum 200 characters required</p>
-                    </div>
-                    {errors.abstract && (
-                      <p className="text-red-600 text-sm flex items-center gap-1">
-                        <span>⚠</span> {errors.abstract}
-                      </p>
+                       <p className={`text-xs font-medium ${
+                    countWords(formData.abstract) < 200 || countWords(formData.abstract) > 250
+                      ? "text-red-600"
+                      : "text-green-600"
+                  }`}>
+                    {countWords(formData.abstract)} words (200–250 required)
+                  </p>
+                </div>
+                {errors.abstract && (
+                  <p className="text-red-600 text-sm flex items-center gap-1">
+                    <span>⚠</span> {errors.abstract}
+                  </p>
                     )}
                   </div>
 
@@ -478,17 +484,17 @@ const handleSubmit = async (e) => {
                     />
                     <div className="flex justify-between items-center">
                       <p className={`text-xs font-medium ${
-                        formData.content.length < 500 ? 'text-red-600' :
-                        formData.content.length > 15000 ? 'text-red-600' : 'text-green-600'
-                      }`}>
-                        {formData.content.length}/15000 characters
-                      </p>
-                      <p className="text-xs text-gray-500">Minimum 500 characters required</p>
-                    </div>
-                    {errors.content && (
-                      <p className="text-red-600 text-sm flex items-center gap-1">
-                        <span>⚠</span> {errors.content}
-                      </p>
+                  countWords(formData.content) < 1000
+                    ? "text-red-600"
+                    : "text-green-600"
+                }`}>
+                  {countWords(formData.content)} words (minimum 1000 required)
+                </p>
+                </div>
+                {errors.content && (
+                  <p className="text-red-600 text-sm flex items-center gap-1">
+                    <span>⚠</span> {errors.content}
+                  </p>
                     )}
                   </div>
 

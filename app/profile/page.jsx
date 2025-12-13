@@ -140,7 +140,7 @@ const ProfilePage = () => {
   return (
     <>
       <div className="flex justify-center items-center min-h-screen bg-gray-100 p-4">
-        <div className="bg-white shadow-lg rounded-3xl w-full max-w-sm p-6 relative">
+        <div className="bg-white shadow-lg rounded-3xl w-full max-w-sm p-6 relative ">
           {profile && !editing ? (
             <div className="text-center">
               {profile.profile_image && (

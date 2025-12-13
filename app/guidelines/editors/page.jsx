@@ -43,7 +43,7 @@ export default function EditorGuidelines() {
         transition={{ duration: 0.6 }}
         className="text-4xl font-bold mb-6 text-center"
       >
-        Journivo Editorial Guidelines
+        Scippra Editorial Guidelines
       </motion.h1>
 
       <motion.p
@@ -52,7 +52,7 @@ export default function EditorGuidelines() {
         transition={{ delay: 0.3, duration: 0.6 }}
         className="text-lg text-gray-700 mb-8 text-center"
       >
-        Journivo editors ensure the integrity, fairness, and quality of the
+        Scippra editors ensure the integrity, fairness, and quality of the
         publication process. These guidelines outline the responsibilities and
         standards expected of all editors.
       </motion.p>
@@ -65,7 +65,7 @@ export default function EditorGuidelines() {
             Editors must treat all manuscripts impartially, without discrimination
             based on race, gender, institutional affiliation, or personal beliefs.
             Decisions should be based solely on scholarly merit and relevance to
-            Journivo’s mission.
+            Scippra’s mission.
           </p>
         </section>
 
@@ -146,10 +146,10 @@ export default function EditorGuidelines() {
           <p className="text-gray-700 leading-relaxed">
             For editorial assistance, please email{" "}
             <a
-              href="mailto:editors@journivo.org"
+              href="mailto:editors@Scippra.org"
               className="text-blue-600 underline"
             >
-              editors@journivo.org
+              editors@Scippra.org
             </a>
             .
           </p>

@@ -19,7 +19,7 @@ export default function CoverLetterTemplatePage() {
           Cover Letter Template
         </h1>
         <p className="mt-5 text-gray-700 text-lg max-w-3xl mx-auto">
-          Use this template when submitting a manuscript to Journivor. Customize the placeholders with your submission details.
+          Use this template when submitting a manuscript to Scippra. Customize the placeholders with your submission details.
         </p>
       </header>
 

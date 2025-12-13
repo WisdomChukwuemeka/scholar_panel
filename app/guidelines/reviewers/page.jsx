@@ -43,7 +43,7 @@ export default function ReviewerGuidelines() {
         transition={{ duration: 0.6 }}
         className="text-4xl font-bold mb-6 text-center"
       >
-        Journivo Reviewer Guidelines
+        Scippra Reviewer Guidelines
       </motion.h1>
 
       <motion.p
@@ -52,7 +52,7 @@ export default function ReviewerGuidelines() {
         transition={{ delay: 0.3, duration: 0.6 }}
         className="text-lg text-gray-700 mb-8 text-center"
       >
-        Thank you for serving as a reviewer for Journivo. Your evaluation helps
+        Thank you for serving as a reviewer for Scippra. Your evaluation helps
         ensure the quality, credibility, and integrity of the research we
         publish.
       </motion.p>
@@ -86,7 +86,7 @@ export default function ReviewerGuidelines() {
             <li>Clarity and coherence of writing</li>
             <li>Soundness of methodology and analysis</li>
             <li>Proper referencing and citation of sources</li>
-            <li>Relevance to Journivo’s mission and scope</li>
+            <li>Relevance to Scippra’s mission and scope</li>
           </ul>
         </section>
 
@@ -135,7 +135,7 @@ export default function ReviewerGuidelines() {
         <section>
           <h2 className="text-2xl font-semibold mb-4">7. Anonymity</h2>
           <p className="text-gray-700 leading-relaxed">
-            Journivo uses a <strong>double-blind review process</strong>. Do not
+            Scippra uses a <strong>double-blind review process</strong>. Do not
             include your name or identifying details in the review comments or
             document.
           </p>
@@ -147,10 +147,10 @@ export default function ReviewerGuidelines() {
           <p className="text-gray-700 leading-relaxed">
             For assistance with the review process, please email{" "}
             <a
-              href="mailto:editorial@journivo.org"
+              href="mailto:editorial@Scippra.org"
               className="text-blue-600 underline"
             >
-              editorial@journivo.org
+              editorial@Scippra.org
             </a>
             .
           </p>
